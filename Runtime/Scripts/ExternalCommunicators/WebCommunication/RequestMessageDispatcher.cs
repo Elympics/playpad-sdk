@@ -4,16 +4,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.DTO;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Responses;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 {
     internal class RequestMessageDispatcher
     {
-        private readonly ConcurrentDictionary<int, Response> _ticketStatus = new();
+        private readonly ConcurrentDictionary<int, ResponseMessage> _ticketStatus = new();
         private readonly List<int> _pendingTickets = new();
         private readonly object _lock = new();
 
@@ -24,14 +24,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 
         public void RegisterTicket(int ticket)
         {
-            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Register pending ticket {ticket}");
             lock (_lock)
                 _pendingTickets.Add(ticket);
         }
 
         public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket)
         {
-            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Request task {ticket}");
             await UniTask.WaitUntil(() => IsWaitingForResponse(ticket) is false);
             if (IsErrorResponse(ticket, out var code))
             {
@@ -61,7 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         private void OnResponseObjectReceived(string responseObject)
         {
             Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
-            var response = JsonUtility.FromJson<Response>(responseObject);
+            var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
             lock (_lock)
             {
                 var isPending = _pendingTickets.Any(x => x == response.ticket);
@@ -84,9 +82,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 
             if (string.IsNullOrEmpty(responseData!.response))
                 throw new ProtocolException($"Response data is null or empty.", responseData.type);
-
-            if (typeof(TReturn) == typeof(string))
-                return (TReturn)(object)_ticketStatus[ticket].response;
 
             var fromJsonObject = JsonUtility.FromJson<TReturn>(_ticketStatus[ticket].response);
             if (fromJsonObject == null)

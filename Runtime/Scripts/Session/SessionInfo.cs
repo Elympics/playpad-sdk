@@ -13,15 +13,20 @@ namespace ElympicsPlayPad.Session
         public readonly string? AccountWallet;
         public readonly string? SignWallet;
         public readonly Capabilities Capabilities;
+        public readonly FeatureAccess Features;
         public readonly string Environment;
         public readonly bool IsMobile;
         public readonly string ClosestRegion;
-        public readonly TournamentInfo? TournamentInfo;
 
-        public SessionInfo(AuthData? authData, string? accountWallet, string? signWallet, Capabilities capabilities, string environment,
+        public SessionInfo(
+            AuthData? authData,
+            string? accountWallet,
+            string? signWallet,
+            Capabilities capabilities,
+            string environment,
             bool isMobile,
             string closestRegion,
-            TournamentInfo? tournamentInfo)
+            FeatureAccess features)
         {
             AuthData = authData;
             AccountWallet = accountWallet;
@@ -30,7 +35,7 @@ namespace ElympicsPlayPad.Session
             Environment = environment;
             IsMobile = isMobile;
             ClosestRegion = closestRegion;
-            TournamentInfo = tournamentInfo;
+            Features = features;
         }
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);

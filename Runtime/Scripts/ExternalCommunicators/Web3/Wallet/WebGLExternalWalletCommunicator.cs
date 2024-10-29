@@ -1,12 +1,9 @@
 #nullable enable
 using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.DTO;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Session.Exceptions;
-using ElympicsPlayPad.Wrappers;
-using UnityEngine;
-using TransactionToSign = ElympicsPlayPad.DTO.TransactionToSign;
+using ElympicsPlayPad.Protocol.Requests;
+using ElympicsPlayPad.Protocol.Responses;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
 {
@@ -14,74 +11,35 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
     internal class WebGLExternalWalletCommunicator : IExternalWalletCommunicator
     {
         private readonly JsCommunicator _communicator;
-        private readonly ISmartContractServiceWrapper? _smartContractService;
-        private IPlayPadEventListener _connectionListener = null!;
-        public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator, ISmartContractServiceWrapper? smartContractService)
-        {
-            _smartContractService = smartContractService;
-            _communicator = jsCommunicator;
-            _communicator.WebObjectReceived += OnWebObjectReceived;
-            _smartContractService = smartContractService;
-        }
+        public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator) => _communicator = jsCommunicator;
 
-        private void OnWebObjectReceived(WebMessageObject messageObject)
+        public async UniTask<string> SignMessage(string address, string message)
         {
-            switch (messageObject.type)
+            var payload = new SignTypedDataRequest
             {
-                case WebMessageTypes.TrustTransactionFinished:
-                    OnTrustOperationFinished(messageObject.message);
-                    break;
-            }
-        }
+                address = address,
+                dataToSign = message,
+            };
 
-        //TODO: usun to stad do TrustCommunicatora.
-        private void OnTrustOperationFinished(string webMessageMessage)
-        {
-            var trustDeposit = JsonUtility.FromJson<TrustDepositTransactionFinishedWebMessage>(webMessageMessage);
-            _connectionListener.OnTrustDepositFinished(trustDeposit);
-        }
-        private void OnWalletConnected(string webMessageMessage)
-        {
-            var walletConnectedData = JsonUtility.FromJson<WalletConnectionWebMessage>(webMessageMessage);
-            if (walletConnectedData.isConnected)
-                _connectionListener.OnWalletConnected(walletConnectedData.address, walletConnectedData.chainId);
-            else
-                _connectionListener.OnWalletDisconnected();
-        }
-
-        public async UniTask<string> SignMessage<TInput>(string address, TInput message) => await _communicator.SendRequestMessage<TInput, string>(ReturnEventTypes.SignTypedData, message, address);
-
-        public async UniTask<ConnectionResponse> Connect()
-        {
-            var response = await _communicator.SendRequestMessage<string, ConnectionResponse>(ReturnEventTypes.Connect, string.Empty);
-            if (_smartContractService == null)
-                return response;
-
-            if (response.chainId != _smartContractService.CurrentChain!.Value.ChainId)
-                throw new ChainIdMismatch(response.chainId, _smartContractService.CurrentChain!.Value.ChainId);
-            return response;
+            var result = await _communicator.SendRequestMessage<SignTypedDataRequest, StringPayloadResponse>(ReturnEventTypes.SignTypedData, payload);
+            return result.message;
         }
 
         public async UniTask<string> SendTransaction(string to, string from, string data)
         {
-            var transaction = new TransactionToSign()
+            var transaction = new TransactionToSignRequest()
             {
                 to = to,
                 from = from,
                 data = data,
             };
-            return await _communicator.SendRequestMessage<TransactionToSign, string>(ReturnEventTypes.SendTransaction, transaction);
+            var result = await _communicator.SendRequestMessage<TransactionToSignRequest, StringPayloadResponse>(ReturnEventTypes.SendTransaction, transaction);
+            return result.message;
         }
-        void IExternalWalletCommunicator.SetPlayPadEventListener(IPlayPadEventListener listener) => _connectionListener = listener;
 
-
-        public void ExternalShowChainSelection() => _communicator.SendVoidMessage(VoidEventTypes.ShowChainSelectionUI, string.Empty);
-        public void ExternalShowConnectToWallet() => _communicator.SendVoidMessage(VoidEventTypes.ShowConnectToWallet, string.Empty);
-        public void ExternalShowAccountInfo() => _communicator.SendVoidMessage(VoidEventTypes.ShowAccountUI, string.Empty);
         public void Dispose()
         {
-            Debug.Log($"[{nameof(WebGLExternalWalletCommunicator)}] Dispose.");
-            _communicator.WebObjectReceived -= OnWebObjectReceived;
+
         }
     }
 }

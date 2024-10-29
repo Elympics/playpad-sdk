@@ -1,10 +1,12 @@
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.Authentication;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.RequestResponse;
+using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
 using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
@@ -13,30 +15,49 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public class StandaloneTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
-        private readonly StandaloneExternalTournamentConfig _config;
-        private readonly JsCommunicator _jsCommunicator;
-        public StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config) => _config = config;
+        public TournamentInfo? CurrentTournament => _currentTournamentInfo;
 
-        internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, JsCommunicator jsCommunicator)
+        private TournamentInfo? _currentTournamentInfo;
+
+        private readonly StandaloneExternalTournamentConfig _config;
+        private readonly StandaloneExternalAuthenticatorConfig _authConfig;
+        private readonly JsCommunicator _jsCommunicator;
+
+        internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, StandaloneExternalAuthenticatorConfig authConfig, JsCommunicator jsCommunicator)
         {
             _config = config;
+            _authConfig = authConfig;
             jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
         public event Action<TournamentInfo> TournamentUpdated;
-        public UniTask<CanPlayTournamentResponse> CanPlayTournament() => UniTask.FromResult(new CanPlayTournamentResponse()
+        public UniTask<TournamentInfo?> GetTournament()
         {
-            statusCode = _config.CanPlayStatusCode,
-            message = _config.CanPlayMessage
-        });
-        public void OnWebMessage(WebMessageObject message)
+            if (_authConfig.FeatureAccess.HasTournament())
+            {
+                var dto = new TournamentResponse
+                {
+                    id = _config.Id,
+                    leaderboardCapacity = _config.LeaderboardCapacity,
+                    name = _config.TournamentName,
+                    ownerId = _config.OwnerId,
+                    startDate = _config.StartDate,
+                    endDate = _config.EndDate,
+                    isDefault = _config.IsDefault,
+                };
+                _currentTournamentInfo = dto.ToTournamentInfo();
+                return UniTask.FromResult(_currentTournamentInfo);
+            }
+            return UniTask.FromResult<TournamentInfo?>(null);
+        }
+
+        public void OnWebMessage(WebMessage message)
         {
             if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
                 throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
 
-            var newTournamentData = JsonUtility.FromJson<TournamentDataDto>(message.message);
-            var tournamentInfo = newTournamentData?.ToTournamentInfo();
-            if (tournamentInfo != null)
-                TournamentUpdated?.Invoke(tournamentInfo.Value);
+            var newTournamentData = JsonUtility.FromJson<TournamentUpdatedMessage>(message.message);
+            _currentTournamentInfo = newTournamentData.ToTournamentInfo();
+            TournamentUpdated?.Invoke(_currentTournamentInfo.Value);
         }
     }
 }

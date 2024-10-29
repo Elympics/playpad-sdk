@@ -1,5 +1,5 @@
-using ElympicsPlayPad.DTO;
-using SystemInfo = UnityEngine.Device.SystemInfo;
+using ElympicsPlayPad.Protocol.VoidMessages;
+using UnityEngine;
 
 namespace ElympicsPlayPad.Utility
 {

@@ -2,6 +2,7 @@ using Elympics;
 using System.Collections.Generic;
 using UnityEngine;
 using JetBrains.Annotations;
+using System;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -13,7 +14,16 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private readonly ElympicsInt remainingSecondsToEndGame = new ElympicsInt();
         private bool gameEndRequested = false;
 
+        private Guid matchId;
+
         private int CurrentGameTimeInSeconds => Mathf.FloorToInt(Elympics.Tick * Elympics.TickDuration);
+
+        private void Awake()
+        {
+            // Remembering matchId to display respect at the end
+            var joinedRooms = ElympicsLobbyClient.Instance.RoomsManager.ListJoinedRooms();
+            matchId = joinedRooms.Count > 0 ? (joinedRooms[0].State.MatchmakingData?.MatchData?.MatchId ?? Guid.Empty) : Guid.Empty;
+        }
 
         public void Initialize()
         {
@@ -64,7 +74,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                         }));
 
             if (Elympics.IsClient)
-                viewManager.ShowGameEndedView();
+                viewManager.ShowGameEndedView(matchId);
         }
     }
 }

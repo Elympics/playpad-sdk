@@ -1,9 +1,9 @@
-using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 {
     public interface IWebMessageReceiver
     {
-        void OnWebMessage(WebMessageObject message);
+        void OnWebMessage(WebMessage message);
     }
 }

@@ -2,33 +2,72 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
+using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad.Leaderboard.Extensions
 {
     internal static class LeaderboardExt
     {
-        public static LeaderboardStatus MapToLeaderboardStatus(this LeaderboardResponse response) => new()
+        public static LeaderboardStatusInfo MapToLeaderboardStatus(this LeaderboardResponse response) => new()
         {
-
             Placements = response.entries?.Select(x => new Placement
             {
                 UserId = x.userId,
                 Nickname = x.nickname,
                 Position = x.position,
-                Points = x.points,
+                Score = x.score,
                 ScoredAt = x.scoredAt,
                 MatchId = x.matchId,
                 TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId
             }).ToArray(),
-            TotalRecords = response.totalRecords,
-            PageNumber = response.pageNumber
+            UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
+            {
+                UserId = response.userEntry.userId,
+                Nickname = response.userEntry.nickname,
+                Position = response.userEntry.position,
+                Score = response.userEntry.score,
+                ScoredAt = response.userEntry.scoredAt,
+                MatchId = response.userEntry.matchId,
+                TournamentId = response.userEntry.tournamentId
+            },
+            Participants = response.participants,
         };
 
-        public static UserHighScore MapToUserHighScore(this UserHighScoreResponse response) => new()
+        public static LeaderboardStatusInfo MapToLeaderboardStatus(this LeaderboardUpdatedMessage response) => new()
         {
-            Score = response.points,
-            EndedAt = response.points == -1.0f ? null : DateTimeOffset.Parse(response.endedAt, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.AssumeUniversal)
+            Placements = response.entries?.Select(x => new Placement
+            {
+                UserId = x.userId,
+                Nickname = x.nickname,
+                Position = x.position,
+                Score = x.score,
+                ScoredAt = x.scoredAt,
+                MatchId = x.matchId,
+                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId
+            }).ToArray(),
+            UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
+            {
+                UserId = response.userEntry.userId,
+                Nickname = response.userEntry.nickname,
+                Position = response.userEntry.position,
+                Score = response.userEntry.score,
+                ScoredAt = response.userEntry.scoredAt,
+                MatchId = response.userEntry.matchId,
+                TournamentId = response.userEntry.tournamentId
+            },
+            Participants = response.participants,
+        };
+
+        public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreResponse response) => new()
+        {
+            Points = response.points,
+            ScoredAt = DateTime.Parse(response.endedAt),
+        };
+
+        public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreUpdatedMessage response) => new()
+        {
+            Points = response.score,
         };
     }
 }

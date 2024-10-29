@@ -1,20 +1,18 @@
+#nullable enable
+using System;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.Leaderboard;
-using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public abstract class CustomStandaloneLeaderboardCommunicatorBase : MonoBehaviour, IExternalLeaderboardCommunicator
     {
-        public abstract UniTask<LeaderboardStatus> FetchLeaderboard(
-            string tournamentId,
-            string queueName,
-            LeaderboardTimeScope timeScope,
-            int pageNumber,
-            int pageSize,
-            LeaderboardRequestType leaderboardRequestType);
-        public UniTask<UserHighScore> FetchUserHighScore(string tournamentId, string queueName, LeaderboardTimeScope timeScope, int pageNumber, int pageSize) => throw new System.NotImplementedException();
+        public abstract UserHighScoreInfo? UserHighScore { get; }
+        public abstract LeaderboardStatusInfo? Leaderboard { get; }
+        public abstract event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        public abstract event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        public abstract UniTask<LeaderboardStatusInfo> FetchLeaderboard();
+        public abstract UniTask<UserHighScoreInfo?> FetchUserHighScore();
     }
 }

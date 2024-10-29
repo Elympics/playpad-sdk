@@ -1,6 +1,5 @@
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.Protocol.RequestResponse;
 using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
 
@@ -8,7 +7,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public abstract class CustomStandaloneTournamentCommunicatorBase : MonoBehaviour, IExternalTournamentCommunicator
     {
+        public abstract TournamentInfo? CurrentTournament { get; }
         public event Action<TournamentInfo> TournamentUpdated;
-        public abstract UniTask<CanPlayTournamentResponse> CanPlayTournament();
+        public abstract UniTask<TournamentInfo?> GetTournament();
     }
 }

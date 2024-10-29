@@ -1,11 +1,11 @@
 using System;
-using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal interface IJsCommunicatorRetriever
     {
         public event Action<string> ResponseObjectReceived;
-        public event Action<WebMessageObject> WebObjectReceived;
+        public event Action<WebMessage> WebObjectReceived;
     }
 }

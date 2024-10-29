@@ -1,12 +1,15 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
+using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
-    public interface IExternalAuthenticator : IDisposable
+    public interface IExternalAuthenticator
     {
-        public UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion);
-        internal void SetPlayPadEventListener(IPlayPadEventListener listener);
+        public event Action<AuthData>? AuthenticationUpdated;
+        public UniTask<AuthData> Authenticate();
+        public UniTask<HandshakeInfo> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion);
     }
 }

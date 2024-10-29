@@ -1,4 +1,8 @@
-using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Utility;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -7,6 +11,11 @@ namespace ElympicsPlayPad.Tests.PlayMode
     [Category("Deserialization")]
     public class TestDeserialization
     {
+        private JsCommunicationFactory _factory = new("0.2.0");
+        private string _user1Guid = "00000000-0000-0000-0000-000000000001";
+        private string _matchId = "00000000-0000-0000-0000-000000000002";
+
+
         private const string ResponseFormat = @"{{
   ""protocolVersion"": ""0.1.0"",
   ""ticket"": {0},
@@ -36,10 +45,22 @@ namespace ElympicsPlayPad.Tests.PlayMode
         public void Handshake()
         {
             var toDeserialize = string.Format(ResponseFormat, TestTicket, TestStatus, TestResponse);
-            var result = JsonUtility.FromJson<Response>(toDeserialize);
+            var result = JsonUtility.FromJson<ResponseMessage>(toDeserialize);
             Assert.AreEqual(result.response, TestResponse);
             Assert.AreEqual(result.ticket, TestTicket);
             Assert.AreEqual(result.status, TestStatus);
+        }
+
+        [Test]
+        public void SendSystemInfo()
+        {
+            var systemInfoDataMessage = new SystemInfoDataMessage
+            {
+                userId = _user1Guid,
+                matchId = _matchId,
+                systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
+            };
+            var message = _factory.GetVoidMessageJson<SystemInfoDataMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
         }
     }
 }

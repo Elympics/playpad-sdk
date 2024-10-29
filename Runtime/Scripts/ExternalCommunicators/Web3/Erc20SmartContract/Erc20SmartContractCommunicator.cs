@@ -16,6 +16,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract
             _externalContractOperations = externalContractOperations;
             _externalWalletOperator = externalWalletOperator;
         }
+
         public async UniTask<string> GetDecimals(SmartContract tokenContract) => await _externalContractOperations.GetValue<int>(tokenContract, ValueCalls.Decimals);
 
         public async UniTask<string> GetBalance(SmartContract tokenContract, string owner) => await _externalContractOperations.GetValue<BigInteger>(tokenContract, ValueCalls.BalanceOf, owner);
