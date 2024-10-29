@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ElympicsLobbyPackage.JWT
+namespace ElympicsPlayPad.JWT
 {
     public class SignatureVerificationException : Exception
     {

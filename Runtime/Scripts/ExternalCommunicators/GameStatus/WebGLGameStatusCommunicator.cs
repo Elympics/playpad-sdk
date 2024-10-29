@@ -1,10 +1,13 @@
 using System;
 using System.Linq;
-using Elympics;
-using ElympicsLobbyPackage.Blockchain.Communication;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Utility;
+using ElympicsPlayPad.Wrappers;
 
-namespace ElympicsLobbyPackage.ExternalCommunication
+namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
     internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator
     {
@@ -38,7 +41,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         public void RttUpdated(TimeSpan rtt)
         {
             var debugMessage = JsCommunicationFactory.GetDebugMessageJson(DebugMessageTypes.RTT,
-                new RTTDebugMessage()
+                new RttDebugMessage()
                 {
                     rtt = rtt.TotalMilliseconds
                 });

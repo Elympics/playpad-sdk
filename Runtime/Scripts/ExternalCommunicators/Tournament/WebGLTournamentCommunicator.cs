@@ -1,13 +1,16 @@
 #nullable enable
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Blockchain.Communication;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
-using ElympicsLobbyPackage.Tournament;
-using ElympicsLobbyPackage.Tournament.Util;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.RequestResponse;
+using ElympicsPlayPad.Tournament.Data;
+using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     internal class WebGLTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
@@ -18,12 +21,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
         public WebGLTournamentCommunicator(JsCommunicator jsCommunicator)
         {
             _jsCommunicator = jsCommunicator;
-            _jsCommunicator.RegisterIWebEventReceiver(this, Blockchain.Communication.WebMessages.TournamentUpdated);
+            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
         public void OnWebMessage(WebMessageObject message)
         {
-            if (string.Equals(message.type, Blockchain.Communication.WebMessages.TournamentUpdated) is false)
-                throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {Blockchain.Communication.WebMessages.TournamentUpdated} event type.");
+            if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
+                throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
 
             var newTournamentData = JsonUtility.FromJson<TournamentDataDto>(message.message);
             var tournamentInfo = newTournamentData?.ToTournamentInfo();

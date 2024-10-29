@@ -1,13 +1,16 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Blockchain.Communication;
-using ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models;
-using ElympicsLobbyPackage.Leaderboard;
-using LeaderboardResponse = ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models.LeaderboardResponse;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Leaderboard.Extensions;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
+using LeaderboardResponse = ElympicsPlayPad.Protocol.RequestResponse.Leaderboard.LeaderboardResponse;
 
 #nullable enable
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard
+namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     internal class WebGLLeaderboardCommunicator : IExternalLeaderboardCommunicator
     {

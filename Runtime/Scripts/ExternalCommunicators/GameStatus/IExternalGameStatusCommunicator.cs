@@ -1,5 +1,6 @@
 using System;
-namespace ElympicsLobbyPackage.ExternalCommunication
+
+namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
 	public interface IExternalGameStatusCommunicator: IDisposable
 	{

@@ -1,23 +1,20 @@
 using System;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Authorization;
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.Tournament.Util;
-using Elympics;
-using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.ExternalCommunication.Tournament;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.ExternalCommunication
+namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     public class StandaloneExternalAuthenticator : IExternalAuthenticator
     {
-        private readonly StandaloneExternalAuthorizerConfig _authConfig;
+        private readonly StandaloneExternalAuthenticatorConfig _authConfig;
         private readonly StandaloneExternalTournamentConfig _tournamentConfig;
-        public StandaloneExternalAuthenticator(StandaloneExternalAuthorizerConfig authConfig,StandaloneExternalTournamentConfig tournamentConfig)
+        public StandaloneExternalAuthenticator(StandaloneExternalAuthenticatorConfig authConfig,StandaloneExternalTournamentConfig tournamentConfig)
         {
             _authConfig = authConfig;
             _tournamentConfig = tournamentConfig;

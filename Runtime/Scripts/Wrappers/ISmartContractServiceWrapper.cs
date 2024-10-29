@@ -1,8 +1,9 @@
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Web3.Data;
 using SCS;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Wrappers
 {
     public interface ISmartContractServiceWrapper
     {

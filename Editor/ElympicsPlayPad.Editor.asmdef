@@ -1,0 +1,18 @@
+{
+    "name": "ElympicsPlayPad.Editor",
+    "rootNamespace": "ElympicsPlayPad.Editor",
+    "references": [
+        "GUID:42097347dcde8e94b9982a255d4fed9c"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

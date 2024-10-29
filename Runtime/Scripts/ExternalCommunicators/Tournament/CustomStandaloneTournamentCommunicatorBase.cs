@@ -1,9 +1,10 @@
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Tournament;
+using ElympicsPlayPad.Protocol.RequestResponse;
+using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public abstract class CustomStandaloneTournamentCommunicatorBase : MonoBehaviour, IExternalTournamentCommunicator
     {

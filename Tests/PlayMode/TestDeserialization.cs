@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using ElympicsLobbyPackage.Blockchain.EditorIntegration;
+using ElympicsPlayPad.DTO;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace ElympicsLobby.Tests.PlayMode
+namespace ElympicsPlayPad.Tests.PlayMode
 {
     [Category("Deserialization")]
     public class TestDeserialization

@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Wrappers
 {
     internal interface IElympicsLobbyWrapper
     {

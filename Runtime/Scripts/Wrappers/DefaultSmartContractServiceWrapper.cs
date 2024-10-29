@@ -1,16 +1,13 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
-using Elympics;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Utility;
+using ElympicsPlayPad.Web3.Data;
 using SCS;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Wrappers
 {
     [RequireComponent(typeof(SmartContractService))]
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.DefaultSmartContractServiceWrapper)]

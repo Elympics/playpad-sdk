@@ -1,10 +1,8 @@
-using ElympicsLobbyPackage.Blockchain.Communication;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using UnityEditor;
-using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace ElympicsLobbyPackage.Editor.ExternalCommunicator
+namespace ElympicsPlayPad.Editor.ExternalCommunicator
 {
     [CustomEditor(typeof(JsCommunicator))]
     public class JsCommunicatorInspectorWindow : UnityEditor.Editor

@@ -2,7 +2,7 @@ using UnityEngine;
 using Elympics;
 using System;
 
-namespace ElympicsLobbyPackage.Sample.AsyncGame
+namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class LeaderboardManager : MonoBehaviour
     {

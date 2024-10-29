@@ -16,7 +16,7 @@ MonoBehaviour:
   gameId: 36b35382-23fe-42d2-b559-6e655be5f700
   gameVersion: 7
   players: 1
-  gameplayScene: Assets/LobbySamples/AsyncGameSample/Gameplay/Scenes/AsyncGameSampleGameplay.unity
+  gameplayScene: Assets/PlayPadSamples/AsyncGameSample/Gameplay/Scenes/AsyncGameSampleGameplay.unity
   gameplaySceneAsset: {fileID: 102900000, guid: fdb2caf0af7f9ad4ca444f6739859556,
     type: 3}
   botsInServer: 1

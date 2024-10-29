@@ -4,20 +4,25 @@ using System.Data;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
-using ElympicsLobbyPackage.Blockchain.Wallet;
-using ElympicsLobbyPackage.DataStorage;
-using ElympicsLobbyPackage.ExternalCommunication;
-using ElympicsLobbyPackage.ExternalCommunication.Tournament;
-using ElympicsLobbyPackage.JWT;
-using ElympicsLobbyPackage.Utils;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+using ElympicsPlayPad.ExternalCommunicators.Web3.Wallet;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
+using ElympicsPlayPad.JWT;
+using ElympicsPlayPad.JWT.Extensions;
+using ElympicsPlayPad.Session.Exceptions;
+using ElympicsPlayPad.Tournament;
+using ElympicsPlayPad.Utility;
+using ElympicsPlayPad.Web3;
+using ElympicsPlayPad.Web3.Data;
+using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using SCS;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.Session
+namespace ElympicsPlayPad.Session
 {
     [RequireComponent(typeof(Web3Wallet))]
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.SessionManager)]
@@ -35,9 +40,8 @@ namespace ElympicsLobbyPackage.Session
         private string _region = null!;
         private IElympicsLobbyWrapper _lobbyWrapper = null!;
         private Web3Wallet? _wallet;
-        private readonly AuthDataStorage _authDataStorage = new();
-        private static IExternalAuthenticator ExternalAuthenticator => ElympicsExternalCommunicator.Instance!.ExternalAuthenticator!;
-        private IExternalWalletCommunicator WalletCommunicator => ElympicsExternalCommunicator.Instance!.WalletCommunicator!;
+        private static IExternalAuthenticator ExternalAuthenticator => PlayPadCommunicator.Instance!.ExternalAuthenticator!;
+        private IExternalWalletCommunicator WalletCommunicator => PlayPadCommunicator.Instance!.WalletCommunicator!;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
         private void Start()
@@ -46,7 +50,7 @@ namespace ElympicsLobbyPackage.Session
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
             _wallet = GetComponent<Web3Wallet>();
             _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
-            ElympicsExternalCommunicator.Instance!.AuthDataChanged += OnAuthDataChanged;
+            PlayPadCommunicator.Instance!.AuthDataChanged += OnAuthDataChanged;
         }
 
         /// <summary>
@@ -118,7 +122,7 @@ namespace ElympicsLobbyPackage.Session
                 await TryConnectToWalletOrAnonymous(address);
 
             }
-            catch (ResponseException _)
+            catch (ResponseException)
             {
                 throw new WalletConnectionException($"Wallet has to be connected. Use {nameof(ShowExternalWalletConnectionPanel)}.");
             }
@@ -140,14 +144,14 @@ namespace ElympicsLobbyPackage.Session
         {
             Debug.Log($"{nameof(SessionManager)} Check external authentication.");
             var sdkVersion = ElympicsConfig.SdkVersion;
-            var lobbyPackageVersion = LobbyPackageVersionRetriever.GetVersionStringFromAssembly();
+            var lobbyPackageVersion = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
             var gameName = config.GameName;
             var gameId = config.GameId;
             var versionName = config.GameVersion;
 #if UNITY_EDITOR || !UNITY_WEBGL
             if (ExternalAuthenticator is null)
-                throw new NoNullAllowedException($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
+                throw new NoNullAllowedException($"Please provide custom external authorizer via {nameof(PlayPadCommunicator.SetCustomExternalAuthenticator)}");
 #endif
             var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName, sdkVersion, lobbyPackageVersion);
             await SetClosestRegion(result.ClosestRegion);
@@ -264,7 +268,7 @@ namespace ElympicsLobbyPackage.Session
                 //     //SaveNewAuthData();
                 // }
             }
-            catch (SessionManagerAuthException e)
+            catch (SessionManagerAuthException)
             {
                 await AnonymousAuthentication();
             }
@@ -331,7 +335,7 @@ namespace ElympicsLobbyPackage.Session
             }
         }
 
-        private Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(UnityPayload payload, AuthType currentAuthType)
+        private Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
         {
             var accountWallet = payload.ethAddress is not null ? payload.ethAddress : null;
             string? signWallet = null;
@@ -381,7 +385,7 @@ namespace ElympicsLobbyPackage.Session
                 });
                 CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.TournamentInfo);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 CurrentSession = null;
 
@@ -407,7 +411,7 @@ namespace ElympicsLobbyPackage.Session
         {
             if (_wallet != null)
                 _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
-            ElympicsExternalCommunicator.Instance!.AuthDataChanged -= OnAuthDataChanged;
+            PlayPadCommunicator.Instance!.AuthDataChanged -= OnAuthDataChanged;
             ExternalAuthenticator.Dispose();
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());

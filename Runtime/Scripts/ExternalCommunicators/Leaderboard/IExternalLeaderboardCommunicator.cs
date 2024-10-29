@@ -1,9 +1,10 @@
 #nullable enable
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Leaderboard;
+using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard
+namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public interface IExternalLeaderboardCommunicator
     {

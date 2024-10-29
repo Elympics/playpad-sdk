@@ -1,10 +1,10 @@
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Leaderboard;
+using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
 using UnityEngine;
-using LeaderboardResponse = ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models.LeaderboardResponse;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard
+namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public abstract class CustomStandaloneLeaderboardCommunicatorBase : MonoBehaviour, IExternalLeaderboardCommunicator
     {

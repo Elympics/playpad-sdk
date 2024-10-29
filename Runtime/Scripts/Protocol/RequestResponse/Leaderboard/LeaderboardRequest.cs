@@ -1,7 +1,7 @@
 using System;
 using Elympics;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models
+namespace ElympicsPlayPad.Protocol.RequestResponse.Leaderboard
 {
     [Serializable]
     internal class LeaderboardRequest

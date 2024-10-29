@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage.Leaderboard
+namespace ElympicsPlayPad.Leaderboard
 {
     public struct UserHighScore
     {

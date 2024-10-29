@@ -1,12 +1,14 @@
 using UnityEngine;
 using TMPro;
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Session;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+using ElympicsPlayPad.Session;
 using JetBrains.Annotations;
 
-namespace ElympicsLobbyPackage.Sample.AsyncGame
+namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class LobbyUIManager : MonoBehaviour
     {
@@ -85,7 +87,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         [UsedImplicitly]
         public void ShowAccountInfo()
         {
-            ElympicsExternalCommunicator.Instance.WalletCommunicator.ExternalShowAccountInfo();
+            PlayPadCommunicator.Instance.WalletCommunicator.ExternalShowAccountInfo();
         }
     }
 }

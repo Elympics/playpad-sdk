@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 using Elympics;
 
-namespace ElympicsLobbyPackage.Sample.AsyncGame
+namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class LeaderboardDisplay : MonoBehaviour
     {

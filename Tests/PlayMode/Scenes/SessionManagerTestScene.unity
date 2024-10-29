@@ -158,7 +158,13 @@ PrefabInstance:
         type: 3}
       propertyPath: standaloneWalletConfig
       value: 
-      objectReference: {fileID: 11400000, guid: 7ba91f96285d07a4ca22fc04a1dbdfb3,
+      objectReference: {fileID: 11400000, guid: 1eb1c7973a2a7e44e98425b71324d766,
+        type: 2}
+    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
+        type: 3}
+      propertyPath: standaloneTournamentConfig
+      value: 
+      objectReference: {fileID: 11400000, guid: 29d100dfef4813741af75110adc636b5,
         type: 2}
     - target: {fileID: 773821390082990743, guid: 915e03586cf042848bb2b1552a123930,
         type: 3}

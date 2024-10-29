@@ -1,10 +1,10 @@
 #nullable enable
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Tournament;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+using ElympicsPlayPad.Tournament.Data;
 using JetBrains.Annotations;
 
-namespace ElympicsLobbyPackage.Session
+namespace ElympicsPlayPad.Session
 {
     [PublicAPI]
     public readonly struct SessionInfo

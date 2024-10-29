@@ -1,8 +1,9 @@
 using System;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Game
+namespace ElympicsPlayPad.Game
 {
     public class RttReporter : MonoBehaviour, IClientHandlerGuid
     {
@@ -26,34 +27,34 @@ namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Game
 
             _counter = 0;
             var avgRtt = _client.RoundTripTimeCalculator.AverageRoundTripTime;
-            if (ElympicsExternalCommunicator.Instance != null)
-                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
         }
 
         public void OnConnectingFailed()
         {
             _sendRttUpdates = false;
-            if (ElympicsExternalCommunicator.Instance != null)
-                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
         }
         public void OnDisconnectedByServer()
         {
             _sendRttUpdates = false;
-            if (ElympicsExternalCommunicator.Instance != null)
-                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
         }
         public void OnDisconnectedByClient()
         {
             _sendRttUpdates = false;
-            if (ElympicsExternalCommunicator.Instance != null)
-                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
         }
 
         private void OnDestroy()
         {
             _sendRttUpdates = false;
-            if (ElympicsExternalCommunicator.Instance != null)
-                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(TimeSpan.Zero);
         }
     }
 }

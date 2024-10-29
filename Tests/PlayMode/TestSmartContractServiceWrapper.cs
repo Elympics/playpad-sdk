@@ -1,10 +1,11 @@
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Web3.Data;
+using ElympicsPlayPad.Wrappers;
 using SCS;
 using UnityEngine;
 
-namespace ElympicsLobby.Tests.PlayMode
+namespace ElympicsPlayPad.Tests.PlayMode
 {
     public class TestSmartContractServiceWrapper : MonoBehaviour, ISmartContractServiceWrapper
     {

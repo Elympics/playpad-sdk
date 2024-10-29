@@ -3,7 +3,7 @@ using Elympics;
 using Elympics.Models.Authentication;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Wrappers
 {
     public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
     {

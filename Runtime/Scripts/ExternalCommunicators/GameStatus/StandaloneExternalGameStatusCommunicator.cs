@@ -1,8 +1,7 @@
 using System;
-using ElympicsLobbyPackage.ExternalCommunication;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
     public class StandaloneExternalGameStatusCommunicator : IExternalGameStatusCommunicator
     {
