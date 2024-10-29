@@ -1,11 +1,13 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using ElympicsLobbyPackage.Blockchain.Wallet;
-using ElympicsLobbyPackage.Session;
 using Elympics;
 using System;
+using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Session.Exceptions;
+using ElympicsPlayPad.Web3;
+using ElympicsPlayPad.Web3.Data;
 
-namespace ElympicsLobbyPackage.Sample.AsyncGame
+namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class AuthenticationManager : MonoBehaviour
     {
@@ -46,7 +48,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         public async UniTask AttemptReAuthenticate()
         {
-            await sessionManager.TryReAuthenticateIfWalletChanged();
+            //await sessionManager.TryReAuthenticateIfWalletChanged();
             lobbyUIManager.SetLobbyUIVariant(sessionManager);
         }
 

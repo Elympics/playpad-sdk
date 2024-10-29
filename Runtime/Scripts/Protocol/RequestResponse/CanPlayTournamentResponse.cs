@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Protocol.RequestResponse
 {
     [Serializable]
     public struct CanPlayTournamentResponse

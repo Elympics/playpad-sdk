@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
-using ElympicsLobbyPackage.Tournament;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     [CreateAssetMenu(fileName = "StandaloneExternalTournamentConfig", menuName = "Configs/Standalone/Tournament")]
     public class StandaloneExternalTournamentConfig : ScriptableObject

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ElympicsLobbyPackage.JWT
+namespace ElympicsPlayPad.JWT
 {
     /// <summary>
     /// JSON Serializer using JavaScriptSerializer

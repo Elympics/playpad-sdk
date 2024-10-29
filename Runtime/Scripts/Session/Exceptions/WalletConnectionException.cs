@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage.Session
+namespace ElympicsPlayPad.Session.Exceptions
 {
     public class WalletConnectionException : Exception
     {

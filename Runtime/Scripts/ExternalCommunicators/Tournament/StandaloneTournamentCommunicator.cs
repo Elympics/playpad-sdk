@@ -1,14 +1,15 @@
 using System;
-using ElympicsLobbyPackage.Blockchain.Communication;
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
-using ElympicsLobbyPackage.ExternalCommunication;
-using ElympicsLobbyPackage.ExternalCommunication.Tournament;
-using ElympicsLobbyPackage.Tournament;
-using ElympicsLobbyPackage.Tournament.Util;
+using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.RequestResponse;
+using ElympicsPlayPad.Tournament.Data;
+using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public class StandaloneTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
@@ -19,7 +20,7 @@ namespace ElympicsLobbyPackage
         internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, JsCommunicator jsCommunicator)
         {
             _config = config;
-            jsCommunicator.RegisterIWebEventReceiver(this, Blockchain.Communication.WebMessages.TournamentUpdated);
+            jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
         public event Action<TournamentInfo> TournamentUpdated;
         public UniTask<CanPlayTournamentResponse> CanPlayTournament() => UniTask.FromResult(new CanPlayTournamentResponse()
@@ -29,8 +30,8 @@ namespace ElympicsLobbyPackage
         });
         public void OnWebMessage(WebMessageObject message)
         {
-            if (string.Equals(message.type, Blockchain.Communication.WebMessages.TournamentUpdated) is false)
-                throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {Blockchain.Communication.WebMessages.TournamentUpdated} event type.");
+            if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
+                throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
 
             var newTournamentData = JsonUtility.FromJson<TournamentDataDto>(message.message);
             var tournamentInfo = newTournamentData?.ToTournamentInfo();

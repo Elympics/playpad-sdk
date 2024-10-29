@@ -4,14 +4,18 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Exceptions;
-using ElympicsLobbyPackage.ExternalCommunication.Leaderboard;
-using ElympicsLobbyPackage.ExternalCommunication.Tournament;
-using ElympicsLobbyPackage.Tournament.Util;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
+using ElympicsPlayPad.Tournament.Data;
+using ElympicsPlayPad.Tournament.Utility;
+using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.Tournament
+namespace ElympicsPlayPad.Tournament
 {
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.ElympicsTournament)]
     public class ElympicsTournament : MonoBehaviour, IElympicsTournament
@@ -49,13 +53,13 @@ namespace ElympicsLobbyPackage.Tournament
             if (Instance == null)
             {
                 Instance = this;
-                if (ElympicsExternalCommunicator.Instance!.LeaderboardCommunicator == null)
-                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(ElympicsExternalCommunicator.Instance.LeaderboardCommunicator)}");
-                _externalLeaderboardCommunicator = ElympicsExternalCommunicator.Instance!.LeaderboardCommunicator;
+                if (PlayPadCommunicator.Instance!.LeaderboardCommunicator == null)
+                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(PlayPadCommunicator.Instance.LeaderboardCommunicator)}");
+                _externalLeaderboardCommunicator = PlayPadCommunicator.Instance!.LeaderboardCommunicator;
 
-                if (ElympicsExternalCommunicator.Instance.TournamentCommunicator == null)
-                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(ElympicsExternalCommunicator.Instance.TournamentCommunicator)}");
-                _externalTournamentCommunicator = ElympicsExternalCommunicator.Instance.TournamentCommunicator;
+                if (PlayPadCommunicator.Instance.TournamentCommunicator == null)
+                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(PlayPadCommunicator.Instance.TournamentCommunicator)}");
+                _externalTournamentCommunicator = PlayPadCommunicator.Instance.TournamentCommunicator;
 
                 _roomsManager = ElympicsLobbyClient.Instance!.RoomsManager;
                 _externalTournamentCommunicator.TournamentUpdated += OnTournamentUpdated;

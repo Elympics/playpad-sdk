@@ -2,10 +2,10 @@ using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage;
+using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 
-namespace ElympicsLobby.Tests.PlayMode
+namespace ElympicsPlayPad.Tests.PlayMode
 {
     internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Protocol.RequestResponse.Leaderboard
 {
     [Serializable]
     public class UserHighScoreResponse

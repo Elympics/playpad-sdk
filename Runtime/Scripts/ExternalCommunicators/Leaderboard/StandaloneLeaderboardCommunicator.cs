@@ -1,11 +1,12 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models;
-using ElympicsLobbyPackage.Leaderboard;
-using LeaderboardResponse = ElympicsLobbyPackage.ExternalCommunication.Leaderboard.Models.LeaderboardResponse;
+using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Leaderboard.Extensions;
+using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
+using LeaderboardResponse = ElympicsPlayPad.Protocol.RequestResponse.Leaderboard.LeaderboardResponse;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard
+namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public class StandaloneLeaderboardCommunicator : IExternalLeaderboardCommunicator
     {

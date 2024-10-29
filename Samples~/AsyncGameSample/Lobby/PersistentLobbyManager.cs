@@ -1,11 +1,12 @@
 using UnityEngine;
-using ElympicsLobbyPackage.Blockchain.Wallet;
-using ElympicsLobbyPackage.Session;
 using Elympics;
 using Cysharp.Threading.Tasks;
 using System;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Web3;
 
-namespace ElympicsLobbyPackage.Sample.AsyncGame
+namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class PersistentLobbyManager : MonoBehaviour
     {
@@ -30,11 +31,11 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             ElympicsLobbyClient.Instance!.RoomsManager.MatchDataReceived += RememberMatchId;
 
             authenticationManager = FindObjectOfType<AuthenticationManager>();
-            GameObject elympicsExternalCommunicator = ElympicsExternalCommunicator.Instance.gameObject;
+            GameObject elympicsExternalCommunicator = PlayPadCommunicator.Instance.gameObject;
             authenticationManager.InitializeAuthenticationManager(elympicsExternalCommunicator.GetComponent<SessionManager>(), elympicsExternalCommunicator.GetComponent<Web3Wallet>());
             SetLobbyUIManager();
 
-            ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.ApplicationInitialized();
+            PlayPadCommunicator.Instance.GameStatusCommunicator?.ApplicationInitialized();
             authenticationManager.AttemptStartAuthenticate().Forget();
         }
 

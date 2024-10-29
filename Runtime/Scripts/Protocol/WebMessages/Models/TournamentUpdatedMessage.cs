@@ -1,7 +1,7 @@
 using System;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
+using ElympicsPlayPad.DTO;
 
-namespace ElympicsLobbyPackage.WebMessages.Models
+namespace ElympicsPlayPad.Protocol.WebMessages.Models
 {
     [Serializable]
     public class TournamentUpdatedMessage

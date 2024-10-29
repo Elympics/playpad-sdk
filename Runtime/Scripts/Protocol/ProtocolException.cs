@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Protocol
 {
     public class ProtocolException : Exception
     {

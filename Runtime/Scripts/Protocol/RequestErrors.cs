@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Protocol
 {
     internal static class RequestErrors
     {

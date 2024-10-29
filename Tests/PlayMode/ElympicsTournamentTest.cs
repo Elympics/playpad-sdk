@@ -1,17 +1,17 @@
 #nullable enable
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using Elympics.Tests;
-using ElympicsLobbyPackage.Tournament;
+using ElympicsPlayPad.Tournament;
+using ElympicsPlayPad.Tournament.Data;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace ElympicsLobby.Tests.PlayMode
+namespace ElympicsPlayPad.Tests.PlayMode
 {
     [Category("ElympicsTournament")]
     [SuppressMessage("ReSharper", "HeapView.BoxingAllocation")]

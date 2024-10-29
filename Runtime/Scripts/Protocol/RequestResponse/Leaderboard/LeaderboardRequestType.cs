@@ -1,4 +1,4 @@
-namespace ElympicsLobbyPackage.ExternalCommunication.Leaderboard
+namespace ElympicsPlayPad.Protocol.RequestResponse.Leaderboard
 {
     public enum LeaderboardRequestType
     {

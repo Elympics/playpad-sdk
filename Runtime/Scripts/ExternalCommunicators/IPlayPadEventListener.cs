@@ -1,6 +1,7 @@
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
-namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators
+using ElympicsPlayPad.DTO;
+
+namespace ElympicsPlayPad.ExternalCommunicators
 {
     internal interface IPlayPadEventListener
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Session.Exceptions
 {
     public class SessionManagerAuthException : Exception
     {

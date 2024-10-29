@@ -1,8 +1,9 @@
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Tournament;
+using ElympicsPlayPad.Protocol.RequestResponse;
+using ElympicsPlayPad.Tournament.Data;
 
-namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public interface IExternalTournamentCommunicator
     {

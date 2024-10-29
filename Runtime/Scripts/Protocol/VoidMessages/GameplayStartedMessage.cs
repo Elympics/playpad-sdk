@@ -1,6 +1,7 @@
 using System;
+using ElympicsPlayPad.DTO;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsPlayPad.Protocol.VoidMessages
 {
     [Serializable]
     public struct GameplayStartedMessage

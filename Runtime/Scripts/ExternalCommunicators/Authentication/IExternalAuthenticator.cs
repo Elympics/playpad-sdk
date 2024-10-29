@@ -1,9 +1,8 @@
 using System;
 using Cysharp.Threading.Tasks;
-using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 
-namespace ElympicsLobbyPackage.ExternalCommunication
+namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     public interface IExternalAuthenticator : IDisposable
     {

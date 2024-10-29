@@ -5,9 +5,9 @@ using System.Text;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using ElympicsLobbyPackage;
-using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Session;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+using ElympicsPlayPad.Session;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -15,18 +15,17 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Utils;
 
-namespace ElympicsLobby.Tests.PlayMode
+namespace ElympicsPlayPad.Tests.PlayMode
 {
     public class SessionManagerTests : MonoBehaviour, IPrebuildSetup
     {
         public SessionManager _sut;
-        private ElympicsExternalCommunicator _communicator;
+        private PlayPadCommunicator _communicator;
         private const string TestNameScene = "SessionManagerTestScene";
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         private const string Nickname = "nickname";
-        private string _defaultEnvironment = EnvironmentNames.Development;
+        private string _defaultEnvironment = "Dev";
         private string _walletAddress = "walletAddress";
         private string _chainId = "11155111";
         private string _defaultClosestRegion = "warsaw";
@@ -52,7 +51,7 @@ namespace ElympicsLobby.Tests.PlayMode
             SceneManager.LoadScene(TestNameScene);
             yield return new WaitUntil(() => FindObjectOfType<SessionManager>() != null);
             _sut = FindObjectOfType<SessionManager>();
-            _communicator = ElympicsExternalCommunicator.Instance;
+            _communicator = PlayPadCommunicator.Instance;
             Assert.NotNull(_sut);
             _sut.Reset();
         }
