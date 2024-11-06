@@ -1,6 +1,5 @@
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
@@ -10,7 +9,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public PlayStatus PlayStatus => playStatus;
         public string LabelMessage => labelMessage;
 
-        [FormerlySerializedAs("playState")] [SerializeField] private PlayStatus playStatus;
-        [SerializeField] private string labelMessage;
+        [SerializeField] private PlayStatus playStatus = DefaultPlayStatus;
+        [SerializeField] private string labelMessage = DefaultLabelMessage;
+
+        private static readonly PlayStatus DefaultPlayStatus = PlayStatus.Play;
+        private static readonly string DefaultLabelMessage = "Play";
     }
 }

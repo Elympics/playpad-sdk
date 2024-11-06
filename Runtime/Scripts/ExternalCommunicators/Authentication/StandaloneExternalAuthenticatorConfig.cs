@@ -11,7 +11,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public FeatureAccess FeatureAccess => features;
 
         [SerializeField] private Capabilities capabilities;
-        [SerializeField] private FeatureAccess features;
+        [SerializeField] private FeatureAccess features = DefaultFeatures;
         [SerializeField] private string closestRegion;
+
+        private static readonly FeatureAccess DefaultFeatures = ~FeatureAccess.None;
     }
 }
