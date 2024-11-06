@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Leaderboard;
@@ -8,15 +9,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public class StandaloneLeaderboardCommunicator : IExternalLeaderboardCommunicator
     {
-        public UserHighScoreInfo? UserHighScore => _userHighScore;
-        public LeaderboardStatusInfo? Leaderboard => _leaderboard;
-        private UserHighScoreInfo? _userHighScore;
-        private LeaderboardStatusInfo? _leaderboard;
-        public event Action<LeaderboardStatusInfo> LeaderboardUpdated;
-        public event Action<UserHighScoreInfo> UserHighScoreUpdated;
+        public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        public UserHighScoreInfo? UserHighScore { get; private set; }
+        public LeaderboardStatusInfo? Leaderboard { get; private set; }
+
         UniTask<LeaderboardStatusInfo> IExternalLeaderboardCommunicator.FetchLeaderboard()
         {
-            _leaderboard = new LeaderboardResponse()
+            Leaderboard = new LeaderboardResponse()
             {
                 entries = new[]
                 {
@@ -33,17 +33,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                 },
                 participants = 10,
             }.MapToLeaderboardStatus();
-            return UniTask.FromResult(_leaderboard.Value);
+            return UniTask.FromResult(Leaderboard.Value);
         }
 
         public UniTask<UserHighScoreInfo?> FetchUserHighScore()
         {
-            _userHighScore = new UserHighScoreInfo()
+            UserHighScore = new UserHighScoreInfo()
             {
                 Points = 99,
                 ScoredAt = DateTime.Now - TimeSpan.FromDays(1)
             };
-            return UniTask.FromResult(_userHighScore);
+            return UniTask.FromResult(UserHighScore);
         }
     }
 }

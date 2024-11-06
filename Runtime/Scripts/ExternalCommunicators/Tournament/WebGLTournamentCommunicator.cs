@@ -1,13 +1,13 @@
 #nullable enable
 using System;
 using Cysharp.Threading.Tasks;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
-using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament

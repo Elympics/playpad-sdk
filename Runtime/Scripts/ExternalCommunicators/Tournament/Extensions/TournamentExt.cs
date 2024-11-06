@@ -5,7 +5,7 @@ using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
 
-namespace ElympicsPlayPad.Tournament.Extensions
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
 {
     public static class TournamentExt
     {

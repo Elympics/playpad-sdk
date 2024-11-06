@@ -1,20 +1,22 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
-using ElympicsPlayPad.Tournament.Extensions;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     public class StandaloneTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
+        public event Action<TournamentInfo>? TournamentUpdated;
         public TournamentInfo? CurrentTournament => _currentTournamentInfo;
 
         private TournamentInfo? _currentTournamentInfo;
@@ -29,7 +31,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             _authConfig = authConfig;
             jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
-        public event Action<TournamentInfo> TournamentUpdated;
         public UniTask<TournamentInfo?> GetTournament()
         {
             if (_authConfig.FeatureAccess.HasTournament())

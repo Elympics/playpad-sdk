@@ -62,12 +62,13 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
         public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreResponse response) => new()
         {
             Points = response.points,
-            ScoredAt = DateTime.Parse(response.endedAt),
+            ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
         };
 
         public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreUpdatedMessage response) => new()
         {
-            Points = response.score,
+            Points = response.points,
+            ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
         };
     }
 }

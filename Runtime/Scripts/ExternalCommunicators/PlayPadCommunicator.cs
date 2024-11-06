@@ -50,7 +50,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         private JsCommunicator _jsCommunicator = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
-        private IElympicsLobbyWrapper _lobby;
+        private IElympicsLobbyWrapper _lobby = null!;
 
         private void Awake()
         {
@@ -68,11 +68,11 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
                 ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
                 var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
-                GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby);
+                TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
+                GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!);
                 ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
                 var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
                 TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
-                TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
                 LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator);
 
 #else
@@ -84,7 +84,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     ExternalAuthenticator = customAuthenticatorCommunicator != null ? customAuthenticatorCommunicator : new StandaloneExternalAuthenticator(standaloneAuthConfig);
                     TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
                 }
-                GameStatusCommunicator = customGameStatusCommunicator != null ? customGameStatusCommunicator : new StandaloneExternalGameStatusCommunicator(standaloneGameStatusConfig);
+                GameStatusCommunicator = customGameStatusCommunicator != null ? customGameStatusCommunicator : new StandaloneExternalGameStatusCommunicator(standaloneGameStatusConfig, _lobby.RoomsManager);
                 ExternalUiCommunicator = customExternalUiCommunicator != null ? customExternalUiCommunicator : new StandaloneExternalUiCommunicator();
                 TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
                 LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();

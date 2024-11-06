@@ -1,5 +1,8 @@
+#nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using UnityEngine;
 
@@ -7,25 +10,31 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
     public class StandaloneExternalGameStatusCommunicator : IExternalGameStatusCommunicator
     {
-        public PlayStatusInfo CurrentPlayStatus => _currentPlayStatus;
-
-        private PlayStatusInfo _currentPlayStatus;
-        public event Action<PlayStatusInfo> PlayStatusUpdated;
+        public event Action<PlayStatusInfo>? PlayStatusUpdated;
+        public PlayStatusInfo CurrentPlayStatus { get; private set; }
 
         private readonly StandaloneExternalGameStatusConfig _config;
+        private readonly IRoomsManager _roomsManager;
 
-        public StandaloneExternalGameStatusCommunicator(StandaloneExternalGameStatusConfig config) => _config = config;
+        public StandaloneExternalGameStatusCommunicator(StandaloneExternalGameStatusConfig config, IRoomsManager roomsManager)
+        {
+            _config = config;
+            _roomsManager = roomsManager;
+        }
         public UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve)
         {
-            _currentPlayStatus = new PlayStatusInfo()
+            CurrentPlayStatus = new PlayStatusInfo()
             {
                 PlayStatus = _config.PlayStatus,
                 LabelInfo = _config.LabelMessage
             };
-            return UniTask.FromResult(_currentPlayStatus);
+            return UniTask.FromResult(CurrentPlayStatus);
         }
-        public void RttUpdated(TimeSpan rtt) => Debug.Log($"RttUpdated {rtt}");
-        public void HideSplashScreen() => Debug.Log($"Application Initialized.");
+        public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default) => await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, config.CustomMatchmakingData, ct);
+        public void RttUpdated(TimeSpan rtt)
+        {
+        }
+        public void HideSplashScreen() => Debug.Log($"Hide splash screen.");
         public void Dispose()
         { }
     }
