@@ -1,6 +1,4 @@
-using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.DTO;
-using ElympicsPlayPad.Web3.Data;
+#nullable enable
 using SCS;
 
 namespace ElympicsPlayPad.Wrappers
@@ -9,6 +7,5 @@ namespace ElympicsPlayPad.Wrappers
     {
         public ChainConfig? CurrentChain { get; }
         public void RegisterWallet(IWallet wallet);
-        UniTask<TrustState> GetTrustBalance();
     }
 }

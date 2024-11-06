@@ -1,59 +1,98 @@
+#nullable enable
 using System;
-using System.Linq;
-using ElympicsPlayPad.DTO;
+using Cysharp.Threading.Tasks;
+using Elympics;
+using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Requests;
+using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Protocol.VoidMessages.DebugMessages;
+using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
+using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
-    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator
+    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver
     {
+        public PlayStatusInfo CurrentPlayStatus { get; }
+
+        private PlayStatusInfo _currentPlayStatusInfo;
+        public event Action<PlayStatusInfo>? PlayStatusUpdated;
         private readonly JsCommunicator _communicator;
-        private readonly IElympicsLobbyWrapper _elympicsLobby;
-        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper elympicsLobby)
+        private readonly IElympicsLobbyWrapper _lobby;
+
+        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby)
         {
             _communicator = communicator;
-            _elympicsLobby = elympicsLobby;
-            _elympicsLobby.GameplaySceneMonitor.GameplayStarted += OnGameplayStarted;
-            _elympicsLobby.GameplaySceneMonitor.GameplayFinished += OnGameplayFinished;
+            _communicator.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
+
+            _lobby = lobby;
+            _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
+            _lobby.ElympicsStateUpdated += OnElympicsStateUpdated;
         }
-        private void OnGameplayFinished() => _communicator.SendVoidMessage(VoidEventTypes.GameplayFinished, string.Empty);
-        private void OnGameplayStarted()
+        private void OnElympicsStateUpdated(ElympicsState previousState, ElympicsState newState)
         {
-            var rooms = _elympicsLobby.RoomsManager.ListJoinedRooms();
-            var matchRoom = rooms.FirstOrDefault(x => x.State.MatchmakingData?.MatchData is not null);
-            var matchId = matchRoom?.State.MatchmakingData?.MatchData?.MatchId;
-            if (matchId == null)
-                return;
-            var data = SystemInfoDataFactory.GetSystemInfoData();
-            var voidData = new GameplayStartedMessage
+            var message = new ElympicsStateUpdatedMessage
             {
-                matchId = matchId.ToString(),
-                systemInfo = data
+                previousState = (int)previousState,
+                newState = (int)newState
             };
-            _communicator.SendVoidMessage(VoidEventTypes.GameplayStarted, voidData);
+
+            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidEventTypes.ElympicsStateUpdated, message);
         }
 
-        public void GameFinished(int score) => _communicator.SendVoidMessage(VoidEventTypes.GameFinished, score);
-        public void RttUpdated(TimeSpan rtt)
+        public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidEventTypes.HideSplashScreen);
+
+        public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve)
         {
-            var debugMessage = JsCommunicationFactory.GetDebugMessageJson(DebugMessageTypes.RTT,
-                new RttDebugMessage()
-                {
-                    rtt = rtt.TotalMilliseconds
-                });
-            _communicator.SendVoidMessage(VoidEventTypes.Debug, debugMessage);
+            var request = new CanPlayGameRequest
+            {
+                autoResolve = autoResolve
+            };
+            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request);
+            _currentPlayStatusInfo = response.ToPlayStateInfo();
+            return _currentPlayStatusInfo;
         }
-        public void ApplicationInitialized() => _communicator.SendVoidMessage(VoidEventTypes.ApplicationInitialized, string.Empty);
 
+        public void RttUpdated(TimeSpan rtt) => _communicator.SendDebugMessage<RttDebugMessage>(DebugMessageTypes.RTT,
+            new RttDebugMessage()
+            {
+                rtt = rtt.TotalMilliseconds
+            });
+
+        public void OnWebMessage(WebMessage message)
+        {
+            if (message.type != WebMessageTypes.PlayStatusUpdated)
+                throw new Exception($"{nameof(WebGLGameStatusCommunicator)} can't handle {message.type} event type.");
+
+            var data = JsonUtility.FromJson<CanPlayUpdatedMessage>(message.message);
+
+            _currentPlayStatusInfo = data.ToPlayStateInfo();
+            PlayStatusUpdated?.Invoke(_currentPlayStatusInfo);
+        }
+
+        private void SendSystemInfoData()
+        {
+            var joinedRooms = _lobby.RoomsManager.ListJoinedRooms();
+            var systemInfoDataMessage = new SystemInfoDataMessage
+            {
+                userId = _lobby.AuthData.UserId.ToString(),
+                matchId = joinedRooms.Count > 0 ? (joinedRooms[0].State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty) : string.Empty,
+                systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
+            };
+
+            _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
+        }
 
         public void Dispose()
         {
-            _elympicsLobby.GameplaySceneMonitor.GameplayStarted -= OnGameplayStarted;
-            _elympicsLobby.GameplaySceneMonitor.GameplayFinished -= OnGameplayFinished;
+            _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
+            _lobby.ElympicsStateUpdated -= OnElympicsStateUpdated;
         }
     }
 }

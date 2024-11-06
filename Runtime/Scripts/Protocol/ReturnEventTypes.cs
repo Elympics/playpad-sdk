@@ -3,36 +3,33 @@ namespace ElympicsPlayPad.Protocol
     public static class ReturnEventTypes
     {
         public const string SignTypedData = "SignTypedData";
-        public const string Connect = "Connect";
         public const string EncodeFunctionData = "EncodeFunctionData";
         public const string GetValue = "GetValue";
         public const string SendTransaction = "SendTransaction";
         public const string Handshake = "Handshake";
-        public const string GetTrustState = "GetTrustState";
+        public const string GetAuthentication = "GetAuthentication";
         public const string GetLeaderboard = "GetLeaderboard";
-        public const string GetLeaderboardUserCentered = "GetLeaderboardUserCentered";
-        public const string GetLeaderboardUserHighScore = "GetLeaderboardUserHighScore";
-        public const string CanPlayTournament = "CanPlayTournament";
+        public const string GetUserHighScore = "GetUserHighScore";
+        public const string GetTournament = "GetTournament";
+        public const string GetPlayStatus = "GetPlayStatus";
+        public const string ShowPlayPadModal = "ShowPlayPadModal";
     }
 
     public static class WebMessageTypes
     {
         public const string WebGLKeyboardInputControl = "WebGLKeyboardInputControl";
-        public const string AuthDataChanged = "AuthDataChanged";
-        public const string TrustTransactionFinished = "TrustTransactionFinished";
+        public const string AuthenticationUpdated = "AuthenticationUpdated";
         public const string TournamentUpdated = "TournamentUpdated";
+        public const string LeaderboardUpdated = "LeaderboardUpdated";
+        public const string UserHighScoreUpdated = "UserHighScoreUpdated";
+        public const string PlayStatusUpdated = "PlayStatusUpdated";
     }
 
     public static class VoidEventTypes
     {
-        public const string ShowConnectToWallet = "ShowConnectUI";
-        public const string ShowChainSelectionUI = "ShowChainSelectionUI";
-        public const string GameFinished = "GameFinished";
-        public const string GameplayStarted = "GameplayStarted";
-        public const string GameplayFinished = "GameplayFinished";
-        public const string ShowAccountUI = "ShowAccountUI";
-        public const string ApplicationInitialized = "ApplicationInitialized";
-        public const string IncreaseTrust = "IncreaseTrust";
+        public const string HideSplashScreen = "HideSplashScreen";
+        public const string SystemInfoData = "SystemInfoData";
+        public const string ElympicsStateUpdated = "ElympicsStateUpdated";
         public const string Debug = "Debug";
     }
 
@@ -41,9 +38,11 @@ namespace ElympicsPlayPad.Protocol
         public const string RTT = "RTT";
     }
 
-    public static class ReactHandlers
+#if UNITY_WEBGL && !UNITY_EDITOR
+    public static class PlayPadHandlers
     {
         public const string HandleMessage = "HandleMessage";
         public const string VoidMessage = "HandleVoidMessage";
     }
+#endif
 }

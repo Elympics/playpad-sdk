@@ -1,54 +1,58 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
-using ElympicsPlayPad.DTO;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Utility;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
-using ElympicsPlayPad.JWT;
 using ElympicsPlayPad.JWT.Extensions;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Requests;
+using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Session.Exceptions;
-using ElympicsPlayPad.Tournament.Extensions;
-using ElympicsPlayPad.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
-    internal class WebGLExternalAuthenticator : IExternalAuthenticator
+    internal class WebGLExternalAuthenticator : IExternalAuthenticator, IWebMessageReceiver
     {
+        public event Action<AuthData>? AuthenticationUpdated;
         private readonly JsCommunicator _jsCommunicator;
-        private IPlayPadEventListener _connectionListener = null!;
+
         public WebGLExternalAuthenticator(JsCommunicator jsCommunicator)
         {
             _jsCommunicator = jsCommunicator;
-            _jsCommunicator.WebObjectReceived += OnWebObjectReceived;
+            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
         }
 
-        public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
+        public async UniTask<AuthData> Authenticate()
         {
-            var message = new InitializationMessage
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(ReturnEventTypes.GetAuthentication);
+            ThrowIfInvalidAuthenticateResponse(result);
+            var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
+            var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
+            return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
+        }
+        public async UniTask<HandshakeInfo> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
+        {
+            var message = new HandshakeRequest
             {
                 gameId = gameId,
                 gameName = gameName,
                 versionName = versionName,
                 sdkVersion = sdkVersion,
                 lobbyPackageVersion = lobbyPackageVersion,
-                systemInfo = SystemInfoDataFactory.GetSystemInfoData(),
             };
             try
             {
-                var result = await _jsCommunicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);
+                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(ReturnEventTypes.Handshake, message);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
-                ThrowIfInvalidResponse(result);
-                var payloadDeserialized = result.authData.jwt.ExtractUnityPayloadFromJwt();
-                var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
-                var cached = new AuthData(Guid.Parse(result.authData.userId), result.authData.jwt, result.authData.nickname, authType);
-                Debug.Log($"{nameof(WebGLExternalAuthenticator)} External authentication result: AuthType: {authType} UserId: {result.authData.userId} NickName: {result.authData.nickname}.");
-                return new ExternalAuthData(cached, isMobile, capabilities, result.environment, closestRegion, result.tournamentData.ToTournamentInfo());
+                var featureAccess = (FeatureAccess)result.featureAccess;
+                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess);
             }
             catch (ResponseException e)
             {
@@ -58,63 +62,23 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 throw;
             }
         }
-        private void ThrowIfInvalidResponse(InitializationResponse result)
+
+        private static void ThrowIfInvalidAuthenticateResponse(AuthenticationResponse result)
         {
-            if (string.IsNullOrEmpty(result.authData.jwt))
+            if (string.IsNullOrEmpty(result.jwt))
                 throw new SessionManagerFatalError("External message did not return authorization token. Unable to authorize.");
-            var payload = JsonWebToken.Decode(result.authData.jwt, string.Empty, false);
-            if (payload is null)
-                throw new SessionManagerFatalError($"Payload is null. Unable to authorize.");
-            var formattedPayload = AuthTypeRawUtility.ToUnityNaming(payload);
-            var payloadDeserialized = JsonUtility.FromJson<JwtPayload>(formattedPayload);
-            if (string.IsNullOrEmpty(payloadDeserialized.authType))
-                throw new SessionManagerFatalError("Couldn't find authType in payload. Unable to authorize.");
         }
 
-        private void OnWebObjectReceived(WebMessageObject messageObject)
+        public void OnWebMessage(WebMessage message)
         {
-            switch (messageObject.type)
-            {
-                case WebMessageTypes.AuthDataChanged:
-                    OnAuthDataChanged(messageObject.message);
-                    break;
-            }
-        }
+            if (message.type != WebMessageTypes.AuthenticationUpdated)
+                return;
 
-        private void OnAuthDataChanged(string message)
-        {
-            var data = JsonUtility.FromJson<AuthDataChangedMessage>(message);
-            var authType = GetAuthTypeFromJwt(data.newJwt);
-            if (authType is not null)
-            {
-                var cached = new AuthData(Guid.Parse(data.newUserId), data.newJwt, data.newNickname, authType.Value);
-                Debug.Log($"{nameof(WebGLExternalAuthenticator)} External authentication changed result: AuthType: {authType.Value} UserId: {data.newUserId} NickName: {data.newNickname}.");
-                _connectionListener.OnAuthChanged(cached);
-            }
+            var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
+            var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
+            var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
+            var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+            AuthenticationUpdated?.Invoke(cached);
         }
-
-        private AuthType? GetAuthTypeFromJwt(string jwt)
-        {
-            var payload = JsonWebToken.Decode(jwt, string.Empty, false);
-            var formattedPayload = AuthTypeRawUtility.ToUnityNaming(payload);
-            var payloadDeserialized = JsonUtility.FromJson<JwtPayload>(formattedPayload);
-            if (string.IsNullOrEmpty(payloadDeserialized.authType) is false)
-            {
-                var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
-                return authType;
-            }
-            else
-            {
-                Debug.LogError($"{nameof(WebGLExternalAuthenticator)} Couldn't find authType in payload.");
-                return null;
-            }
-        }
-
-        public void Dispose()
-        {
-            Debug.Log($"[{nameof(WebGLExternalAuthenticator)}] Dispose.");
-            _jsCommunicator.WebObjectReceived -= OnWebObjectReceived;
-        }
-        void IExternalAuthenticator.SetPlayPadEventListener(IPlayPadEventListener listener) => _connectionListener = listener;
     }
 }

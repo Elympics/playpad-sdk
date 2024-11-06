@@ -1,8 +1,7 @@
 using System;
-using ElympicsPlayPad.DTO;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.WebMessages.Models;
+using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Utility
@@ -20,12 +19,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Utility
             _jsCommunicator.WebObjectReceived += OnWebMessageReceived;
 
         }
-        private static void OnWebMessageReceived(WebMessageObject messageObject)
+        private static void OnWebMessageReceived(WebMessage message)
         {
-            switch (messageObject.type)
+            switch (message.type)
             {
                 case WebMessageTypes.WebGLKeyboardInputControl:
-                    OnKeyboardInputControlsRequested(messageObject.message);
+                    OnKeyboardInputControlsRequested(message.message);
                     break;
             }
         }

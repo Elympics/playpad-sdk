@@ -1,69 +1,70 @@
 using System;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using ElympicsPlayPad.DTO;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Leaderboard;
 using ElympicsPlayPad.Leaderboard.Extensions;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
-using LeaderboardResponse = ElympicsPlayPad.Protocol.RequestResponse.Leaderboard.LeaderboardResponse;
+using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.WebMessages;
+using UnityEngine;
 
 #nullable enable
 namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
-    internal class WebGLLeaderboardCommunicator : IExternalLeaderboardCommunicator
+    internal class WebGLLeaderboardCommunicator : IExternalLeaderboardCommunicator, IWebMessageReceiver
     {
-        private readonly JsCommunicator _jsCommunicator;
-        public WebGLLeaderboardCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
+        public UserHighScoreInfo? UserHighScore => _userHighScore;
+        public LeaderboardStatusInfo? Leaderboard => _leaderboard;
 
-        public async UniTask<LeaderboardStatus> FetchLeaderboard(
-            string? tournamentId,
-            string? queueName,
-            LeaderboardTimeScope timeScope,
-            int pageNumber,
-            int pageSize,
-            LeaderboardRequestType leaderboardRequestType)
+        private UserHighScoreInfo? _userHighScore;
+        private LeaderboardStatusInfo? _leaderboard;
+        public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+
+        private readonly JsCommunicator _jsCommunicator;
+        public WebGLLeaderboardCommunicator(JsCommunicator jsCommunicator)
         {
-            var request = new LeaderboardRequest
-            {
-                tournamentId = tournamentId,
-                queueName = queueName,
-                timeScopeType = timeScope.LeaderboardTimeScopeType,
-                pageNumber = pageNumber,
-                pageSize = pageSize,
-                fetchType = "Max",
-                dateFrom = timeScope.LeaderboardTimeScopeType == LeaderboardTimeScopeType.Custom ? timeScope.DateFrom.ToString("o") : string.Empty,
-                dateTo = timeScope.LeaderboardTimeScopeType == LeaderboardTimeScopeType.Custom ? timeScope.DateTo.ToString("o") : string.Empty,
-            };
-            var response = leaderboardRequestType switch
-            {
-                LeaderboardRequestType.Regular => await _jsCommunicator.SendRequestMessage<LeaderboardRequest, LeaderboardResponse>(ReturnEventTypes.GetLeaderboard, request),
-                LeaderboardRequestType.UserCentered => await _jsCommunicator.SendRequestMessage<LeaderboardRequest, LeaderboardResponse>(ReturnEventTypes.GetLeaderboardUserCentered, request),
-                _ => throw new ArgumentOutOfRangeException(nameof(leaderboardRequestType), leaderboardRequestType, null)
-            };
-            return response.MapToLeaderboardStatus();
+            _jsCommunicator = jsCommunicator;
+            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
         }
-        public async UniTask<UserHighScore> FetchUserHighScore(
-            string? tournamentId,
-            string? queueName,
-            LeaderboardTimeScope timeScope,
-            int pageNumber,
-            int pageSize)
+
+        public async UniTask<LeaderboardStatusInfo> FetchLeaderboard()
         {
-            var request = new LeaderboardRequest
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(ReturnEventTypes.GetLeaderboard);
+            _leaderboard = result.MapToLeaderboardStatus();
+            return _leaderboard.Value;
+        }
+        public async UniTask<UserHighScoreInfo?> FetchUserHighScore()
+        {
+            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(ReturnEventTypes.GetUserHighScore);
+            if (response.points == -1.0f)
+                return null;
+
+            _userHighScore = response.MapToUserHighScore();
+            return _userHighScore.Value;
+        }
+        public void OnWebMessage(WebMessage message)
+        {
+            switch (message.type)
             {
-                tournamentId = tournamentId,
-                queueName = queueName,
-                timeScopeType = timeScope.LeaderboardTimeScopeType,
-                pageNumber = pageNumber,
-                pageSize = pageSize,
-                fetchType = "Max",
-                dateFrom = timeScope.LeaderboardTimeScopeType == LeaderboardTimeScopeType.Custom ? timeScope.DateFrom.ToString("o") : string.Empty,
-                dateTo = timeScope.LeaderboardTimeScopeType == LeaderboardTimeScopeType.Custom ? timeScope.DateTo.ToString("o") : string.Empty,
-            };
-            var response = await _jsCommunicator.SendRequestMessage<LeaderboardRequest, UserHighScoreResponse>(ReturnEventTypes.GetLeaderboardUserHighScore, request);
-            return response.MapToUserHighScore();
+                case WebMessageTypes.LeaderboardUpdated:
+                {
+                    var leaderboardUpdate = JsonUtility.FromJson<LeaderboardUpdatedMessage>(message.message);
+                    _leaderboard = leaderboardUpdate.MapToLeaderboardStatus();
+                    LeaderboardUpdated?.Invoke(_leaderboard.Value);
+                    break;
+                }
+                case WebMessageTypes.UserHighScoreUpdated:
+                {
+                    var highScoreUpdate = JsonUtility.FromJson<UserHighScoreUpdatedMessage>(message.message);
+                    _userHighScore = highScoreUpdate.MapToUserHighScore();
+                    UserHighScoreUpdated?.Invoke(_userHighScore.Value);
+                    break;
+                }
+                default:
+                    throw new Exception($"{nameof(WebGLLeaderboardCommunicator)} can't handle {message.type} event type.");
+            }
         }
     }
 }

@@ -1,49 +1,44 @@
-using ElympicsPlayPad.DTO;
+#nullable enable
+using ElympicsPlayPad.Protocol.Requests;
+using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Protocol.VoidMessages.DebugMessages;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     public class JsCommunicationFactory
     {
-        private readonly string _protocolVersion;
-        public JsCommunicationFactory(string protocolVersion)
-        {
-            _protocolVersion = protocolVersion;
-        }
 
-        public string GetVoidMessageJson<T>(string voidMessageType, T payload)
+        public string GetVoidMessageJson<T>(string voidMessageType, T? payload)
+            where T : struct
         {
             var voidMessage = new VoidMessage<T>()
             {
-                protocolVersion = _protocolVersion,
                 type = voidMessageType,
-                message = payload,
+                payload = payload ?? default,
             };
             return JsonUtility.ToJson(voidMessage);
         }
 
-        public static string GetDebugMessageJson<T>(string debugType, T payload)
+        public string GetDebugMessageJson<T>(string debugType, T? message)
+            where T : struct
         {
             var debugMessage = new DebugMessage<T>()
             {
                 debugType = debugType,
-                message = payload,
+                message = message ?? default,
             };
             return JsonUtility.ToJson(debugMessage);
         }
 
-        public string GenerateRequestMessageJson<TInput>(int requestNumber, string type, string address, TInput message)
+        public string GenerateRequestMessageJson<TInput>(int requestNumber, string type, TInput? payload)
+            where TInput : struct
         {
-            var toSerialize = new Message<TInput>()
+            var toSerialize = new RequestMessage<TInput>()
             {
-                protocolVersion = _protocolVersion,
                 ticket = requestNumber,
                 type = type,
-                parameters = new Parameters<TInput>()
-                {
-                    address = address,
-                    message = message,
-                }
+                payload = payload ?? default
             };
             return JsonUtility.ToJson(toSerialize);
         }

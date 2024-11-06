@@ -1,4 +1,5 @@
-﻿using TMPro;
+using System;
+using TMPro;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
@@ -12,7 +13,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void UpdateTimer(int remainingSeconds) => timer.text = remainingSeconds.ToString();
 
         // TODO: Add showing points to EndView, fix bug with points not being saved when time ends
-        public void ShowGameEndedView() => gameEndedView.Show();
+        public void ShowGameEndedView(Guid matchId) => gameEndedView.Show(matchId);
 
         public int Points => int.TryParse(pointsField.text, out int result) ? result : 0;
     }

@@ -1,14 +1,17 @@
 #nullable enable
+using System;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.Leaderboard;
-using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public interface IExternalLeaderboardCommunicator
     {
-        public UniTask<LeaderboardStatus> FetchLeaderboard(string? tournamentId, string? queueName, LeaderboardTimeScope timeScope, int pageNumber, int pageSize, LeaderboardRequestType leaderboardRequestType);
-        public UniTask<UserHighScore> FetchUserHighScore(string? tournamentId, string? queueName, LeaderboardTimeScope timeScope, int pageNumber, int pageSize);
+        public UserHighScoreInfo? UserHighScore { get; }
+        public LeaderboardStatusInfo? Leaderboard { get; }
+        public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        public UniTask<LeaderboardStatusInfo> FetchLeaderboard();
+        public UniTask<UserHighScoreInfo?> FetchUserHighScore();
     }
 }

@@ -9,6 +9,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
 {
     internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {
+        public event Action<ElympicsState, ElympicsState> ElympicsStateUpdated;
         public IGameplaySceneMonitor GameplaySceneMonitor { get; } = new MockGameplaySceneMonitor();
         public IRoomsManager RoomsManager { get; }
 

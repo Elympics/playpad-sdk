@@ -5,10 +5,9 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
-using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.GameStatus;
+using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.Leaderboard;
-using ElympicsPlayPad.Protocol.RequestResponse.Leaderboard;
 using ElympicsPlayPad.Tournament.Data;
 using ElympicsPlayPad.Tournament.Utility;
 using ElympicsPlayPad.Utility;
@@ -33,18 +32,17 @@ namespace ElympicsPlayPad.Tournament
         public static ElympicsTournament Instance = null!;
 
         [PublicAPI]
-        public TournamentPlayState PlayState { get; private set; }
+        public bool IsTournamentAvailable => TournamentInfo is not null;
 
         [PublicAPI]
-        public bool IsTournamentAvailable => _tournamentInfo is not null;
+        public PlayStatusInfo? TournamentStatusPlayState => _externalGameStatusCommunicator.CurrentPlayStatus;
 
         [PublicAPI]
-        public TournamentInfo TournamentInfo => _tournamentInfo ?? throw new TournamentException("No tournament is available");
+        public TournamentInfo? TournamentInfo => _externalTournamentCommunicator.CurrentTournament;
 
-        private TournamentInfo? _tournamentInfo;
         private IRoomsManager _roomsManager = null!;
         private IExternalTournamentCommunicator _externalTournamentCommunicator = null!;
-        private IExternalLeaderboardCommunicator _externalLeaderboardCommunicator = null!;
+        private IExternalGameStatusCommunicator _externalGameStatusCommunicator = null!;
         private CancellationTokenSource? _timerCts;
         private readonly Dictionary<string, string> _tournamentCustomMatchmakingData = new(1);
 
@@ -53,13 +51,14 @@ namespace ElympicsPlayPad.Tournament
             if (Instance == null)
             {
                 Instance = this;
-                if (PlayPadCommunicator.Instance!.LeaderboardCommunicator == null)
-                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(PlayPadCommunicator.Instance.LeaderboardCommunicator)}");
-                _externalLeaderboardCommunicator = PlayPadCommunicator.Instance!.LeaderboardCommunicator;
 
                 if (PlayPadCommunicator.Instance.TournamentCommunicator == null)
                     throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(PlayPadCommunicator.Instance.TournamentCommunicator)}");
                 _externalTournamentCommunicator = PlayPadCommunicator.Instance.TournamentCommunicator;
+
+                if (PlayPadCommunicator.Instance.GameStatusCommunicator == null)
+                    throw new ElympicsException($"{nameof(ElympicsTournament)} requires {nameof(PlayPadCommunicator.Instance.GameStatusCommunicator)}");
+                _externalGameStatusCommunicator = PlayPadCommunicator.Instance.GameStatusCommunicator;
 
                 _roomsManager = ElympicsLobbyClient.Instance!.RoomsManager;
                 _externalTournamentCommunicator.TournamentUpdated += OnTournamentUpdated;
@@ -68,64 +67,23 @@ namespace ElympicsPlayPad.Tournament
             }
             else
             {
-                ElympicsLogger.LogError($"{nameof(ElympicsTournament)} singleton already exist. Destroying duplicate on {gameObject.name}");
+                ElympicsLogger.LogWarning($"{nameof(ElympicsTournament)} singleton already exist. Destroying duplicate on {gameObject.name}");
                 Destroy(gameObject);
             }
         }
 
         [PublicAPI]
-        public async UniTask Initialize(TournamentInfo tournament)
+        public async UniTask Initialize()
         {
             Debug.Log($"Initialize {nameof(ElympicsTournament)}.");
-            _tournamentInfo = tournament;
             _tournamentCustomMatchmakingData.Clear();
-            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, tournament.Id);
-            await SetPlayState();
+            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, TournamentInfo!.Value.Id);
             StartTimer();
             SendEventsOnInitialization();
-            Debug.Log($"Tournament Initialized: {tournament.ToString()}");
+            Debug.Log($"Tournament Initialized: {TournamentInfo!.Value.Id}");
             await UniTask.CompletedTask;
         }
 
-        [PublicAPI]
-        public async UniTask<LeaderboardStatus> FetchTournamentLeaderboard(int? pageNumber, int? pageSize)
-        {
-            ThrowIfNoTournament();
-            return await _externalLeaderboardCommunicator.FetchLeaderboard(_tournamentInfo.Value.Id, null, new LeaderboardTimeScope(_tournamentInfo.Value.StartDate, _tournamentInfo.Value.EndDate), pageNumber ?? 1, pageSize ?? _tournamentInfo.Value.LeaderboardCapacity, LeaderboardRequestType.Regular);
-        }
-
-        [PublicAPI]
-        public async UniTask<float> FetchUserHighScore()
-        {
-            ThrowIfNoTournament();
-            var result = await _externalLeaderboardCommunicator.FetchUserHighScore(_tournamentInfo.Value.Id, null, new LeaderboardTimeScope(_tournamentInfo.Value.StartDate, _tournamentInfo.Value.EndDate), 1, 1);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (result.Score != -1.0f)
-                return result.Score;
-            throw new TournamentException("High-score for user has not been found.");
-        }
-
-        /// <summary>
-        /// Determines whether the user is eligible to participate in a tournament.
-        /// Check the documentation for details on error codes.
-        /// A <c>StatusCode</c> of 0 indicates that the user can play in the tournament.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="ParticipationInfo"/> object containing the status code and error message, if applicable.
-        /// </returns>
-        /// <remarks>
-        /// This method communicates with an PlayPad to verify the user's eligibility.
-        /// </remarks>
-        [PublicAPI]
-        public async UniTask<ParticipationInfo> CanParticipate()
-        {
-            var result = await _externalTournamentCommunicator.CanPlayTournament();
-            return new ParticipationInfo
-            {
-                StatusCode = result.statusCode,
-                Message = result.message
-            };
-        }
         /// <summary>
         /// Run matchmaker to find tournament game.
         /// </summary>
@@ -135,9 +93,9 @@ namespace ElympicsPlayPad.Tournament
         [PublicAPI]
         public async UniTask<IRoom> FindTournamentMatch(string queueName)
         {
-            var info = await CanParticipate();
-            if (info.StatusCode != 0)
-                throw new TournamentException($"Can't start game. ErrorCode: {info.StatusCode} Reason: {info.Message}");
+            var info = await _externalGameStatusCommunicator.CanPlayGame(true);
+            if (info.PlayStatus != 0)
+                throw new TournamentException($"Can't start game. ErrorCode: {info.PlayStatus} Reason: {info.LabelInfo}");
 
             return await _roomsManager.StartQuickMatch(queueName, null, null, null, _tournamentCustomMatchmakingData);
         }
@@ -153,9 +111,8 @@ namespace ElympicsPlayPad.Tournament
         private void OnTournamentUpdated(TournamentInfo newTournamentInfo)
         {
             Debug.Log($"Update tournament using new info: {newTournamentInfo.ToString()}.");
-            Initialize(newTournamentInfo).ContinueWith(() =>
+            Initialize().ContinueWith(() =>
             {
-                _tournamentInfo = newTournamentInfo;
                 TournamentUpdated?.Invoke();
             }).Forget();
         }
@@ -174,38 +131,30 @@ namespace ElympicsPlayPad.Tournament
 
             if (IsTournamentUpcoming())
             {
-                RequestTimer(_tournamentInfo.Value.StartDate, OnTournamentStarted, _timerCts.Token).Forget();
+                RequestTimer(TournamentInfo!.Value.StartDate, OnTournamentStarted, _timerCts.Token).Forget();
                 Debug.Log("Timer: Tournament Started.");
             }
             else if (IsTournamentOngoing())
             {
-                RequestTimer(_tournamentInfo.Value.EndDate, OnTournamentEnded, _timerCts.Token).Forget();
+                RequestTimer(TournamentInfo!.Value.EndDate, OnTournamentEnded, _timerCts.Token).Forget();
             }
             return;
 
             async UniTask OnTournamentStarted()
             {
                 Debug.Log("Timer: Tournament Finished.");
-                await SetPlayState();
                 StartTimer();
                 TournamentStarted?.Invoke();
             }
 
             async UniTask OnTournamentEnded()
             {
-                await SetPlayState();
                 TournamentFinished?.Invoke();
             }
         }
-        private bool IsTournamentUpcoming() => DateTimeOffset.Now < _tournamentInfo?.StartDate;
-        private bool IsTournamentFinished() => DateTimeOffset.Now > _tournamentInfo?.EndDate;
-        private bool IsTournamentOngoing() => _tournamentInfo?.StartDate <= DateTimeOffset.Now && DateTimeOffset.Now < _tournamentInfo?.EndDate;
-        private async UniTask SetPlayState()
-        {
-            var info = await CanParticipate();
-            PlayState = info.StatusCode == 0 ? TournamentPlayState.Playable : TournamentPlayState.NonPlayable;
-            Debug.Log($"Tournament PlayState is {PlayState}.");
-        }
+        private bool IsTournamentUpcoming() => DateTimeOffset.Now < TournamentInfo?.StartDate;
+        private bool IsTournamentFinished() => DateTimeOffset.Now > TournamentInfo?.EndDate;
+        private bool IsTournamentOngoing() => TournamentInfo?.StartDate <= DateTimeOffset.Now && DateTimeOffset.Now < TournamentInfo?.EndDate;
         private async UniTask RequestTimer(DateTimeOffset date, Func<UniTask> callback, CancellationToken ct = default)
         {
             Debug.Log($"Request timer for {date:O}");
@@ -222,20 +171,18 @@ namespace ElympicsPlayPad.Tournament
             _externalTournamentCommunicator.TournamentUpdated -= OnTournamentUpdated;
             _timerCts?.Cancel();
         }
-        internal async UniTask Initialize(TournamentInfo tournament, IRoomsManager roomsManager)
+        internal async UniTask Initialize(IRoomsManager roomsManager)
         {
-            _tournamentInfo = tournament;
             _tournamentCustomMatchmakingData.Clear();
-            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, tournament.Id.ToString());
+            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, TournamentInfo!.Value.Id);
             _roomsManager = roomsManager;
-            SetPlayState();
             StartTimer();
             await UniTask.CompletedTask;
         }
 
         private void ThrowIfNoTournament()
         {
-            if (_tournamentInfo == null)
+            if (TournamentInfo == null)
                 throw new TournamentException("Tournament is not available.");
         }
     }

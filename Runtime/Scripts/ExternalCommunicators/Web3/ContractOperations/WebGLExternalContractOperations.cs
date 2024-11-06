@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using ElympicsPlayPad.DTO;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Requests;
+using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Web3.Data;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
@@ -16,7 +17,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
 
         public async UniTask<string> GetValue<TReturn>(SmartContract tokenInfo, string valueName, params string[] parameters)
         {
-            var message = new EncodeFunctionData()
+            var message = new EncodeFunctionDataRequest()
             {
                 chainId = tokenInfo.ChainId,
                 contractAddress = tokenInfo.Address,
@@ -24,7 +25,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
                 function = valueName,
                 parameters = parameters,
             };
-            return await _communicator.SendRequestMessage<EncodeFunctionData, string>(ReturnEventTypes.GetValue, message);
+            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(ReturnEventTypes.GetValue, message);
+            return result.message;
         }
         public async UniTask<string> GetFunctionCallData(SmartContract contract, string functionName, params object[] parameters)
         {
@@ -32,14 +34,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
             foreach (var param in parameters)
                 _cache.Add(param.ToString());
 
-            var message = new EncodeFunctionData()
+            var message = new EncodeFunctionDataRequest()
             {
                 contractAddress = contract.Address,
                 ABI = contract.ABI,
                 function = functionName,
                 parameters = _cache.ToArray(),
             };
-            return await _communicator.SendRequestMessage<EncodeFunctionData, string>(ReturnEventTypes.EncodeFunctionData, message);
+            var result =  await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(ReturnEventTypes.EncodeFunctionData, message);
+            return result.message;
         }
     }
 }
