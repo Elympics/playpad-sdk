@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace ElympicsLobbyPackage.JWT
+namespace ElympicsPlayPad.JWT
 {
     [Serializable]
     public struct ElympicsJwt

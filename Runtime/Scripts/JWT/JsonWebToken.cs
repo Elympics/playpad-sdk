@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ElympicsLobbyPackage.JWT
+namespace ElympicsPlayPad.JWT
 {
     public enum JwtHashAlgorithm
     {

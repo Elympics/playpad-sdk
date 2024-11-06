@@ -1,13 +1,13 @@
 {
-  "name": "com.daftmobile.external-communicator",
-  "version": "0.4.5",
-  "description": "Elympics External Communicator is an implementation of Elympics authorization and wallet communication",
-  "displayName": "Elympics External Communicator",
+  "name": "com.daftmobile.elympics-playpad",
+  "version": "1.0.0",
+  "description": "Elympics PlayPad SDK is meant for integration with PlayPad, which is a tool for hosting your games and handling Web3 communication",
+  "displayName": "Elympics PlayPad",
   "unity": "2021.3",
   "author": {
     "name": "Elympics",
     "email": "hello@elympics.cc",
-    "url": "https://www.elympics.cc/"
+    "url": "https://www.elympics.ai/"
   },
   "documentationUrl": "https://docs.elympics.cc/",
   "license": "See LICENSE.md file",
@@ -23,6 +23,6 @@
     }
   ],
   "dependencies": {
-    "com.daftmobile.elympics": "0.14.0"
+    "com.daftmobile.elympics": "0.14.1"
   }
 }

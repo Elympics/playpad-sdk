@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:Button text="Handle Web Message" display-tooltip-when-elided="true" name="tournament_changed" />
+    <ui:Foldout text="JSON" name="foldout">
+        <ui:TextField picking-mode="Ignore" label="Json Web Message" value="filler text" text="json" name="json_web_message" style="white-space: normal; max-height: initial;" />
+    </ui:Foldout>
+</ui:UXML>
