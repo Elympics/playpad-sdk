@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
@@ -8,10 +9,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     public class StandaloneExternalAuthenticator : IExternalAuthenticator
     {
-        private readonly StandaloneExternalAuthenticatorConfig _authConfig;
+        public event Action<AuthData>? AuthenticationUpdated;
         public StandaloneExternalAuthenticator(StandaloneExternalAuthenticatorConfig authConfig) => _authConfig = authConfig;
 
-        public event Action<AuthData> AuthenticationUpdated;
+        private readonly StandaloneExternalAuthenticatorConfig _authConfig;
         public UniTask<AuthData> Authenticate() => UniTask.FromResult(new AuthData(Guid.NewGuid(), string.Empty, string.Empty, AuthType.ClientSecret));
         public async UniTask<HandshakeInfo> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
         {

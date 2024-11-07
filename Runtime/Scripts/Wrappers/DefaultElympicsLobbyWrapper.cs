@@ -13,7 +13,8 @@ namespace ElympicsPlayPad.Wrappers
 
         private void Awake()
         {
-            ElympicsLobbyClient.Instance.StateChanged += OnStateChanged;
+            if (ElympicsLobbyClient.Instance != null)
+                ElympicsLobbyClient.Instance.StateChanged += OnStateChanged;
         }
         private void OnStateChanged(ElympicsState previousState, ElympicsState newState) => ElympicsStateUpdated?.Invoke(previousState, newState);
 

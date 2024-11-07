@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             var response = GetResponseData<TReturn>(ticket);
             _ticketStatus.TryRemove(ticket, out _);
             UniTask.ReturnToMainThread();
-            return response;
+            return response!;
         }
 
         private bool IsWaitingForResponse(int ticket) => _ticketStatus.ContainsKey(ticket) is false;

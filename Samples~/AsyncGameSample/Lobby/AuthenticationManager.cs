@@ -23,8 +23,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             sessionManager.StartSessionInfoUpdate += () => LobbyUIManager.SetAuthenticationScreenActive(true);
             sessionManager.FinishSessionInfoUpdate += () => LobbyUIManager.SetAuthenticationScreenActive(false);
 
-            LobbyUIManager.SetAuthenticationScreenActive(true);
-
             if (!ElympicsLobbyClient.Instance.IsAuthenticated || !ElympicsLobbyClient.Instance.WebSocketSession.IsConnected)
             {
                 await sessionManager.AuthenticateFromExternalAndConnect();

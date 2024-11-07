@@ -18,10 +18,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void SetAuthenticationScreenActive(bool newValue) => authenticationInProgressScreen.SetActive(newValue);
 
         [UsedImplicitly]
-        public async UniTask PlayGame()
+        public void PlayGame()
         {
             matchmakingInProgressScreen.SetActive(true);
-            _ = await ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
+            ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue).Forget();
         }
     }
 }

@@ -35,7 +35,7 @@ namespace ElympicsPlayPad.Session
         public SessionInfo? CurrentSession { get; private set; }
 
         [PublicAPI]
-        public IElympicsTournament? ElympicsTournament;
+        public bool ConnectedWithPlayPad => instance != null;
 
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
 
@@ -49,7 +49,6 @@ namespace ElympicsPlayPad.Session
 
         private void Start()
         {
-            ElympicsTournament = FindObjectOfType<ElympicsTournament>();
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
             ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
         }
@@ -61,6 +60,9 @@ namespace ElympicsPlayPad.Session
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
         {
+            if (instance != null)
+                throw new SessionmanagerException("Session Manager already initialized.");
+
             if (instance == null)
             {
                 if (SmartContractService.Instance != null)
@@ -70,13 +72,10 @@ namespace ElympicsPlayPad.Session
                 var handshake = await SetupHandshake();
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
+
                 if (handshake.FeatureAccess.HasTournament())
-                {
                     _ = await TournamentCommunicator.GetTournament();
-                    if (ElympicsTournament == null)
-                        throw new SessionManagerFatalError($"Add {nameof(Tournament.ElympicsTournament)} component scene.");
-                    await ElympicsTournament!.Initialize();
-                }
+
                 _ = await GameStatusCommunicator.CanPlayGame(false);
 
                 if (handshake.FeatureAccess.HasLeaderboard())
@@ -119,8 +118,8 @@ namespace ElympicsPlayPad.Session
                 AuthType = standaloneAuthType,
                 Region = new RegionData(_region)
             });
-            return _lobbyWrapper.AuthData;
-#endif
+            return _lobbyWrapper.AuthData!;
+#else
             try
             {
                 await AuthWithCached(result, false);
@@ -130,6 +129,7 @@ namespace ElympicsPlayPad.Session
             {
                 throw new SessionManagerFatalError(e.Message);
             }
+#endif
         }
 
         private void SetupSession(HandshakeInfo handshake, string region, AuthData authData)

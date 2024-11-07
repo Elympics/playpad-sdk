@@ -9,7 +9,7 @@ namespace ElympicsPlayPad.Session
     [PublicAPI]
     public readonly struct SessionInfo
     {
-        public readonly AuthData? AuthData;
+        public readonly AuthData AuthData;
         public readonly string? AccountWallet;
         public readonly string? SignWallet;
         public readonly Capabilities Capabilities;
@@ -19,7 +19,7 @@ namespace ElympicsPlayPad.Session
         public readonly string ClosestRegion;
 
         public SessionInfo(
-            AuthData? authData,
+            AuthData authData,
             string? accountWallet,
             string? signWallet,
             Capabilities capabilities,

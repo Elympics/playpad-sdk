@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 773821390082990742}
   - component: {fileID: 2308011412948500162}
   - component: {fileID: 2963147157415642878}
-  - component: {fileID: 4863448724496811914}
   m_Layer: 0
   m_Name: PlayPadCommunicator
   m_TagString: Untagged
@@ -62,10 +61,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   standaloneAuthConfig: {fileID: 0}
   standaloneTournamentConfig: {fileID: 0}
-  standaloneWalletConfig: {fileID: 0}
+  standaloneGameStatusConfig: {fileID: 0}
   customAuthenticatorCommunicator: {fileID: 0}
   customLeaderboardCommunicator: {fileID: 0}
   customTournamentCommunicator: {fileID: 0}
+  customGameStatusCommunicator: {fileID: 0}
+  customExternalUiCommunicator: {fileID: 0}
+  customErc20SmartContractCommunicator: {fileID: 0}
 --- !u!114 &2308011412948500162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89,17 +91,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c93a25caa2615343bb3cb72341f93eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4863448724496811914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 773821390082990743}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16d1cf8eca71e874c993ed02b5c28f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

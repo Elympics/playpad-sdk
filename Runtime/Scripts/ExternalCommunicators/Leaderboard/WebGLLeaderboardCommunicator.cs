@@ -42,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                 return null;
 
             _userHighScore = response.MapToUserHighScore();
-            return _userHighScore.Value;
+            return _userHighScore;
         }
         public void OnWebMessage(WebMessage message)
         {

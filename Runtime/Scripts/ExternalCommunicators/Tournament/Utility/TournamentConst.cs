@@ -1,5 +1,5 @@
 #nullable enable
-namespace ElympicsPlayPad.Tournament.Utility
+namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Utility
 {
     public class TournamentConst
     {

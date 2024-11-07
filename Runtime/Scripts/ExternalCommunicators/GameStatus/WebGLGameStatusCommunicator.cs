@@ -1,8 +1,13 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -19,21 +24,25 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
     internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver
     {
-        public PlayStatusInfo CurrentPlayStatus { get; }
-
-        private PlayStatusInfo _currentPlayStatusInfo;
+        public PlayStatusInfo CurrentPlayStatus { get; private set; }
         public event Action<PlayStatusInfo>? PlayStatusUpdated;
         private readonly JsCommunicator _communicator;
         private readonly IElympicsLobbyWrapper _lobby;
+        private readonly IExternalTournamentCommunicator _tournamentCommunicator;
+        private readonly IRoomsManager _roomsManager;
+        private readonly Dictionary<string, string> _tournamentCustomMatchmakingData = new(1);
 
-        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby)
+        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator)
         {
             _communicator = communicator;
             _communicator.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
-
+            _tournamentCustomMatchmakingData.Clear();
+            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, string.Empty);
             _lobby = lobby;
+            _tournamentCommunicator = tournamentCommunicator;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
             _lobby.ElympicsStateUpdated += OnElympicsStateUpdated;
+            _roomsManager = _lobby.RoomsManager;
         }
         private void OnElympicsStateUpdated(ElympicsState previousState, ElympicsState newState)
         {
@@ -55,8 +64,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 autoResolve = autoResolve
             };
             var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request);
-            _currentPlayStatusInfo = response.ToPlayStateInfo();
-            return _currentPlayStatusInfo;
+            CurrentPlayStatus = response.ToPlayStateInfo();
+            return CurrentPlayStatus;
+        }
+        public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default)
+        {
+            var info = await CanPlayGame(true);
+            if (info.PlayStatus != 0)
+                throw new GameStatusException($"Can't start game. ErrorCode: {info.PlayStatus} Reason: {info.LabelInfo}");
+
+            _tournamentCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament!.Value.Id;
+            return await _roomsManager.StartQuickMatch(config.QueueName, null, null, null, _tournamentCustomMatchmakingData, ct);
         }
 
         public void RttUpdated(TimeSpan rtt) => _communicator.SendDebugMessage<RttDebugMessage>(DebugMessageTypes.RTT,
@@ -72,8 +90,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
             var data = JsonUtility.FromJson<CanPlayUpdatedMessage>(message.message);
 
-            _currentPlayStatusInfo = data.ToPlayStateInfo();
-            PlayStatusUpdated?.Invoke(_currentPlayStatusInfo);
+            CurrentPlayStatus = data.ToPlayStateInfo();
+            PlayStatusUpdated?.Invoke(CurrentPlayStatus);
         }
 
         private void SendSystemInfoData()
@@ -81,7 +99,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             var joinedRooms = _lobby.RoomsManager.ListJoinedRooms();
             var systemInfoDataMessage = new SystemInfoDataMessage
             {
-                userId = _lobby.AuthData.UserId.ToString(),
+                userId = _lobby.AuthData!.UserId.ToString(),
                 matchId = joinedRooms.Count > 0 ? (joinedRooms[0].State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty) : string.Empty,
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
             };

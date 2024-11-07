@@ -14,7 +14,7 @@ namespace ElympicsPlayPad.Wrappers
 
         IRoomsManager RoomsManager { get; }
 
-        AuthData AuthData { get; }
+        AuthData? AuthData { get; }
 
         bool IsAuthenticated { get; }
 
