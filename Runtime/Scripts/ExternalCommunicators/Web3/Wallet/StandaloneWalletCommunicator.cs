@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
 using Nethereum.Contracts;
@@ -22,7 +23,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
 
         private readonly Dictionary<string, Contract> _contracts = new();
 
-        public async UniTask<string> GetValue<T>(SmartContract contract, string name, params string[] parameters)
+        public async UniTask<string> GetValue<T>(SmartContract contract, string name, CancellationToken ct = default, params string[] parameters)
         {
             var nethereumContract = GetOrCreateContract(contract);
             var decimalsFunction = nethereumContract.GetFunction(name);
@@ -53,17 +54,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
         { }
 
         //TODO: delete
-        public UniTask<string> SignMessage(string address, string message)
+        public UniTask<string> SignMessage(string address, string message, CancellationToken ct = default)
         {
             UnityEngine.Debug.LogError($"{nameof(SignMessage)} is unavailable in {nameof(StandaloneWalletCommunicator)}");
             return UniTask.FromResult(string.Empty);
         }
-        public UniTask<string> SendTransaction(string to, string from, string data)
+        public UniTask<string> SendTransaction(string to, string from, string data, CancellationToken ct = default)
         {
             UnityEngine.Debug.LogError($"{nameof(SendTransaction)} is unavailable in {nameof(StandaloneWalletCommunicator)}");
             return UniTask.FromResult(string.Empty);
         }
-        public UniTask<string> GetFunctionCallData(SmartContract contract, string functionName, params object[] parameters)
+        public UniTask<string> GetFunctionCallData(SmartContract contract, string functionName, CancellationToken ct = default, params object[] parameters)
         {
             UnityEngine.Debug.LogError($"{nameof(GetFunctionCallData)} is unavailable in {nameof(StandaloneWalletCommunicator)}");
             return UniTask.FromResult(string.Empty);

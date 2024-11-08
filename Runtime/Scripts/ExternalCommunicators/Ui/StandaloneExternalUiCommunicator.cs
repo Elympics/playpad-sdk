@@ -1,15 +1,20 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Requests;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
     public class StandaloneExternalUiCommunicator : IExternalUiCommunicator
     {
-        public async UniTask Display(string name)
+        private bool _release;
+        public async UniTask Display(string name, CancellationToken ct = default)
         {
-            Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displayed {name} modal");
+            var _communicator = MonoBehaviour.FindObjectOfType<JsCommunicator>();
+            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(ReturnEventTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, ct);
 
-            await UniTask.CompletedTask;
         }
     }
 }

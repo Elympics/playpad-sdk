@@ -1,8 +1,7 @@
 #nullable enable
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -13,81 +12,108 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 {
     internal class RequestMessageDispatcher
     {
-        private readonly ConcurrentDictionary<int, ResponseMessage> _ticketStatus = new();
-        private readonly List<int> _pendingTickets = new();
-        private readonly object _lock = new();
+        private readonly Dictionary<int, TicketStatus> _ticketStatus = new();
+        private const int RequestTimeOutSec = 10 * 60;
 
-        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever)
-        {
-            messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
-        }
+        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever) => messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
 
         public void RegisterTicket(int ticket)
         {
-            lock (_lock)
-                _pendingTickets.Add(ticket);
+            var added = _ticketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeOutSec))));
+            if (added is false)
+                throw new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty);
         }
 
-        public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket)
+        public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket, CancellationToken ct)
+            where TReturn : struct
         {
-            await UniTask.WaitUntil(() => IsWaitingForResponse(ticket) is false);
-            if (IsErrorResponse(ticket, out var code))
+            if (_ticketStatus.TryGetValue(ticket, out var ticketStatus) is false)
+                throw new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty);
+            var token = ct;
+            if (ct != default)
+            {
+                var linked = CancellationTokenSource.CreateLinkedTokenSource(ticketStatus.TimeOutCts.Token, ct);
+                ticketStatus.Linked = linked;
+                token = linked.Token;
+            }
+            var isCancelled = await UniTask.WaitUntil(() => ticketStatus.Response != null, PlayerLoopTiming.Update, token).SuppressCancellationThrow();
+
+            if (isCancelled)
+            {
+                ticketStatus.Cancelled = true;
+                if (ticketStatus.Response != null)
+                    ClearTicketStatus(ticket);
+
+                if (ticketStatus.TimeOutCts.Token.IsCancellationRequested)
+                    throw new ProtocolException("Request reached timeout.", string.Empty);
+
+                ct.ThrowIfCancellationRequested();
+            }
+
+            if (IsErrorResponse(ticketStatus, out var code))
             {
                 Debug.Log($"[{nameof(RequestMessageDispatcher)}] found error in response: {ticket}");
-                var errorMessage = GetErrorDescription(ticket);
-                _ticketStatus.TryRemove(ticket, out _);
+                var errorMessage = GetErrorDescription(ticketStatus);
+                ClearTicketStatus(ticket);
                 throw new ResponseException(code, errorMessage);
             }
-            var response = GetResponseData<TReturn>(ticket);
-            _ticketStatus.TryRemove(ticket, out _);
+            var response = GetResponseData<TReturn>(ticketStatus);
+            ClearTicketStatus(ticket);
             UniTask.ReturnToMainThread();
             return response!;
         }
-
-        private bool IsWaitingForResponse(int ticket) => _ticketStatus.ContainsKey(ticket) is false;
-
-        private string GetErrorDescription(int ticket)
+        private void ClearTicketStatus(int ticket)
         {
-            var status = _ticketStatus[ticket];
-            return RequestErrors.GetErrorMessage(status.status, status.type) + $"{Environment.NewLine}Details: {_ticketStatus[ticket].response}";
+            if (_ticketStatus.Remove(ticket, out var removedTicketStatus))
+                removedTicketStatus.Dispose();
         }
-        private bool IsErrorResponse(int ticket, out int code)
+
+        private static string GetErrorDescription(TicketStatus ticketStatus) => RequestErrors.GetErrorMessage(ticketStatus.Response!.status, ticketStatus.Response!.type) + $"{Environment.NewLine}Details: {ticketStatus.Response!.response}";
+        private static bool IsErrorResponse(TicketStatus ticketStatus, out int code)
         {
-            code = _ticketStatus[ticket].status;
+            code = ticketStatus.Response!.status;
             return code != 0;
         }
         private void OnResponseObjectReceived(string responseObject)
         {
             Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
             var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
-            lock (_lock)
+
+            if (_ticketStatus.TryGetValue(response.ticket, out var ticketStatus) is false)
+                throw new ProtocolException($"Did not found ticketStatus for {response.ticket}", string.Empty);
+
+            if (ticketStatus.Response != null)
             {
-                var isPending = _pendingTickets.Any(x => x == response.ticket);
-                if (isPending is false)
-                {
-                    Debug.LogError($"Response {response} is not awaited by dispatcher. Discarding message.");
-                    return;
-                }
-                _pendingTickets.Remove(response.ticket);
-            }
-            if (_ticketStatus.TryAdd(response.ticket, response) is false)
                 Debug.LogError($"Status map already contains response {response}. Discarding message");
+                return;
+            }
+
+            if (ticketStatus.Cancelled)
+            {
+                ClearTicketStatus(response.ticket);
+                return;
+            }
+
+            ticketStatus.Response = response;
         }
 
-        private TReturn? GetResponseData<TReturn>(int ticket)
+        private static TReturn GetResponseData<TReturn>(TicketStatus ticketStatus)
+            where TReturn : struct
         {
-            var fetched = _ticketStatus.TryGetValue(ticket, out var responseData);
-            if (!fetched)
-                throw new ProtocolException($"No ticketStatus for {ticket} found in concurrent dictionary", string.Empty);
-
-            if (string.IsNullOrEmpty(responseData!.response))
-                throw new ProtocolException($"Response data is null or empty.", responseData.type);
-
-            var fromJsonObject = JsonUtility.FromJson<TReturn>(_ticketStatus[ticket].response);
-            if (fromJsonObject == null)
-                throw new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", responseData.type);
-
-            return fromJsonObject;
+            if (string.IsNullOrEmpty(ticketStatus.Response!.response))
+                if (typeof(TReturn) != typeof(EmptyPayload))
+                    throw new ProtocolException($"Response data is null or empty.", ticketStatus.Response!.type);
+                else
+                    return default;
+            try
+            {
+                var fromJsonObject = JsonUtility.FromJson<TReturn>(ticketStatus.Response!.response);
+                return fromJsonObject;
+            }
+            catch (Exception)
+            {
+                throw new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type);
+            }
         }
     }
 }

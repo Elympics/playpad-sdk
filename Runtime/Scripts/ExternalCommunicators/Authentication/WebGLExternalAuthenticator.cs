@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
@@ -27,15 +28,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
         }
 
-        public async UniTask<AuthData> Authenticate()
+        public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(ReturnEventTypes.GetAuthentication);
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(ReturnEventTypes.GetAuthentication, null, ct);
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
             return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
         }
-        public async UniTask<HandshakeInfo> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
+        public async UniTask<HandshakeInfo> InitializationMessage(
+            string gameId,
+            string gameName,
+            string versionName,
+            string sdkVersion,
+            string lobbyPackageVersion,
+            CancellationToken ct = default)
         {
             var message = new HandshakeRequest
             {
@@ -47,7 +54,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             };
             try
             {
-                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(ReturnEventTypes.Handshake, message);
+                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(ReturnEventTypes.Handshake, message, ct);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
