@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
@@ -42,7 +43,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 Destroy(gameObject);
         }
 
-        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload = null)
+        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
             where TInput : struct
             where TReturn : struct
         {
@@ -52,7 +53,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             Debug.Log($"[{nameof(JsCommunicator)}] Send Request {messageType} message: {message}");
             _dispatcher.RegisterTicket(ticket);
             DispatchHandleMessage(message);
-            return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket);
+            return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
         }
 
 

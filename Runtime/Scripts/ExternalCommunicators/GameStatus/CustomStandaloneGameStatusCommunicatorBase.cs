@@ -16,7 +16,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public abstract PlayStatusInfo CurrentPlayStatus { get; }
         public abstract void Dispose();
         public abstract void HideSplashScreen();
-        public abstract UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve);
+        public abstract UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
         public abstract UniTask<IRoom> PlayGame(PlayGameConfig queueName, CancellationToken ct = default);
         public abstract void RttUpdated(TimeSpan rtt);
     }

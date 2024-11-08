@@ -21,7 +21,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _config = config;
             _roomsManager = roomsManager;
         }
-        public UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve)
+        public UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
             CurrentPlayStatus = new PlayStatusInfo()
             {
@@ -32,8 +32,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         }
         public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default) => await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, config.CustomMatchmakingData, ct);
         public void RttUpdated(TimeSpan rtt)
-        {
-        }
+        { }
         public void HideSplashScreen() => Debug.Log($"Hide splash screen.");
         public void Dispose()
         { }

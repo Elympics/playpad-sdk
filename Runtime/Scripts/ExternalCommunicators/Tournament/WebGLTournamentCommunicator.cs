@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -18,9 +19,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         private TournamentInfo? _currentTournament;
         public event Action<TournamentInfo>? TournamentUpdated;
-        public async UniTask<TournamentInfo?> GetTournament()
+        public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(ReturnEventTypes.GetTournament);
+            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(ReturnEventTypes.GetTournament, null, ct);
             _currentTournament = response.ToTournamentInfo();
             return _currentTournament.Value;
         }
