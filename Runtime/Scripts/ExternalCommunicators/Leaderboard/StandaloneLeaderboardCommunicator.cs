@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Leaderboard;
 using ElympicsPlayPad.Leaderboard.Extensions;
@@ -14,7 +15,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         public UserHighScoreInfo? UserHighScore { get; private set; }
         public LeaderboardStatusInfo? Leaderboard { get; private set; }
 
-        UniTask<LeaderboardStatusInfo> IExternalLeaderboardCommunicator.FetchLeaderboard()
+        UniTask<LeaderboardStatusInfo> IExternalLeaderboardCommunicator.FetchLeaderboard(CancellationToken ct = default)
         {
             Leaderboard = new LeaderboardResponse()
             {
@@ -36,7 +37,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
             return UniTask.FromResult(Leaderboard.Value);
         }
 
-        public UniTask<UserHighScoreInfo?> FetchUserHighScore()
+        public UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
             UserHighScore = new UserHighScoreInfo()
             {

@@ -57,13 +57,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidEventTypes.HideSplashScreen);
 
-        public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve)
+        public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
             var request = new CanPlayGameRequest
             {
                 autoResolve = autoResolve
             };
-            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request);
+            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request, ct);
             CurrentPlayStatus = response.ToPlayStateInfo();
             return CurrentPlayStatus;
         }

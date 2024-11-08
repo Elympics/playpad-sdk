@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -15,11 +16,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
             _communicator = communicator;
         }
 
-        public async UniTask Display(string name)
+        public async UniTask Display(string name, CancellationToken ct = default)
         {
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal started");
 
-            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(ReturnEventTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name });
+            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(ReturnEventTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, ct);
 
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal ended");
         }

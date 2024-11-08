@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
@@ -13,8 +14,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public StandaloneExternalAuthenticator(StandaloneExternalAuthenticatorConfig authConfig) => _authConfig = authConfig;
 
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
-        public UniTask<AuthData> Authenticate() => UniTask.FromResult(new AuthData(Guid.NewGuid(), string.Empty, string.Empty, AuthType.ClientSecret));
-        public async UniTask<HandshakeInfo> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
+        public UniTask<AuthData> Authenticate(CancellationToken ct = default) => UniTask.FromResult(new AuthData(Guid.NewGuid(), string.Empty, string.Empty, AuthType.ClientSecret));
+        public async UniTask<HandshakeInfo> InitializationMessage(
+            string gameId,
+            string gameName,
+            string versionName,
+            string sdkVersion,
+            string lobbyPackageVersion,
+            CancellationToken ct = default)
         {
             var result = await UniTask.FromResult(new HandshakeResponse
             {

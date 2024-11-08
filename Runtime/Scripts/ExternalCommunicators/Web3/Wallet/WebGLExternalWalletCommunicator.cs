@@ -1,4 +1,5 @@
 #nullable enable
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -13,7 +14,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
         private readonly JsCommunicator _communicator;
         public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator) => _communicator = jsCommunicator;
 
-        public async UniTask<string> SignMessage(string address, string message)
+        public async UniTask<string> SignMessage(string address, string message, CancellationToken ct = default)
         {
             var payload = new SignTypedDataRequest
             {
@@ -21,11 +22,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
                 dataToSign = message,
             };
 
-            var result = await _communicator.SendRequestMessage<SignTypedDataRequest, StringPayloadResponse>(ReturnEventTypes.SignTypedData, payload);
+            var result = await _communicator.SendRequestMessage<SignTypedDataRequest, StringPayloadResponse>(ReturnEventTypes.SignTypedData, payload, ct);
             return result.message;
         }
 
-        public async UniTask<string> SendTransaction(string to, string from, string data)
+        public async UniTask<string> SendTransaction(string to, string from, string data, CancellationToken ct = default)
         {
             var transaction = new TransactionToSignRequest()
             {
@@ -33,13 +34,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
                 from = from,
                 data = data,
             };
-            var result = await _communicator.SendRequestMessage<TransactionToSignRequest, StringPayloadResponse>(ReturnEventTypes.SendTransaction, transaction);
+            var result = await _communicator.SendRequestMessage<TransactionToSignRequest, StringPayloadResponse>(ReturnEventTypes.SendTransaction, transaction, ct);
             return result.message;
         }
 
         public void Dispose()
-        {
-
-        }
+        { }
     }
 }

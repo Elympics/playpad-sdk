@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -29,15 +30,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
         }
 
-        public async UniTask<LeaderboardStatusInfo> FetchLeaderboard()
+        public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(ReturnEventTypes.GetLeaderboard);
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(ReturnEventTypes.GetLeaderboard, default, ct);
             _leaderboard = result.MapToLeaderboardStatus();
             return _leaderboard.Value;
         }
-        public async UniTask<UserHighScoreInfo?> FetchUserHighScore()
+        public async UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(ReturnEventTypes.GetUserHighScore);
+            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(ReturnEventTypes.GetUserHighScore, default, ct);
             if (response.points == -1.0f)
                 return null;
 

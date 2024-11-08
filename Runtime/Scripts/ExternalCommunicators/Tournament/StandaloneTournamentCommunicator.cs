@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
@@ -31,7 +32,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             _authConfig = authConfig;
             jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
-        public UniTask<TournamentInfo?> GetTournament()
+        public UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
             if (_authConfig.FeatureAccess.HasTournament())
             {

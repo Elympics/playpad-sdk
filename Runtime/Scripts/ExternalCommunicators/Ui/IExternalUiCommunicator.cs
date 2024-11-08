@@ -1,10 +1,11 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
     public interface IExternalUiCommunicator
     {
-        UniTask Display(string name);
+        UniTask Display(string name, CancellationToken ct = default);
 
         #region helpers
 
