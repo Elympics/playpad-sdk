@@ -38,6 +38,13 @@ namespace ElympicsPlayPad.Tests.PlayMode
             AuthData = null;
             _mockWebSocket?.ToggleConnection(false);
         }
+        public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
+        {
+            AuthData = data;
+            _mockWebSocket = new MockWebSocket();
+            _mockWebSocket.ToggleConnection(true);
+            return UniTask.CompletedTask;
+        }
         public UniTask ConnectToElympicsAsync(ConnectionData data)
         {
             if (data.AuthType is not null)
@@ -69,8 +76,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
     public class MockGameplaySceneMonitor : IGameplaySceneMonitor
     {
         public void Dispose()
-        {
-        }
+        { }
         public bool IsCurrentlyInMatch { get; }
         public event Action GameplayStarted;
         public event Action GameplayFinished;

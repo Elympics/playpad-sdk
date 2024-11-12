@@ -24,6 +24,15 @@ namespace ElympicsPlayPad.Wrappers
         public bool IsAuthenticated => ElympicsLobbyClient.Instance!.IsAuthenticated;
         public IWebSocketSession WebSocketSession => ElympicsLobbyClient.Instance!.WebSocketSession;
         public void SignOut() => ElympicsLobbyClient.Instance!.SignOut();
+        public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
+        {
+            var connectionData = new ConnectionData()
+            {
+                AuthType = AuthType.ClientSecret,
+                Region = new RegionData(region)
+            };
+            return ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(connectionData);
+        }
         public UniTask ConnectToElympicsAsync(ConnectionData data) => ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(data);
 
         private void OnDestroy()
