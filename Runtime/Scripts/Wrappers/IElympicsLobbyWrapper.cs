@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -22,6 +23,7 @@ namespace ElympicsPlayPad.Wrappers
 
         void SignOut();
 
-        UniTask ConnectToElympicsAsync(ConnectionData data);
+        UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
+        UniTask ConnectToElympicsAsync(ConnectionData connectionData);
     }
 }

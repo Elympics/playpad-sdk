@@ -13,13 +13,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     internal class RequestMessageDispatcher
     {
         private readonly Dictionary<int, TicketStatus> _ticketStatus = new();
-        private const int RequestTimeOutSec = 10 * 60;
+        private readonly TimeSpan _requestTimeOut;
 
-        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever) => messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
+        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever)
+        {
+            _requestTimeOut = TimeSpan.FromSeconds(10 * 60);
+            messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
+        }
 
         public void RegisterTicket(int ticket)
         {
-            var added = _ticketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeOutSec))));
+            var added = _ticketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
             if (added is false)
                 throw new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty);
         }
@@ -29,10 +33,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         {
             if (_ticketStatus.TryGetValue(ticket, out var ticketStatus) is false)
                 throw new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty);
-            var token = ct;
+            var token = ticketStatus.Timeout.Token;
             if (ct != default)
             {
-                var linked = CancellationTokenSource.CreateLinkedTokenSource(ticketStatus.TimeOutCts.Token, ct);
+                var linked = CancellationTokenSource.CreateLinkedTokenSource(ticketStatus.Timeout.Token, ct);
                 ticketStatus.Linked = linked;
                 token = linked.Token;
             }
@@ -40,11 +44,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 
             if (isCancelled)
             {
+                var isTimeout = ticketStatus.Timeout.Token.IsCancellationRequested;
                 ticketStatus.Cancelled = true;
                 if (ticketStatus.Response != null)
                     ClearTicketStatus(ticket);
 
-                if (ticketStatus.TimeOutCts.Token.IsCancellationRequested)
+                if (isTimeout)
                     throw new ProtocolException("Request reached timeout.", string.Empty);
 
                 ct.ThrowIfCancellationRequested();
@@ -80,7 +85,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
 
             if (_ticketStatus.TryGetValue(response.ticket, out var ticketStatus) is false)
-                throw new ProtocolException($"Did not found ticketStatus for {response.ticket}", string.Empty);
+            {
+                Debug.LogError($"Did not found ticketStatus for {response.ticket}");
+                return;
+            }
 
             if (ticketStatus.Response != null)
             {
@@ -115,5 +123,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                 throw new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type);
             }
         }
+
+        internal Dictionary<int, TicketStatus> TicketStatus => _ticketStatus;
+        internal const string RequestTimeOutSecFieldName = nameof(_requestTimeOut);
+        internal void Reset() => _ticketStatus.Clear();
     }
 }

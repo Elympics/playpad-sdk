@@ -115,5 +115,13 @@ namespace ElympicsPlayPad.ExternalCommunicators
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
         }
+
+        #region internal
+
+        internal const string ExternalAuthenticatorFieldName = nameof(ExternalAuthenticator);
+        internal const string TournamentCommunicatorFieldName = nameof(TournamentCommunicator);
+        internal const string GameStatusCommunicatorFieldName = nameof(GameStatusCommunicator);
+
+        #endregion
     }
 }

@@ -11,7 +11,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
     [Category("Deserialization")]
     public class TestDeserialization
     {
-        private JsCommunicationFactory _factory = new("0.2.0");
+        private JsCommunicationFactory _factory = new();
         private string _user1Guid = "00000000-0000-0000-0000-000000000001";
         private string _matchId = "00000000-0000-0000-0000-000000000002";
 
