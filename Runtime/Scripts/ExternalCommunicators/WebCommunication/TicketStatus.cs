@@ -9,12 +9,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     {
         public ResponseMessage? Response;
         public bool Cancelled;
-        public readonly CancellationTokenSource TimeOutCts;
+        public readonly CancellationTokenSource Timeout;
         public CancellationTokenSource? Linked;
-        public TicketStatus(CancellationTokenSource timeOutCts) => TimeOutCts = timeOutCts;
+        public TicketStatus(CancellationTokenSource timeout) => Timeout = timeout;
         public void Dispose()
         {
-            TimeOutCts.Dispose();
+            Timeout.Dispose();
             Linked?.Dispose();
         }
     }

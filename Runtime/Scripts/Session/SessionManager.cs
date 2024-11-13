@@ -50,7 +50,6 @@ namespace ElympicsPlayPad.Session
         private void Start()
         {
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
-            ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
         }
 
         /// <summary>
@@ -65,6 +64,8 @@ namespace ElympicsPlayPad.Session
 
             if (instance == null)
             {
+                ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
+
                 if (SmartContractService.Instance != null)
                     await SmartContractService.Instance.Initialize();
 
@@ -113,11 +114,8 @@ namespace ElympicsPlayPad.Session
             if (standaloneAuthType != AuthType.ClientSecret)
                 throw new SessionManagerAuthException($"Cannot authenticate with {standaloneAuthType} on Editor. Please use {AuthType.ClientSecret}");
 
-            await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData()
-            {
-                AuthType = standaloneAuthType,
-                Region = new RegionData(_region)
-            });
+            await _lobbyWrapper.ConnectStandaloneEditorToElympicsAsync(result, _region);
+
             return _lobbyWrapper.AuthData!;
 #else
             try
