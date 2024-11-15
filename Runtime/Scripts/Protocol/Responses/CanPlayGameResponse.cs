@@ -7,5 +7,6 @@ namespace ElympicsPlayPad.Protocol.Responses
     {
         public string status;
         public string labelMessage;
+        public bool isHintAvailable;
     }
 }

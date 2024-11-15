@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Rooms.Models;
+using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using UnityEngine;
@@ -30,12 +31,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             CurrentPlayStatus = new PlayStatusInfo()
             {
                 PlayStatus = _config.PlayStatus,
-                LabelInfo = _config.LabelMessage
+                LabelInfo = _config.LabelMessage,
+                IsHintAvailable = _config.IsHingAvailable
             };
             return UniTask.FromResult(CurrentPlayStatus);
         }
         public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default)
         {
+            if (_config.PlayStatus != 0)
+                throw new GameStatusException($"Can't start game. ErrorCode: {_config.PlayStatus} Reason: {_config.LabelMessage}");
+
             _finalCustomMatchmakingData.Clear();
             // ReSharper disable once InvertIf
             if (config.CustomMatchmakingData != null)
