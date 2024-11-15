@@ -2,7 +2,8 @@
     "name": "ElympicsPlayPad.Editor",
     "rootNamespace": "ElympicsPlayPad.Editor",
     "references": [
-        "GUID:42097347dcde8e94b9982a255d4fed9c"
+        "GUID:42097347dcde8e94b9982a255d4fed9c",
+        "GUID:98c20d83c9beb3344bdbd3db8ff8d852"
     ],
     "includePlatforms": [
         "Editor"
