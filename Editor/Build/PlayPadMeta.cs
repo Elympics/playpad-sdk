@@ -6,5 +6,6 @@ namespace ElympicsPlayPad.Editor.Build
     {
         public string sdkVersion;
         public string protocolVersion;
+        public string gameVersion;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Utility;
 using UnityEditor;
@@ -23,6 +24,7 @@ namespace ElympicsPlayPad.Editor.Build
 
             Console.WriteLine("Creating PlayPad metadata.");
 
+            var config = ElympicsConfig.LoadCurrentElympicsGameConfig()  ?? throw new ElympicsException("Elympics config not found");;
             try
             {
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
@@ -31,6 +33,7 @@ namespace ElympicsPlayPad.Editor.Build
                 {
                     sdkVersion = version,
                     protocolVersion = JsCommunicator.ProtocolVersion,
+                    gameVersion = config.GameVersion
                 };
 
                 var content = JsonUtility.ToJson(metaData);
