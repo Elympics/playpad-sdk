@@ -18,6 +18,9 @@ namespace ElympicsPlayPad.Game
         }
         public void Update()
         {
+            if (_client.IsServer)
+                return;
+
             if (_sendRttUpdates is false)
                 return;
 
