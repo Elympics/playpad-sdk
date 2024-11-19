@@ -12,7 +12,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private ViewManager viewManager;
 
         private readonly ElympicsInt remainingSecondsToEndGame = new ElympicsInt();
-        private bool gameEndRequested = false;
+        private readonly ElympicsInt points = new ElympicsInt();
+
+        private bool pointsBumpRequested = false;
+        private bool endGameRequested = false;
 
         private Guid matchId;
 
@@ -21,6 +24,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void Awake()
         {
             // Remembering matchId to display respect at the end
+
+            if (ElympicsLobbyClient.Instance == null)
+                return;
+
             var joinedRooms = ElympicsLobbyClient.Instance.RoomsManager.ListJoinedRooms();
             matchId = joinedRooms.Count > 0 ? (joinedRooms[0].State.MatchmakingData?.MatchData?.MatchId ?? Guid.Empty) : Guid.Empty;
         }
@@ -28,53 +35,79 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void Initialize()
         {
             remainingSecondsToEndGame.ValueChanged += (_, newValue) => viewManager.UpdateTimer(newValue);
+            points.ValueChanged += (_, newValue) => viewManager.UpdatePoints(newValue);
 
             remainingSecondsToEndGame.Value = secondsToEndGameAutomatically;
+            points.Value = 0;
         }
 
         public void ElympicsUpdate()
         {
-            if (gameEndRequested && Elympics.IsClient)
-            {
-                EndGame(viewManager.Points); // only visuals, for client
-                RpcEndGame(viewManager.Points); // executive, server side
-
-                gameEndRequested = false;
-                return;
-            }
-
             remainingSecondsToEndGame.Value = Mathf.Max(0, secondsToEndGameAutomatically - CurrentGameTimeInSeconds);
 
             if (remainingSecondsToEndGame.Value == 0)
-                EndGame(viewManager.Points);
+            {
+                EndGameClient();
+                EndGameServer();
+                return;
+            }
+
+            if (!Elympics.IsClient)
+                return;
+
+            if (pointsBumpRequested)
+            {
+                pointsBumpRequested = false;
+                points.Value++;
+                RpcBumpPoints();
+            }
+
+            if (endGameRequested)
+            {
+                endGameRequested = false;
+                EndGameClient();
+                RpcEndGame();
+            }
         }
+
 
         [UsedImplicitly] // by EndGameButton
-        public void RequestGameEnd() => gameEndRequested = true;
+        public void RequestGameEnd() => endGameRequested = true;
 
         [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
-        private void RpcEndGame(int points)
-        {
-            // Do not let players set their points like this in your game!
-            // This implementation is only for testing and learning about Elympics SDK
-            // But generally it would make cheating very easy, so please ensure server authority on your scoring system
+        private void RpcEndGame() => EndGameServer();
 
-            EndGame(points);
+        private void EndGameServer()
+        {
+            if (!Elympics.IsServer)
+                return;
+
+            Elympics.EndGame(
+                new ResultMatchPlayerDatas(
+                    new List<ResultMatchPlayerData>
+                    {
+                        new ResultMatchPlayerData { MatchmakerData = new float[1] { points.Value } }
+                    }));
+
         }
 
-        // TODO: separate to client's and server's for cleaner code
-        private void EndGame(int points)
+        private void EndGameClient()
         {
-            if (Elympics.IsServer)
-                Elympics.EndGame(
-                    new ResultMatchPlayerDatas(
-                        new List<ResultMatchPlayerData>
-                        {
-                            new ResultMatchPlayerData { MatchmakerData = new float[1] { points } }
-                        }));
+            if (!Elympics.IsClient)
+                return;
 
-            if (Elympics.IsClient)
-                viewManager.ShowGameEndedView(matchId);
+            viewManager.ShowGameEndedView(matchId);
         }
+
+
+        // Please note it is only possible outside of ElympicsUpdate because Prediction in the ElympicsGameConfig was set to False
+        [UsedImplicitly] // by BumpPointsButton
+        public void RequestBumpPoints() => pointsBumpRequested = true;
+
+        // Do not let players influencne their points directly like this in your game!
+        // This implementation is only for testing and learning about Elympics SDK
+        // But generally it would make cheating quite easy, so please ensure server authority and indirect points evaluation in your scoring system
+        [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
+        private void RpcBumpPoints() => points.Value++;
     }
 }

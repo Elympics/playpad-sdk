@@ -15,7 +15,7 @@ MonoBehaviour:
   id: grdtyfui
   ownerId: 
   tournamentName: DAILY TOURNAMENT
-  leaderboardCapacity: 5
-  startDate: 2024-11-05T16:00:00.00 +01:00
-  endDate: 2024-11-05T20:00:00.00 +01:00
+  leaderboardCapacity: 3
+  startDate: 2024-11-19T14:55:00.00 +01:00
+  endDate: 2024-11-19T20:00:00.00 +01:00
   isDefault: 1
