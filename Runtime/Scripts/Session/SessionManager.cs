@@ -189,6 +189,9 @@ namespace ElympicsPlayPad.Session
         {
             try
             {
+                if (_lobbyWrapper.IsAuthenticated)
+                    _lobbyWrapper.SignOut();
+
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
                 await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData()
                 {
