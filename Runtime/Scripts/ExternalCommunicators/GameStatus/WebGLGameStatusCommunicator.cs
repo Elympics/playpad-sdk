@@ -36,8 +36,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         {
             _communicator = communicator;
             _communicator.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
-            _tournamentCustomMatchmakingData.Clear();
-            _tournamentCustomMatchmakingData.Add(TournamentConst.TournamentIdKey, string.Empty);
             _lobby = lobby;
             _tournamentCommunicator = tournamentCommunicator;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
@@ -69,12 +67,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         }
         public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default)
         {
-            var info = await CanPlayGame(true);
+            var info = await CanPlayGame(true, ct);
             if (info.PlayStatus != 0)
                 throw new GameStatusException($"Can't start game. ErrorCode: {info.PlayStatus} Reason: {info.LabelInfo}");
 
-            _tournamentCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament!.Value.Id;
-            return await _roomsManager.StartQuickMatch(config.QueueName, null, null, null, _tournamentCustomMatchmakingData, ct);
+            var mmCustomData = config.CustomMatchmakingData ?? _tournamentCustomMatchmakingData;
+
+            if (_tournamentCommunicator.CurrentTournament.HasValue)
+                mmCustomData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
+            else
+                mmCustomData.Remove(TournamentConst.TournamentIdKey);
+
+
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, mmCustomData, ct);
         }
 
         public void RttUpdated(TimeSpan rtt) => _communicator.SendDebugMessage<RttDebugMessage>(DebugMessageTypes.RTT,
