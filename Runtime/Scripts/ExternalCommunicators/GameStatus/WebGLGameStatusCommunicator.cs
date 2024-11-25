@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
@@ -30,7 +31,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IElympicsLobbyWrapper _lobby;
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
-        private readonly Dictionary<string, string> _tournamentCustomMatchmakingData = new(1);
+        private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
 
         public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator)
         {
@@ -71,15 +72,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (info.PlayStatus != 0)
                 throw new GameStatusException($"Can't start game. ErrorCode: {info.PlayStatus} Reason: {info.LabelInfo}");
 
-            var mmCustomData = config.CustomMatchmakingData ?? _tournamentCustomMatchmakingData;
+            _joinedCustomMatchmakingData.Clear();
+
+            if (config.CustomMatchmakingData != null)
+                _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
 
             if (_tournamentCommunicator.CurrentTournament.HasValue)
-                mmCustomData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
+                _joinedCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
             else
-                mmCustomData.Remove(TournamentConst.TournamentIdKey);
+                _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
 
 
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, mmCustomData, ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct);
         }
 
         public void RttUpdated(TimeSpan rtt) => _communicator.SendDebugMessage<RttDebugMessage>(DebugMessageTypes.RTT,

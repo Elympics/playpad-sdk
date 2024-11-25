@@ -1,9 +1,12 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
@@ -15,6 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         private readonly StandaloneExternalGameStatusConfig _config;
         private readonly IRoomsManager _roomsManager;
+        private Dictionary<string, string> _finalCustomMatchmakingData = new();
 
         public StandaloneExternalGameStatusCommunicator(StandaloneExternalGameStatusConfig config, IRoomsManager roomsManager)
         {
@@ -30,7 +34,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             };
             return UniTask.FromResult(CurrentPlayStatus);
         }
-        public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default) => await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, config.CustomMatchmakingData, ct);
+        public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default)
+        {
+            _finalCustomMatchmakingData.Clear();
+            // ReSharper disable once InvertIf
+            if (config.CustomMatchmakingData != null)
+            {
+                _finalCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
+                _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+            }
+
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct);
+        }
         public void RttUpdated(TimeSpan rtt)
         { }
         public void HideSplashScreen() => Debug.Log($"Hide splash screen.");
