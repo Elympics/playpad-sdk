@@ -4,5 +4,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus.Models
     {
         public PlayStatus PlayStatus;
         public string LabelInfo;
+        public bool IsHintAvailable;
     }
 }

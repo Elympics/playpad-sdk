@@ -9,13 +9,15 @@ namespace ElympicsPlayPad
         public static PlayStatusInfo ToPlayStateInfo(this CanPlayGameResponse response) => new()
         {
             PlayStatus = ToPlayStatus(response.status),
-            LabelInfo = response.labelMessage
+            LabelInfo = response.labelMessage,
+            IsHintAvailable = response.isHintAvailable,
         };
 
         public static PlayStatusInfo ToPlayStateInfo(this CanPlayUpdatedMessage response) => new()
         {
             PlayStatus = ToPlayStatus(response.status),
-            LabelInfo = response.labelMessage
+            LabelInfo = response.labelMessage,
+            IsHintAvailable = response.isHintAvailable,
         };
 
 
