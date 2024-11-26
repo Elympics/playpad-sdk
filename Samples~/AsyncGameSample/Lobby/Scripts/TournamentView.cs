@@ -47,9 +47,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         }
 
         [UsedImplicitly]
-        public void ShowSwitchTournamentPlayPadView() => UiCommunicator.Display("tournaments/listing").Forget();
+        public void ShowSwitchTournamentPlayPadView() => UiCommunicator.DisplayTournamentsListing().Forget();
 
         [UsedImplicitly]
-        public void ShowTournamentRewardsPlayPadView() => UiCommunicator.Display("tournament/rewards").Forget();
+        public void ShowTournamentRewardsPlayPadView() => UiCommunicator.DisplayTournamentRewards().Forget();
     }
 }
