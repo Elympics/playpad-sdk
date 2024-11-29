@@ -20,7 +20,7 @@ namespace ElympicsPlayPad.Protocol.Responses
     {
         public string type;
         public string displayName;
-        public byte[] image;
+        public string image;
         public float amount;
         public string description;
     }

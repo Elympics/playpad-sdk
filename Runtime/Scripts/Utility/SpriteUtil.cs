@@ -1,19 +1,21 @@
 #nullable enable
 using System;
+using PlasticGui.WorkspaceWindow.Topbar;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Utility
 {
     internal static class SpriteUtil
     {
-        public static Texture2D? TryConvertToSprite(byte[] buffer)
+        public static Texture2D? TryConvertToSprite(string image)
         {
-            if (buffer is not { Length: > 0 })
+            if (string.IsNullOrEmpty(image))
                 return null;
 
             var texture = new Texture2D(2, 2);
             try
             {
+                var buffer = Convert.FromBase64String(image);
                 texture.LoadImage(buffer);
             }
             catch (Exception e)
