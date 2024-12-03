@@ -141,7 +141,9 @@ namespace ElympicsPlayPad.Session
         {
             if (CurrentSession.HasValue is false)
                 throw new Exception("Something went wrong. There should be existing current session");
-            CurrentSession = new SessionInfo(authData, CurrentSession.Value.AccountWallet, CurrentSession.Value.SignWallet, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.Features);
+            var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
+            var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.Features);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -205,9 +207,9 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
+        private static Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
         {
-            var accountWallet = payload.ethAddress is not null ? payload.ethAddress : null;
+            var accountWallet = payload.ethAddress;
             string? signWallet = null;
             if (currentAuthType.IsWallet())
                 signWallet = accountWallet;
