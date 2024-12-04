@@ -7,5 +7,6 @@ namespace ElympicsPlayPad
     {
         public string status;
         public string labelMessage;
+        public bool isHintAvailable;
     }
 }

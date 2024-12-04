@@ -29,7 +29,7 @@ namespace ElympicsPlayPad.Game
                 return;
 
             _counter = 0;
-            var avgRtt = _client.RoundTripTimeCalculator.AverageRoundTripTime;
+            var avgRtt = _client.RoundTripTimeCalculator?.AverageRoundTripTime ?? TimeSpan.Zero;
             if (PlayPadCommunicator.Instance != null)
                 PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
         }

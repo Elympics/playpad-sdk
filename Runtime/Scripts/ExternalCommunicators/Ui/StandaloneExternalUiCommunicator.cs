@@ -9,12 +9,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
     public class StandaloneExternalUiCommunicator : IExternalUiCommunicator
     {
-        private bool _release;
         public async UniTask Display(string name, CancellationToken ct = default)
         {
-            var _communicator = MonoBehaviour.FindObjectOfType<JsCommunicator>();
-            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(ReturnEventTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, ct);
-
+            Debug.Log($"Show PlayPad UI: \"{name}\"");
+            await UniTask.CompletedTask;
         }
     }
 }
