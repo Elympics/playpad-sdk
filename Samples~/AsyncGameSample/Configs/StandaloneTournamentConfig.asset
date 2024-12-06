@@ -19,3 +19,8 @@ MonoBehaviour:
   startDate: 2024-11-19T14:55:00.00 +01:00
   endDate: 2024-11-19T20:00:00.00 +01:00
   isDefault: 1
+  type: 
+  displayName: respect
+  image: {fileID: 2800000, guid: 8d04a76dbebb28a438d7e879044d18b4, type: 3}
+  amount: 1750
+  description: 

@@ -11,7 +11,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
 {
     public static class TournamentExt
     {
-        public static TournamentInfo ToTournamentInfo(this TournamentResponse dto)
+        public static TournamentInfo ToTournamentInfo(this TournamentResponse dto, PrizePoolInfo? prizePoolInfo = null)
         {
             var startDate = DateTimeOffset.Parse(dto.startDate, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.AssumeUniversal);
             var endDate = DateTimeOffset.Parse(dto.endDate, DateTimeFormatInfo.InvariantInfo, DateTimeStyles.AssumeUniversal);
@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
             {
                 Id = dto.id,
                 LeaderboardCapacity = dto.leaderboardCapacity,
-                PrizePool = dto.prizePool.ToPrizePoolInfo(),
+                PrizePool = prizePoolInfo ?? dto.prizePool.ToPrizePoolInfo(),
                 Name = dto.name,
                 OwnerId = ownerId,
                 StartDate = startDate,
