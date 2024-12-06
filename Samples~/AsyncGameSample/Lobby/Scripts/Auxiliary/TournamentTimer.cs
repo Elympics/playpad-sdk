@@ -4,6 +4,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class TournamentTimer
     {
+        private const string UpcomingLabelText = "Starting in";
+        private const string EndedLabelText = "Concluded";
+        private const string OngoingLabelText = "Time left";
+
         private readonly DateTimeOffset _startDate;
         private readonly DateTimeOffset _endDate;
 
@@ -17,20 +21,19 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             _endDate = endDate;
         }
 
-        public string GetTimer()
+        public (string timer, string label) GetTimerAndLabel()
         {
             var timerState = GetTimerState();
             var timeSpan = GetTimeDifference(timerState);
-            var timerFormat = GetTimeFormat(timerState);
+            var formattedTimer = FormatTimer(timeSpan);
 
-            if (timeSpan.TotalDays >= 1)
-                return string.Format(timerFormat, (int)timeSpan.TotalDays, "days");
-            else if (timeSpan.TotalHours >= 1)
-                return string.Format(timerFormat, (int)timeSpan.TotalHours, "hours");
-            else if (timeSpan.TotalMinutes >= 1)
-                return string.Format(timerFormat, (int)timeSpan.TotalMinutes, "minutes");
-            else
-                return string.Format(timerFormat, (int)timeSpan.TotalSeconds, "seconds");
+            return timerState switch
+            {
+                TimerState.Upcoming => (formattedTimer, UpcomingLabelText),
+                TimerState.Finished => (formattedTimer, EndedLabelText),
+                TimerState.Ongoing => (formattedTimer, OngoingLabelText),
+                _ => (null, null),
+            };
         }
 
         private TimerState GetTimerState() =>
@@ -43,12 +46,22 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             TimerState.Finished => DateTimeOffset.Now - _endDate
         };
 
-        private string GetTimeFormat(TimerState timerState) => timerState switch
+        /// <summary>
+        /// Checks remaining time and returns correct format
+        /// </summary>
+        private string FormatTimer(TimeSpan timeSpan)
         {
-            TimerState.Upcoming => "Starts in: {0} {1}",
-            TimerState.Ongoing => "Time left: {0} {1}",
-            TimerState.Finished => "Ended {0} {1} ago"
-        };
+            if (timeSpan.TotalDays >= 1)
+                return $"{DoubleToString(timeSpan.Days)}d {DoubleToString(timeSpan.Hours)}h";
+            else if (timeSpan.TotalHours >= 1)
+                return $"{DoubleToString(timeSpan.Hours)}h {DoubleToString(timeSpan.Minutes)}m";
+            else if (timeSpan.TotalMinutes >= 1)
+                return $"{DoubleToString(timeSpan.Minutes)}m {DoubleToString(timeSpan.Seconds)}s";
+            else
+                return $"{DoubleToString(timeSpan.Seconds)}s";
+        }
+
+        private string DoubleToString(double d) => d.ToString("F0");
 
         private enum TimerState
         {
