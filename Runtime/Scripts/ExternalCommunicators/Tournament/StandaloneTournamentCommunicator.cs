@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     endDate = _config.EndDate,
                     isDefault = _config.IsDefault,
                 };
-                _currentTournamentInfo = dto.ToTournamentInfo();
+                _currentTournamentInfo = dto.ToTournamentInfo(_config.PrizePool);
                 return UniTask.FromResult(_currentTournamentInfo);
             }
             return UniTask.FromResult<TournamentInfo?>(null);
