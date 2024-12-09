@@ -109,6 +109,9 @@ namespace ElympicsPlayPad.Session
         {
 
             var result = await ExternalAuthenticator.Authenticate();
+            if (result == null)
+                throw new SessionManagerAuthException($"External Authenticator did not return AuthData.");
+
 #if UNITY_EDITOR
             var standaloneAuthType = result.AuthType;
             if (standaloneAuthType != AuthType.ClientSecret)
