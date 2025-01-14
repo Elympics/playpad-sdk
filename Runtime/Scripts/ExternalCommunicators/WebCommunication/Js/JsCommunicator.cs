@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new Dictionary<string, List<IWebMessageReceiver>>();
 
         private int _requestCounter;
-        internal const string ProtocolVersion = "0.2.0";
+        internal const string ProtocolVersion = "0.2.1";
         private const string GameObjectName = "JsReceiver";
 
         private static JsCommunicator instance = null!;
