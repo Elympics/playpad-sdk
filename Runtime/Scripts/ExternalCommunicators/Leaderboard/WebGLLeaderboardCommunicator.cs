@@ -39,9 +39,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         public async UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
             var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(ReturnEventTypes.GetUserHighScore, default, ct);
-            if (response.points == -1.0f)
-                return null;
-
             _userHighScore = response.MapToUserHighScore();
             return _userHighScore;
         }
@@ -60,6 +57,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                 {
                     var highScoreUpdate = JsonUtility.FromJson<UserHighScoreUpdatedMessage>(message.message);
                     _userHighScore = highScoreUpdate.MapToUserHighScore();
+                    if (_userHighScore.HasValue is false)
+                        return;
+
                     UserHighScoreUpdated?.Invoke(_userHighScore.Value);
                     break;
                 }
