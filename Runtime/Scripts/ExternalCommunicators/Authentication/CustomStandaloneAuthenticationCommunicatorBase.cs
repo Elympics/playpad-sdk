@@ -9,6 +9,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     public abstract class CustomStandaloneAuthenticationCommunicatorBase : MonoBehaviour, IExternalAuthenticator
     {
+        public event Action<string> RegionUpdated;
         public abstract event Action<AuthData> AuthenticationUpdated;
         public abstract UniTask<AuthData> Authenticate(CancellationToken ct = default);
         public abstract UniTask<HandshakeInfo> InitializationMessage(

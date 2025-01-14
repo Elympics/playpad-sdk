@@ -10,6 +10,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     public class StandaloneExternalAuthenticator : IExternalAuthenticator
     {
+        public event Action<string>? RegionUpdated;
         public event Action<AuthData>? AuthenticationUpdated;
         public StandaloneExternalAuthenticator(StandaloneExternalAuthenticatorConfig authConfig) => _authConfig = authConfig;
 

@@ -13,7 +13,6 @@ using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.JWT;
 using ElympicsPlayPad.JWT.Extensions;
 using ElympicsPlayPad.Session.Exceptions;
-using ElympicsPlayPad.Tournament;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
@@ -65,6 +64,7 @@ namespace ElympicsPlayPad.Session
             if (instance == null)
             {
                 ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
+                ExternalAuthenticator.RegionUpdated += OnRegionUpdated;
 
                 if (SmartContractService.Instance != null)
                     await SmartContractService.Instance.Initialize();
@@ -110,7 +110,7 @@ namespace ElympicsPlayPad.Session
 
             var result = await ExternalAuthenticator.Authenticate();
             if (result == null)
-                throw new SessionManagerAuthException($"External Authenticator did not return AuthData.");
+                throw new SessionManagerAuthException($"External authenticator did not return AuthData.");
 
 #if UNITY_EDITOR
             var standaloneAuthType = result.AuthType;
@@ -140,13 +140,13 @@ namespace ElympicsPlayPad.Session
             CurrentSession = new SessionInfo(authData, accountWallet, signWallet, handshake.Capabilities, handshake.Environment, handshake.IsMobile, region, handshake.FeatureAccess);
         }
 
-        private void SetupSession(AuthData authData)
+        private void SetupSession(AuthData authData, string region, SessionInfo currentSession)
         {
-            if (CurrentSession.HasValue is false)
-                throw new Exception("Something went wrong. There should be existing current session");
+            ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
+
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
             var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.Features);
+            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -222,14 +222,35 @@ namespace ElympicsPlayPad.Session
         private void OnAuthDataChanged(AuthData data)
         {
             StartSessionInfoUpdate?.Invoke();
+            ThrowIfCurrentSessionNull("No initial authentication was performed. Can't re-authenticate.");
+
             AuthWithCached(data, false).ContinueWith(() =>
             {
-                SetupSession(data);
+                SetupSession(data, _region, CurrentSession!.Value);
+                FinishSessionInfoUpdate?.Invoke();
+            }).Forget();
+        }
+
+        private void OnRegionUpdated(string newRegion)
+        {
+            ThrowIfCurrentSessionNull("No initial authentication was performed. Can't re-authenticate.");
+
+            _region = newRegion;
+            StartSessionInfoUpdate?.Invoke();
+            AuthWithCached(CurrentSession!.Value.AuthData, false).ContinueWith(() =>
+            {
+                SetupSession(CurrentSession.Value.AuthData, _region, CurrentSession.Value);
                 FinishSessionInfoUpdate?.Invoke();
             }).Forget();
         }
 
         private void OnDestroy() => ExternalAuthenticator.AuthenticationUpdated -= OnAuthDataChanged;
+
+        private void ThrowIfCurrentSessionNull(string message)
+        {
+            if (CurrentSession.HasValue is false)
+                throw new SessionmanagerException(message);
+        }
 
         internal void Reset()
         {

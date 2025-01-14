@@ -19,6 +19,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 {
     internal class WebGLExternalAuthenticator : IExternalAuthenticator, IWebMessageReceiver
     {
+        public event Action<string>? RegionUpdated;
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly JsCommunicator _jsCommunicator;
 
@@ -26,6 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         {
             _jsCommunicator = jsCommunicator;
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
+            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
         }
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
@@ -78,14 +80,25 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 
         public void OnWebMessage(WebMessage message)
         {
-            if (message.type != WebMessageTypes.AuthenticationUpdated)
-                return;
+            switch (message.type)
+            {
+                case WebMessageTypes.AuthenticationUpdated:
+                {
+                    var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
+                    var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
+                    var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
+                    var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+                    AuthenticationUpdated?.Invoke(cached);
+                    break;
+                }
+                case WebMessageTypes.RegionUpdated:
+                {
+                    var data = JsonUtility.FromJson<RegionUpdatedMessage>(message.message);
+                    RegionUpdated?.Invoke(data.region);
+                    break;
+                }
+            }
 
-            var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
-            var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
-            var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
-            var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
-            AuthenticationUpdated?.Invoke(cached);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace ElympicsPlayPad.Protocol
         public const string LeaderboardUpdated = "LeaderboardUpdated";
         public const string UserHighScoreUpdated = "UserHighScoreUpdated";
         public const string PlayStatusUpdated = "PlayStatusUpdated";
+        public const string RegionUpdated = "RegionUpdated";
     }
 
     public static class VoidEventTypes
