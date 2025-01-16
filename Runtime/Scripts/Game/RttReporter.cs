@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.Game
 {
+    [Obsolete("This component is no longer needed to report RTT. This feature is now integrated into PlayPad SDK and always enabled.", true)]
     public class RttReporter : MonoBehaviour, IClientHandlerGuid
     {
         [SerializeField] private int tickInterval;
