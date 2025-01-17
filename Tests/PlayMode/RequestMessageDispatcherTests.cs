@@ -27,7 +27,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
         public void Setup()
         {
             _jsMock = new JsCommunicatorRetrieverMock();
-            _sut = new RequestMessageDispatcher(_jsMock);
+            _sut = new RequestMessageDispatcher(_jsMock, default);
         }
 
         [UnityTest]

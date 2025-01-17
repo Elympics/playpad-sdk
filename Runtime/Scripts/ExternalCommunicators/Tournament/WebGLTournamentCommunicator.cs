@@ -2,6 +2,8 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.ElympicsSystems.Internal;
+using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -15,10 +17,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 {
     internal class WebGLTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
+        public event Action<TournamentInfo>? TournamentUpdated;
         public TournamentInfo? CurrentTournament => _currentTournament;
 
         private TournamentInfo? _currentTournament;
-        public event Action<TournamentInfo>? TournamentUpdated;
+
+        private ElympicsLoggerContext _logger;
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger) => _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
+
         public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
             var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(ReturnEventTypes.GetTournament, null, ct);
@@ -33,12 +39,28 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         }
         public void OnWebMessage(WebMessage message)
         {
+            var logger = _logger.WithMethodName();
             if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
-                throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
+                throw logger.CaptureAndThrow(new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type."));
+            try
+            {
+                switch (message.type)
+                {
+                    case WebMessageTypes.TournamentUpdated:
+                        var newTournamentData = JsonUtility.FromJson<TournamentResponse>(message.message);
+                        _currentTournament = newTournamentData.ToTournamentInfo();
+                        TournamentUpdated?.Invoke(_currentTournament.Value);
+                        break;
+                    default:
+                        logger.Error($"Unable to handle message {message.type}");
+                        break;
+                }
 
-            var newTournamentData = JsonUtility.FromJson<TournamentResponse>(message.message);
-            _currentTournament = newTournamentData.ToTournamentInfo();
-            TournamentUpdated?.Invoke(_currentTournament.Value);
+            }
+            catch (Exception e)
+            {
+                throw logger.CaptureAndThrow(e);
+            }
         }
     }
 }

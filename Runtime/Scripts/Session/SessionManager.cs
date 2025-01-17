@@ -2,6 +2,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.ElympicsSystems.Internal;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
@@ -46,9 +47,13 @@ namespace ElympicsPlayPad.Session
         private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
         private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
 
-        private void Start()
+        private ElympicsLoggerContext _logger;
+
+
+        internal void Init(ElympicsLoggerContext logger)
         {
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
+            _logger = logger.WithContext(nameof(SessionManager));
         }
 
         /// <summary>
@@ -58,6 +63,7 @@ namespace ElympicsPlayPad.Session
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
         {
+            var logger = _logger.WithMethodName();
             if (instance != null)
                 throw new SessionmanagerException("Session Manager already initialized.");
 
@@ -71,11 +77,16 @@ namespace ElympicsPlayPad.Session
 
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
+                logger.WithRegion(handshake.ClosestRegion).WithFeatureAccess(handshake.FeatureAccess.ToString()).WithCapabilities(handshake.Capabilities.ToString());
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-
+                var wallets = ExtractWalletAddresses(authData);
+                logger.WithAuthType(authData.AuthType).WithUserId(authData.UserId.ToString()).WithNickname(authData.Nickname).WithWalletAddress(wallets.signWallet ?? wallets.accountWallet ?? string.Empty);
                 if (handshake.FeatureAccess.HasTournament())
-                    _ = await TournamentCommunicator.GetTournament();
+                {
+                    var tournament = await TournamentCommunicator.GetTournament();
+                    logger.WithTournamentId(tournament?.Id);
+                }
 
                 _ = await GameStatusCommunicator.CanPlayGame(false);
 
@@ -88,7 +99,7 @@ namespace ElympicsPlayPad.Session
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
-                ElympicsLogger.Log($"[{nameof(SessionManager)}] User Authenticated and Connected.");
+                logger.Log($"PlayPad connection established.");
             }
             else
                 Destroy(gameObject);
@@ -96,7 +107,6 @@ namespace ElympicsPlayPad.Session
 
         private async UniTask<HandshakeInfo> SetupHandshake()
         {
-            Debug.Log($"{nameof(SessionManager)} Check external authentication.");
             var sdkVersion = ElympicsConfig.SdkVersion;
             var lobbyPackageVersion = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
@@ -108,11 +118,10 @@ namespace ElympicsPlayPad.Session
 
         private async UniTask<AuthData> Authenticate()
         {
-
+            var logger = _logger.WithMethodName();
             var result = await ExternalAuthenticator.Authenticate();
             if (result == null)
-                throw new SessionManagerAuthException($"External authenticator did not return AuthData.");
-
+                throw logger.CaptureAndThrow(new SessionManagerAuthException($"External authenticator did not return AuthData."));
 #if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
             var standaloneAuthType = result.AuthType;
             if (standaloneAuthType != AuthType.ClientSecret)
@@ -129,15 +138,14 @@ namespace ElympicsPlayPad.Session
             }
             catch (Exception e)
             {
-                throw new SessionManagerFatalError(e.Message);
+                throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
             }
 #endif
         }
 
         private void SetupSession(HandshakeInfo handshake, string region, AuthData authData)
         {
-            var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            var (accountWallet, signWallet) = ExtractWalletAddresses(authData);
             CurrentSession = new SessionInfo(authData, accountWallet, signWallet, handshake.Capabilities, handshake.Environment, handshake.IsMobile, region, handshake.FeatureAccess);
         }
 
@@ -145,9 +153,15 @@ namespace ElympicsPlayPad.Session
         {
             ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
 
+            var (accountWallet, signWallet) = ExtractWalletAddresses(authData);
+            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features);
+        }
+
+        private static (string? accountWallet, string? signWallet) ExtractWalletAddresses(AuthData authData)
+        {
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
             var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features);
+            return (accountWallet, signWallet);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
