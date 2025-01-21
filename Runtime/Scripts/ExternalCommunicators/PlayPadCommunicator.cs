@@ -64,7 +64,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (_lobby == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR && !ELYMPICS_DISABLE_PLAYPAD
                 _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
                 ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
                 var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
@@ -95,7 +95,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 Destroy(gameObject);
         }
 
-#if UNITY_EDITOR || !UNITY_WEBGL
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_DISABLE_PLAYPAD
         [Header("Optional. Work only on UnityEditor")]
         [SerializeField] private CustomStandaloneAuthenticationCommunicatorBase? customAuthenticatorCommunicator;
 
