@@ -89,7 +89,6 @@ namespace ElympicsPlayPad.Session
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
                 ElympicsLogger.Log($"[{nameof(SessionManager)}] User Authenticated and Connected.");
-                ElympicsLogger.Log();
             }
             else
                 Destroy(gameObject);
