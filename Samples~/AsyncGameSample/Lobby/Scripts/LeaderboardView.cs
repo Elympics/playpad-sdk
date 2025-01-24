@@ -16,6 +16,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         [SerializeField] private TextMeshProUGUI numberOfParticipants;
 
+        [SerializeField] private GameObject separator;
+
         private IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
 
         public void OnStart()
@@ -38,21 +40,44 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void DisplayLeaderboardEntries(Placement[]? placements)
         {
+            separator.SetActive(false);
+
             var placementsCount = placements?.Length;
+
+            // Needed in case there are less than 6 positions sent by server, but the user is last place. 
+            int lastPlacementPosition = 0;
 
             for (int i = 0; i < displayedEntries.Count; i++)
             {
                 if (i < placementsCount)
                 {
                     displayedEntries[i].SetValues(placements![i]);
-                    displayedEntries[i].SetEntrySeparator(!IsLastAvailablePlacement(i, placementsCount) && !ArePlacementsConsecutive(placements[i], placements[i + 1]));
+                    lastPlacementPosition = placements![i].Position;
+
+                    // Only check if seperator is not active
+                    if (!separator.activeSelf)
+                    {
+                        // Check if index + 1 is within list
+                        if (i + 1 < placementsCount)
+                        {
+                            if (!ArePlacementsConsecutive(placements![i], placements![i + 1])) separator.SetActive(true);
+                        }
+                    }
                 }
                 else
-                    displayedEntries[i].Clear();
+                {
+                    lastPlacementPosition++;
+
+                    Placement emptyCell = new()
+                    {
+                        UserId = string.Empty,
+                        Position = lastPlacementPosition,
+                    };
+                    displayedEntries[i].SetValues(emptyCell);
+                }
             }
         }
 
         private static bool ArePlacementsConsecutive(Placement placement, Placement nextPlacement) => nextPlacement.Position - placement.Position == 1;
-        private static bool IsLastAvailablePlacement(int i, int? placementsCount) => placementsCount - i == 1;
     }
 }
