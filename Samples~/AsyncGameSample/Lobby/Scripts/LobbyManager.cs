@@ -38,6 +38,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             leaderboardView.OnStart();
             allTimeHighScoreView.OnStart();
             tournamentPlayButton.OnStart();
+            ElympicsBestScoreManager.OnStart();
 
             if (shouldHideSplashScreen)
                 PlayPadCommunicator.Instance.GameStatusCommunicator?.HideSplashScreen();

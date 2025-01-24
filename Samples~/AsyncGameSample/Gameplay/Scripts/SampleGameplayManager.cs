@@ -56,7 +56,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
 
         // Runs only at the Client
-        public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView();
+        public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView(_points.Value);
 
         [UsedImplicitly] // by EndGameButton
         public void RequestGameEnd() => endGameRequested = true;
