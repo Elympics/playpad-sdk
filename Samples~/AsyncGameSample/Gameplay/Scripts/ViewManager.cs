@@ -13,7 +13,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void UpdateTimer(int remainingSeconds) => timer.text = remainingSeconds.ToString();
         public void UpdatePoints(int pointsValue) => pointsDisplay.text = pointsValue.ToString();
 
-        // TODO: Add showing points to EndView
-        public void ShowGameEndedView() => gameEndedView.Show();
+        public void ShowGameEndedView(int points)
+        {
+            gameEndedView.Show(points);
+        }
     }
 }
