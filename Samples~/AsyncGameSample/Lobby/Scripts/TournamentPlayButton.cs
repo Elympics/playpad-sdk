@@ -71,12 +71,26 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             try
             {
-                _ = await PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
+                var room = await PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
+                if (room.State.MatchmakingData.MatchData.FailReason != null)
+                {
+                    throw new Exception(room.State.MatchmakingData.MatchData.FailReason);
+                }
             }
             catch (Exception e)
             {
+                // We always want to stop the matchmaking screen and print the exception for debugging.
                 matchmakingInProgressScreen.SetActive(false);
-                errorScreen.Show(e.ToString());
+                Debug.LogException(e);
+
+                // Check for User Action required in the error code, if this is the case we do not want user to refresh
+                if (e.Message.Contains(PlayStatus.UserActionRequired.ToString()))
+                {
+                    return;
+                }
+                
+                // If play status is blocked, we want user to refresh the page so that the play button is updated
+                errorScreen.Show($"Error starting game. Please refresh.\n{e.Message}", true);
             }
         }
     }
