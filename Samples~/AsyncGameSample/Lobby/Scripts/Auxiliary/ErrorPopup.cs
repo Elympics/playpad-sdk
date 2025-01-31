@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using TMPro;
 using JetBrains.Annotations;
 
@@ -8,27 +8,16 @@ namespace ElympicsPlayPad.Samples.AsyncGame
     {
         [SerializeField] private TextMeshProUGUI errorText;
 
-        private bool forceRefresh;
-
-        public void Show(string error, bool forceRefresh = false)
+        public void Show(string error)
         {
             gameObject.SetActive(true);
 
             errorText.text = error;
-
-            this.forceRefresh = forceRefresh;
         }
 
         [UsedImplicitly]
         public void Hide()
         {
-            if (forceRefresh)
-            {
-#if UNITY_WEBGL
-            Application.ExternalEval("document.location.reload(true)");
-#endif
-            }
-
             gameObject.SetActive(false);
         }
     }
