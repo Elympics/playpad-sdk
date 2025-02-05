@@ -113,10 +113,10 @@ namespace ElympicsPlayPad.Session
             if (result == null)
                 throw new SessionManagerAuthException($"External authenticator did not return AuthData.");
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
             var standaloneAuthType = result.AuthType;
             if (standaloneAuthType != AuthType.ClientSecret)
-                throw new SessionManagerAuthException($"Cannot authenticate with {standaloneAuthType} on Editor. Please use {AuthType.ClientSecret}");
+                throw new SessionManagerAuthException($"Cannot authenticate with {standaloneAuthType} on Editor or with ELYMPICS_DISABLE_PLAYPAD. Please use {AuthType.ClientSecret}");
 
             await _lobbyWrapper.ConnectStandaloneEditorToElympicsAsync(result, _region);
 
