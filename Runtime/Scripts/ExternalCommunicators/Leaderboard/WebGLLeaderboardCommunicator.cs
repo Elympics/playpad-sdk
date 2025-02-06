@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Leaderboard;
@@ -22,12 +23,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         private LeaderboardStatusInfo? _leaderboard;
         public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
         public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        private ElympicsLoggerContext _logger;
 
         private readonly JsCommunicator _jsCommunicator;
-        public WebGLLeaderboardCommunicator(JsCommunicator jsCommunicator)
+        public WebGLLeaderboardCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
             _jsCommunicator = jsCommunicator;
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
+            _logger = logger.WithContext(nameof(WebGLLeaderboardCommunicator));
         }
 
         public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
@@ -44,27 +47,36 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         }
         public void OnWebMessage(WebMessage message)
         {
-            switch (message.type)
+            var logger = _logger.WithMethodName();
+            try
             {
-                case WebMessageTypes.LeaderboardUpdated:
+                switch (message.type)
                 {
-                    var leaderboardUpdate = JsonUtility.FromJson<LeaderboardUpdatedMessage>(message.message);
-                    _leaderboard = leaderboardUpdate.MapToLeaderboardStatus();
-                    LeaderboardUpdated?.Invoke(_leaderboard.Value);
-                    break;
-                }
-                case WebMessageTypes.UserHighScoreUpdated:
-                {
-                    var highScoreUpdate = JsonUtility.FromJson<UserHighScoreUpdatedMessage>(message.message);
-                    _userHighScore = highScoreUpdate.MapToUserHighScore();
-                    if (_userHighScore.HasValue is false)
-                        return;
+                    case WebMessageTypes.LeaderboardUpdated:
+                    {
+                        var leaderboardUpdate = JsonUtility.FromJson<LeaderboardUpdatedMessage>(message.message);
+                        _leaderboard = leaderboardUpdate.MapToLeaderboardStatus();
+                        LeaderboardUpdated?.Invoke(_leaderboard.Value);
+                        break;
+                    }
+                    case WebMessageTypes.UserHighScoreUpdated:
+                    {
+                        var highScoreUpdate = JsonUtility.FromJson<UserHighScoreUpdatedMessage>(message.message);
+                        _userHighScore = highScoreUpdate.MapToUserHighScore();
+                        if (_userHighScore.HasValue is false)
+                            return;
 
-                    UserHighScoreUpdated?.Invoke(_userHighScore.Value);
-                    break;
+                        UserHighScoreUpdated?.Invoke(_userHighScore.Value);
+                        break;
+                    }
+                    default:
+                        logger.Error($"Unable to handle message {message.type}");
+                        break;
                 }
-                default:
-                    throw new Exception($"{nameof(WebGLLeaderboardCommunicator)} can't handle {message.type} event type.");
+            }
+            catch (Exception e)
+            {
+                throw logger.CaptureAndThrow(e);
             }
         }
     }

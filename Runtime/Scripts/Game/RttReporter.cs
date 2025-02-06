@@ -16,23 +16,23 @@ namespace ElympicsPlayPad.Game
             _sendRttUpdates = true;
             _client = FindObjectOfType<ElympicsClient>();
         }
-        public void Update()
-        {
-            if (_client == null)
-                return;
-
-            if (_sendRttUpdates is false)
-                return;
-
-            ++_counter;
-            if (_counter <= tickInterval)
-                return;
-
-            _counter = 0;
-            var avgRtt = _client.RoundTripTimeCalculator?.AverageRoundTripTime ?? TimeSpan.Zero;
-            if (PlayPadCommunicator.Instance != null)
-                PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
-        }
+        // public void Update()
+        // {
+        //     if (_client == null)
+        //         return;
+        //
+        //     if (_sendRttUpdates is false)
+        //         return;
+        //
+        //     ++_counter;
+        //     if (_counter <= tickInterval)
+        //         return;
+        //
+        //     _counter = 0;
+        //     var avgRtt = _client.RoundTripTimeCalculator?.AverageRoundTripTime ?? TimeSpan.Zero;
+        //     if (PlayPadCommunicator.Instance != null)
+        //         PlayPadCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
+        // }
 
         public void OnConnectingFailed()
         {

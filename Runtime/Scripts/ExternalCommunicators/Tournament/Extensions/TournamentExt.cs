@@ -27,6 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
                 OwnerId = ownerId,
                 StartDate = startDate,
                 EndDate = endDate,
+                IsDaily = dto.isDefault,
             };
         }
 
@@ -46,6 +47,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
                 OwnerId = ownerId,
                 StartDate = startDate,
                 EndDate = endDate,
+                IsDaily = dto.isDefault,
             };
         }
 

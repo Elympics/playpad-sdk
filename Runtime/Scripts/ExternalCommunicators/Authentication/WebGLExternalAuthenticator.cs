@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.ElympicsSystems.Internal;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Utility;
@@ -22,12 +23,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<string>? RegionUpdated;
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly JsCommunicator _jsCommunicator;
+        private ElympicsLoggerContext _logger;
 
-        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator)
+        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
             _jsCommunicator = jsCommunicator;
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
+            _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
         }
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
@@ -54,6 +57,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 sdkVersion = sdkVersion,
                 lobbyPackageVersion = lobbyPackageVersion,
             };
+            var logger = _logger.WithMethodName();
             try
             {
                 var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(ReturnEventTypes.Handshake, message, ct);
@@ -66,39 +70,51 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             catch (ResponseException e)
             {
                 if (e.Code == RequestErrors.ExternalAuthFailed)
-                    throw new SessionManagerFatalError(e.Message);
+                    throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
 
-                throw;
+                throw logger.CaptureAndThrow(e);
             }
         }
 
-        private static void ThrowIfInvalidAuthenticateResponse(AuthenticationResponse result)
+        private void ThrowIfInvalidAuthenticateResponse(AuthenticationResponse result)
         {
+            var logger = _logger.WithMethodName();
             if (string.IsNullOrEmpty(result.jwt))
-                throw new SessionManagerFatalError("External message did not return authorization token. Unable to authorize.");
+                throw logger.CaptureAndThrow(new SessionManagerFatalError("External message did not return authorization token. Unable to authorize."));
         }
 
         public void OnWebMessage(WebMessage message)
         {
-            switch (message.type)
+            var logger = _logger.WithMethodName();
+            try
             {
-                case WebMessageTypes.AuthenticationUpdated:
+                switch (message.type)
                 {
-                    var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
-                    var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
-                    var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
-                    var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
-                    AuthenticationUpdated?.Invoke(cached);
-                    break;
+                    case WebMessageTypes.AuthenticationUpdated:
+                    {
+                        var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
+                        var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
+                        var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
+                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+                        AuthenticationUpdated?.Invoke(cached);
+                        break;
+                    }
+                    case WebMessageTypes.RegionUpdated:
+                    {
+                        var data = JsonUtility.FromJson<RegionUpdatedMessage>(message.message);
+                        RegionUpdated?.Invoke(data.region);
+                        break;
+                    }
+                    default:
+                        logger.Error($"Unable to handle message type {message.type}");
+                        break;
                 }
-                case WebMessageTypes.RegionUpdated:
-                {
-                    var data = JsonUtility.FromJson<RegionUpdatedMessage>(message.message);
-                    RegionUpdated?.Invoke(data.region);
-                    break;
-                }
-            }
 
+            }
+            catch (Exception e)
+            {
+                throw logger.CaptureAndThrow(e);
+            }
         }
     }
 }

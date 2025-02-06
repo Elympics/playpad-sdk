@@ -12,7 +12,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
         public readonly string Environment;
         public readonly string ClosestRegion;
 
-        public HandshakeInfo(bool isMobile, Capabilities capabilities, string environment, string closestRegion, FeatureAccess featureAccess)
+        public HandshakeInfo(
+            bool isMobile,
+            Capabilities capabilities,
+            string environment,
+            string closestRegion,
+            FeatureAccess featureAccess)
         {
             IsMobile = isMobile;
             Capabilities = capabilities;

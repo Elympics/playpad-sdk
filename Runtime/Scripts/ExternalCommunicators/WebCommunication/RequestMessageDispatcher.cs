@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
@@ -14,25 +15,31 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     {
         private readonly Dictionary<int, TicketStatus> _ticketStatus = new();
         private readonly TimeSpan _requestTimeOut;
+        private ElympicsLoggerContext _logger;
 
-        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever)
+        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever, ElympicsLoggerContext logger)
         {
             _requestTimeOut = TimeSpan.FromSeconds(10 * 60);
             messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
+            _logger = logger.WithContext(nameof(RequestMessageDispatcher));
         }
 
         public void RegisterTicket(int ticket)
         {
             var added = _ticketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
-            if (added is false)
-                throw new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty);
+            if (added is true)
+                return;
+
+            var logger = _logger.WithMethodName();
+            throw logger.CaptureAndThrow(new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty));
         }
 
         public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket, CancellationToken ct)
             where TReturn : struct
         {
+            var logger = _logger.WithMethodName();
             if (_ticketStatus.TryGetValue(ticket, out var ticketStatus) is false)
-                throw new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty);
+                throw logger.CaptureAndThrow(new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty));
             var token = ticketStatus.Timeout.Token;
             if (ct != default)
             {
@@ -50,19 +57,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                     ClearTicketStatus(ticket);
 
                 if (isTimeout)
-                    throw new ProtocolException("Request reached timeout.", string.Empty);
+                    throw logger.CaptureAndThrow(new ProtocolException("Request reached timeout.", string.Empty));
 
                 ct.ThrowIfCancellationRequested();
             }
 
             if (IsErrorResponse(ticketStatus, out var code))
             {
-                Debug.Log($"[{nameof(RequestMessageDispatcher)}] found error in response: {ticket}");
+                logger.Log($"Found error in ticket {ticket} error {code} type: {ticketStatus.Response?.type}");
                 var errorMessage = GetErrorDescription(ticketStatus);
                 ClearTicketStatus(ticket);
                 throw new ResponseException(code, errorMessage);
             }
-            var response = GetResponseData<TReturn>(ticketStatus);
+            var response = GetResponseData<TReturn>(ticketStatus, _logger);
             ClearTicketStatus(ticket);
             UniTask.ReturnToMainThread();
             return response!;
@@ -81,18 +88,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         }
         private void OnResponseObjectReceived(string responseObject)
         {
+            var logger = _logger.WithMethodName();
             Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
             var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
 
             if (_ticketStatus.TryGetValue(response.ticket, out var ticketStatus) is false)
             {
-                Debug.LogError($"Did not found ticketStatus for {response.ticket}");
+                logger.Error($"Did not found ticketStatus for ticket: {response.ticket} type: {response.type}");
                 return;
             }
 
             if (ticketStatus.Response != null)
             {
-                Debug.LogError($"Status map already contains response {response}. Discarding message");
+                logger.Error($"Status map already contains response {response.type}. Discarding message");
                 return;
             }
 
@@ -105,12 +113,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             ticketStatus.Response = response;
         }
 
-        private static TReturn GetResponseData<TReturn>(TicketStatus ticketStatus)
+        private static TReturn GetResponseData<TReturn>(TicketStatus ticketStatus, ElympicsLoggerContext loggerContext)
             where TReturn : struct
         {
+            var logger = loggerContext.WithMethodName();
             if (string.IsNullOrEmpty(ticketStatus.Response!.response))
                 if (typeof(TReturn) != typeof(EmptyPayload))
-                    throw new ProtocolException($"Response data is null or empty.", ticketStatus.Response!.type);
+                    throw logger.CaptureAndThrow(new ProtocolException($"Response data is null or empty.", ticketStatus.Response!.type));
                 else
                     return default;
             try
@@ -120,7 +129,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             }
             catch (Exception)
             {
-                throw new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type);
+                throw logger.CaptureAndThrow(new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type));
             }
         }
 

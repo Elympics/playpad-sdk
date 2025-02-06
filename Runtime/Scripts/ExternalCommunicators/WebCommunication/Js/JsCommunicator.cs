@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
+using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
@@ -29,18 +31,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private JsCommunicationFactory _messageFactory = null!;
         private RequestMessageDispatcher _dispatcher = null!;
 
-        private void Awake()
+        private ElympicsLoggerContext _loggerContext; //TODO implement later k.pieta 29.01.2025
+
+        public void Init(ElympicsLoggerContext loggerContext)
         {
-            if (instance == null)
-            {
-                instance = this;
-                DontDestroyOnLoad(gameObject);
-                gameObject.name = GameObjectName;
-                _messageFactory = new JsCommunicationFactory();
-                _dispatcher = new RequestMessageDispatcher(this);
-            }
-            else
-                Destroy(gameObject);
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+            _loggerContext = loggerContext.WithContext(nameof(JsCommunicator));
+            gameObject.name = GameObjectName;
+            _messageFactory = new JsCommunicationFactory();
+            _dispatcher = new RequestMessageDispatcher(this, _loggerContext);
         }
 
         public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
@@ -50,12 +50,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             var ticket = _requestCounter;
             ++_requestCounter;
             var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, payload);
-            Debug.Log($"[{nameof(JsCommunicator)}] Send Request {messageType} message: {message}");
+            ElympicsLogger.Log($"Send Request {messageType} message: {message}");
             _dispatcher.RegisterTicket(ticket);
             DispatchHandleMessage(message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
         }
-
 
         public void SendDebugMessage<TInput>(string debugType, TInput? payload = null)
             where TInput : struct
@@ -73,28 +72,28 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             where TInput : struct
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
-            Debug.Log($"[{nameof(JsCommunicator)}] Send Void {messageType} message: {message}");
+            if (BlockEventLog(messageType) is false)
+                ElympicsLogger.Log($"Send Void {messageType} message: {message}");
 
             DispatchVoidMessage(message);
+
+            return;
+
+            bool BlockEventLog(string type) => type.Equals(VoidEventTypes.BreadcrumbMessage);
         }
+
 
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes)
         {
             foreach (var messageType in messageTypes)
                 if (_webMessageReceivers.TryGetValue(messageType, out var list))
-                {
-                    Debug.Log($"{receiver.GetType()} is registered to {messageType} Web Message.");
                     list.Add(receiver);
-                }
                 else
-                {
-                    Debug.Log($"{receiver.GetType()} is added to listeners for {messageType} Web Message.");
                     _webMessageReceivers.Add(messageType,
                         new List<IWebMessageReceiver>()
                         {
                             receiver
                         });
-                }
         }
 
         [UsedImplicitly]
@@ -115,7 +114,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             try
             {
-                Debug.Log($"[{nameof(JsCommunicator)}] Received Web Event {messageObject}.");
+                ElympicsLogger.Log($"Received WebMessage message: {messageObject}");
                 var message = JsonUtility.FromJson<WebMessage>(messageObject);
                 WebObjectReceived?.Invoke(message);
                 if (_webMessageReceivers.TryGetValue(message.type, out var listeners))
@@ -135,7 +134,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private static void DispatchHandleMessage(string json)
         {
 #if UNITY_EDITOR || !UNITY_WEBGL
-            Debug.Log($"[JS]: Handle Message {json}");
+            Debug.Log($"[{nameof(JsCommunicator)}]: Handle Message {json}");
 #else
 			DispatchMessage(PlayPadHandlers.HandleMessage, json);
 #endif
@@ -145,7 +144,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private static void DispatchVoidMessage(string json)
         {
 #if UNITY_EDITOR || !UNITY_WEBGL
-            Debug.Log($"[JS]: Void Message {json}");
+            Debug.Log($"[{nameof(JsCommunicator)}]: Void Message {json}");
 #else
 			DispatchMessage(PlayPadHandlers.VoidMessage, json);
 #endif

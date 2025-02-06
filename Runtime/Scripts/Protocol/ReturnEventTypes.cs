@@ -31,6 +31,7 @@ namespace ElympicsPlayPad.Protocol
         public const string HideSplashScreen = "HideSplashScreen";
         public const string SystemInfoData = "SystemInfoData";
         public const string ElympicsStateUpdated = "ElympicsStateUpdated";
+        public const string BreadcrumbMessage = "BreadcrumbMessage";
         public const string Debug = "Debug";
     }
 
