@@ -3,6 +3,7 @@ using TMPro;
 using ElympicsPlayPad.Leaderboard;
 using Elympics;
 using UnityEngine.UI;
+using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -18,14 +19,12 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private Sprite silverBadge;
         [SerializeField] private Sprite bronzeBadge;
 
+        private ILeaderboardEntryHighlighter playerHighlighter;
+
         private void Awake()
         {
-            Clear();
-        }
-
-        public void Clear()
-        {
-            gameObject.SetActive(false);
+            playerHighlighter = GetComponent<ILeaderboardEntryHighlighter>();
+            Assert.IsNotNull(playerHighlighter);
         }
 
         public void SetValues(Placement leaderboardPlacement)
@@ -45,11 +44,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             bool isCurrentPlayer = leaderboardPlacement.UserId.Equals(ElympicsLobbyClient.Instance.UserGuid.ToString());
 
-            var style = isCurrentPlayer ? FontStyles.Bold : FontStyles.Normal;
-
-            position.fontStyle = style;
-            nickname.fontStyle = style;
-            score.fontStyle = style;
+            if (isCurrentPlayer)
+                playerHighlighter.Highlight();
+            else
+                playerHighlighter.ResetHighlight();
         }
 
         private void UpdateBadgeImage(int placement)
@@ -64,8 +62,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             badgeImage.gameObject.SetActive(true);
-
         }
-
     }
 }

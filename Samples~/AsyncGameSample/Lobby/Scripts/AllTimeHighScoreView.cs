@@ -20,7 +20,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             LeaderboardCommunicator.UserHighScoreUpdated += UpdateHighScore;
 
-            UpdateHighScore(LeaderboardCommunicator.UserHighScore?.Points.ToString() ?? NoBestScoreFallback);
+            UpdateHighScore(LeaderboardCommunicator.UserHighScore?.ScoredAt == null ? NoBestScoreFallback : LeaderboardCommunicator.UserHighScore.Value.Points.ToString());
         }
 
         private void OnDestroy()
