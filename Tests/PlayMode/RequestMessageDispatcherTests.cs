@@ -61,7 +61,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
             _sut.RegisterTicket(ticket);
             _jsMock.SendHandshakeResponse(ticket, 0);
             var exceptionThrown = false;
-            LogAssert.Expect(LogType.Error, new Regex("^Status map already contains response"));
+            LogAssert.Expect(LogType.Error, new Regex("Status map already contains response"));
             _jsMock.SendHandshakeResponse(ticket, 0);
         });
 
@@ -69,7 +69,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
         [UnityTest]
         public IEnumerator Test_Response_WithoutTicket() => UniTask.ToCoroutine(async () =>
         {
-            LogAssert.Expect(LogType.Error, new Regex("^Did not found ticketStatus"));
+            LogAssert.Expect(LogType.Error, new Regex("Did not found ticketStatus"));
             _jsMock.SendHandshakeResponse(0, 0);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
 

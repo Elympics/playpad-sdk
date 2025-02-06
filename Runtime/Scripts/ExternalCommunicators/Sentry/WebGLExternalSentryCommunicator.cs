@@ -3,7 +3,6 @@ using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -31,7 +30,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 
             _jsCommunicator.SendVoidMessage<BreadcrumbMessage>(VoidEventTypes.BreadcrumbMessage, data);
         }
-        private bool BlockLog(ElympicsLoggerContext log, LogLevel level) => level switch
+        private static bool BlockLog(ElympicsLoggerContext log, LogLevel level) => level switch
         {
             LogLevel.Log => BlockLogLevelStrategy(log),
             LogLevel.Warning => true,
@@ -40,11 +39,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
         };
 
-        private bool BlockLogLevelStrategy(ElympicsLoggerContext log)
+        private static bool BlockLogLevelStrategy(ElympicsLoggerContext log)
         {
             switch (log.Context)
             {
-                case nameof(ElympicsLobbyClient):
+                case ElympicsLoggerContext.ElympicsContextApp:
                     if (log.MethodName == "Awake")
                     {
                         return true;
