@@ -7,14 +7,16 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using UnityEngine.UI;
 using System;
+using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
-    public class TournamentPlayButton : MonoBehaviour
+    public partial class TournamentPlayButton : MonoBehaviour
     {
+        private const string ConnectingSubText = "Preparing the match...";
+
         [Header("Matchmaking")]
         [SerializeField] private string playQueue = "solo";
-        [SerializeField] private GameObject matchmakingInProgressScreen;
         [SerializeField] private ErrorPopup errorScreen;
 
         [Header("Play button")]
@@ -26,6 +28,17 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private Sprite playBlockedSprite;
 
         private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
+
+        private void Awake()
+        {
+            Assert.IsNotNull(errorScreen);
+            Assert.IsNotNull(playButtonText);
+            Assert.IsNotNull(playButton);
+            Assert.IsNotNull(playButtonImage);
+            Assert.IsNotNull(playAvailableSprite);
+            Assert.IsNotNull(userActionRequiredSprite);
+            Assert.IsNotNull(playBlockedSprite);
+        }
 
         public void OnStart()
         {
@@ -67,7 +80,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private async UniTask PlayGameAsync()
         {
-            matchmakingInProgressScreen.SetActive(true);
+            Assert.IsNotNull(MatchConnectingMask.Instance);
+            MatchConnectingMask.Instance.ShowOrUpdate(ConnectingSubText);
 
             try
             {
@@ -75,8 +89,17 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
             catch (Exception e)
             {
-                matchmakingInProgressScreen.SetActive(false);
-                errorScreen.Show(e.ToString());
+                if (PlayStatusCommunicator.CurrentPlayStatus.PlayStatus == PlayStatus.UserActionRequired)
+                {
+                    Debug.Log($"[PlayGameAsync]: {e.Message}");
+                }
+                else
+                {
+                    Debug.LogError($"[PlayGameAsync]: {e}");
+                    errorScreen.Show($"An error has occurred when connecting to the match. Check logs for more info");
+                }
+
+                MatchConnectingMask.Instance.Hide();
             }
         }
     }

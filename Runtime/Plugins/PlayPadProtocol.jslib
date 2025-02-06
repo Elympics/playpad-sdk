@@ -21,8 +21,15 @@ const elympicsconnect = {
 
 	// biome-ignore lint/complexity/useArrowFunction: <explanation>
 	ElympicsGetHref: function () {
-		const url = window.unityGameOptions.href;
-		return requestHandler.stringToBuffer(url);
+		try {
+			const url = window.unityGameOptions.href;
+			return requestHandler.stringToBuffer(url);
+		} catch (error) {
+			console.error(
+				`ElympicsGetHref failed, empty string will be returned. Error:\n${error}`,
+			);
+			return "";
+		}
 	},
 };
 

@@ -1,7 +1,9 @@
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Session;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -14,16 +16,26 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         [SerializeField] private GameObject authenticationInProgressScreen;
 
+        private MatchesConfig matchesConfig;
+        private SessionManager sessionManager;
+
         private void Start()
         {
-            var sessionManager = FindObjectOfType<SessionManager>();
-            OnLobbySceneLoaded(sessionManager).Forget();
+            matchesConfig = MatchesConfig.LoadFromResources();
+            Assert.IsNotNull(matchesConfig);
+
+            sessionManager = FindObjectOfType<SessionManager>();
+            Assert.IsNotNull(sessionManager);
+
+            OnLobbySceneLoaded().Forget();
         }
 
-        private async UniTask OnLobbySceneLoaded(SessionManager sessionManager)
+        private async UniTask OnLobbySceneLoaded()
         {
             sessionManager.StartSessionInfoUpdate += SetAuthenticationScreenActive;
             sessionManager.FinishSessionInfoUpdate += SetAuthenticationScreenInactive;
+            if (matchesConfig.RejoiningEnabled)
+                sessionManager.FinishSessionInfoUpdate += RejoinIfHasOngoingMatch;
 
             bool shouldHideSplashScreen = false;
 
@@ -38,6 +50,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             leaderboardView.OnStart();
             allTimeHighScoreView.OnStart();
             tournamentPlayButton.OnStart();
+            ElympicsBestScoreManager.OnStart();
 
             if (shouldHideSplashScreen)
                 PlayPadCommunicator.Instance.GameStatusCommunicator?.HideSplashScreen();
@@ -46,14 +59,24 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void SetAuthenticationScreenActive() => authenticationInProgressScreen.SetActive(true);
         private void SetAuthenticationScreenInactive() => authenticationInProgressScreen.SetActive(false);
 
+        // If the game dependens on local state too much, making the game rejoinable won't be possible
+        private void RejoinIfHasOngoingMatch()
+        {
+            var joinedRooms = ElympicsLobbyClient.Instance.RoomsManager.ListJoinedRooms();
+
+            if (joinedRooms.Count > 0 && joinedRooms[0].State.MatchmakingData.MatchData.State == Elympics.Rooms.Models.MatchState.Running)
+            {
+                var matchmakingData = joinedRooms[0].State.MatchmakingData;
+                ElympicsLobbyClient.Instance.PlayMatch(new Elympics.Models.Matchmaking.MatchmakingFinishedData(matchmakingData.MatchData.MatchId, matchmakingData.MatchData.MatchDetails, matchmakingData.QueueName, ElympicsLobbyClient.Instance.CurrentRegion));
+            }
+        }
+
         private void OnDestroy()
         {
-            var sessionManager = FindObjectOfType<SessionManager>();
-            if (sessionManager == null)
-                return;
-
             sessionManager.StartSessionInfoUpdate -= SetAuthenticationScreenActive;
             sessionManager.FinishSessionInfoUpdate -= SetAuthenticationScreenInactive;
+            if (matchesConfig.RejoiningEnabled)
+                sessionManager.FinishSessionInfoUpdate -= RejoinIfHasOngoingMatch;
         }
     }
 }

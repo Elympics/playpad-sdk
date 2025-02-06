@@ -4,8 +4,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class TournamentTimer
     {
-        private const string UpcomingLabelText = "Starting in";
-        private const string EndedLabelText = "Concluded";
+        private const string UpcomingLabelText = "Starts in";
+        private const string EndedLabelText = "Ended";
         private const string OngoingLabelText = "Time left";
 
         private readonly DateTimeOffset _startDate;
@@ -30,7 +30,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             return timerState switch
             {
                 TimerState.Upcoming => (formattedTimer, UpcomingLabelText),
-                TimerState.Finished => (formattedTimer, EndedLabelText),
+                TimerState.Finished => ("---", EndedLabelText),
                 TimerState.Ongoing => (formattedTimer, OngoingLabelText),
                 _ => (null, null),
             };

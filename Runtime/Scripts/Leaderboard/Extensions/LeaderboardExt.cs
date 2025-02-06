@@ -59,16 +59,30 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
             Participants = response.participants,
         };
 
-        public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreResponse response) => new()
+        public static UserHighScoreInfo? MapToUserHighScore(this UserHighScoreResponse response)
         {
-            Points = response.points,
-            ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
-        };
+            if (string.IsNullOrEmpty(response.points))
+                return null;
 
-        public static UserHighScoreInfo MapToUserHighScore(this UserHighScoreUpdatedMessage response) => new()
+            return new UserHighScoreInfo
+            {
+
+                Points = float.Parse(response.points, CultureInfo.InvariantCulture),
+                ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
+            };
+        }
+
+        public static UserHighScoreInfo? MapToUserHighScore(this UserHighScoreUpdatedMessage response)
         {
-            Points = response.points,
-            ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
-        };
+            if (string.IsNullOrEmpty(response.points))
+                return null;
+
+            return new UserHighScoreInfo
+            {
+
+                Points = float.Parse(response.points, CultureInfo.InvariantCulture),
+                ScoredAt = string.IsNullOrEmpty(response.endedAt) ? null : DateTime.Parse(response.endedAt),
+            };
+        }
     }
 }

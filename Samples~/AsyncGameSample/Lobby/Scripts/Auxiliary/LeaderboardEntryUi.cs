@@ -1,8 +1,9 @@
 using UnityEngine;
 using TMPro;
 using ElympicsPlayPad.Leaderboard;
-using System;
 using Elympics;
+using UnityEngine.UI;
+using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -12,16 +13,18 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private TextMeshProUGUI nickname;
         [SerializeField] private TextMeshProUGUI score;
 
-        [SerializeField] private GameObject entrySeparator;
+        [Header("Top 3 badges")]
+        [SerializeField] private Image badgeImage;
+        [SerializeField] private Sprite goldBadge;
+        [SerializeField] private Sprite silverBadge;
+        [SerializeField] private Sprite bronzeBadge;
+
+        private ILeaderboardEntryHighlighter playerHighlighter;
 
         private void Awake()
         {
-            Clear();
-        }
-
-        public void Clear()
-        {
-            gameObject.SetActive(false);
+            playerHighlighter = GetComponent<ILeaderboardEntryHighlighter>();
+            Assert.IsNotNull(playerHighlighter);
         }
 
         public void SetValues(Placement leaderboardPlacement)
@@ -30,22 +33,35 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             position.text = $"{leaderboardPlacement.Position}.";
             nickname.text = leaderboardPlacement.Nickname;
-            score.text = leaderboardPlacement.Score.ToString();
+            // If user id is empty then it is an empty cell and score should be displayed as empty.
+            score.text = string.IsNullOrEmpty(leaderboardPlacement.UserId) ? string.Empty : leaderboardPlacement.Score.ToString();
 
             HighlightCurrentPlayer(leaderboardPlacement);
+            UpdateBadgeImage(leaderboardPlacement.Position);
         }
-
-        public void SetEntrySeparator(bool on) => entrySeparator.SetActive(on);
 
         private void HighlightCurrentPlayer(Placement leaderboardPlacement)
         {
             bool isCurrentPlayer = leaderboardPlacement.UserId.Equals(ElympicsLobbyClient.Instance.UserGuid.ToString());
 
-            var style = isCurrentPlayer ? FontStyles.Bold : FontStyles.Normal;
+            if (isCurrentPlayer)
+                playerHighlighter.Highlight();
+            else
+                playerHighlighter.ResetHighlight();
+        }
 
-            position.fontStyle = style;
-            nickname.fontStyle = style;
-            score.fontStyle = style;
+        private void UpdateBadgeImage(int placement)
+        {
+            if (placement == 1) badgeImage.sprite = goldBadge;
+            else if (placement == 2) badgeImage.sprite = silverBadge;
+            else if (placement == 3) badgeImage.sprite = bronzeBadge;
+            else
+            {
+                badgeImage.gameObject.SetActive(false);
+                return;
+            }
+
+            badgeImage.gameObject.SetActive(true);
         }
     }
 }
