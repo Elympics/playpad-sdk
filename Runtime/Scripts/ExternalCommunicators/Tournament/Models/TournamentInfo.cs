@@ -1,14 +1,18 @@
 #nullable enable
 using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Tournament.Data
 {
+    [PublicAPI]
     public readonly struct TournamentInfo
     {
         public string Id { get; init; }
         public int LeaderboardCapacity { get; init; }
         public string Name { get; init; }
+
+        public bool IsDaily { get; init; }
 
         public PrizePoolInfo? PrizePool { get; init; }
         public Guid? OwnerId { get; init; }
@@ -17,6 +21,7 @@ namespace ElympicsPlayPad.Tournament.Data
         public override string ToString() => $"Id: {Id} Name: {Name} StartDate {StartDate:O} EndDate {EndDate:O}";
     }
 
+    [PublicAPI]
     public readonly struct PrizePoolInfo
     {
         public string Type { get; init; }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
@@ -32,16 +33,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
+        private ElympicsLoggerContext _logger;
 
-        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator)
+        public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator, ElympicsLoggerContext logger)
         {
             _communicator = communicator;
             _communicator.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
             _lobby = lobby;
             _tournamentCommunicator = tournamentCommunicator;
+            _logger = logger;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
             _lobby.ElympicsStateUpdated += OnElympicsStateUpdated;
             _roomsManager = _lobby.RoomsManager;
+            _logger = logger.WithContext(nameof(WebGLGameStatusCommunicator));
         }
         private void OnElympicsStateUpdated(ElympicsState previousState, ElympicsState newState)
         {
@@ -94,13 +98,26 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         public void OnWebMessage(WebMessage message)
         {
-            if (message.type != WebMessageTypes.PlayStatusUpdated)
-                throw new Exception($"{nameof(WebGLGameStatusCommunicator)} can't handle {message.type} event type.");
+            var logger = _logger.WithMethodName();
+            try
+            {
+                switch (message.type)
+                {
+                    case WebMessageTypes.PlayStatusUpdated:
+                        var data = JsonUtility.FromJson<CanPlayUpdatedMessage>(message.message);
+                        CurrentPlayStatus = data.ToPlayStateInfo();
+                        PlayStatusUpdated?.Invoke(CurrentPlayStatus);
+                        break;
+                    default:
+                        logger.Error($"Unable to handle {message.type}");
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                throw logger.CaptureAndThrow(e);
+            }
 
-            var data = JsonUtility.FromJson<CanPlayUpdatedMessage>(message.message);
-
-            CurrentPlayStatus = data.ToPlayStateInfo();
-            PlayStatusUpdated?.Invoke(CurrentPlayStatus);
         }
 
         private void SendSystemInfoData()

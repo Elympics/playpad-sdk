@@ -15,7 +15,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public StandaloneExternalAuthenticator(StandaloneExternalAuthenticatorConfig authConfig) => _authConfig = authConfig;
 
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
-        public UniTask<AuthData> Authenticate(CancellationToken ct = default) => UniTask.FromResult(new AuthData(Guid.NewGuid(), string.Empty, string.Empty, AuthType.ClientSecret));
+        public UniTask<AuthData> Authenticate(CancellationToken ct = default) => UniTask.FromResult(new AuthData(Guid.NewGuid(), string.Empty, "StandaloneResult", AuthType.ClientSecret));
         public async UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
             string gameName,
