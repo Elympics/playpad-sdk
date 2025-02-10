@@ -98,6 +98,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             // there is still a chance for reconnection
             yield return new WaitForSeconds(DefiniteDisconnectionTimeout);
 
+            Debug.LogError($"[{nameof(MatchConnectionHandler)}] - Definite Disconnection");
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection();
         }
@@ -107,7 +108,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void WebSocketSession_Disconnected(DisconnectionData data)
         {
             // Necesary check so that the popup doesn't show up when the user is connecting wallet via external applications or other intended web socket disconnects
-            if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown or DisconnectionReason.Reconnection)
+            if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown)
             {
                 Debug.Log($"Web socket disconnected: {data.Reason}");
                 return;
