@@ -1,17 +1,17 @@
 using UnityEngine;
-using TMPro;
-using JetBrains.Annotations;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using UnityEngine.UI;
 using System;
 using UnityEngine.Assertions;
+using Elympics;
+using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.Tournament.Data;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
-    public partial class TournamentPlayButton : MonoBehaviour
+    public class TournamentPlayButton : MonoBehaviour
     {
         private const string ConnectingSubText = "Preparing the match...";
 
@@ -20,21 +20,19 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private ErrorPopup errorScreen;
 
         [Header("Play button")]
-        [SerializeField] private TextMeshProUGUI playButtonText;
-        [SerializeField] private Button playButton;
-        [SerializeField] private Image playButtonImage;
         [SerializeField] private Sprite playAvailableSprite;
         [SerializeField] private Sprite userActionRequiredSprite;
         [SerializeField] private Sprite playBlockedSprite;
+        [SerializeField] private PlayButtonsViewBase[] playButtonViews;
+
+        private PlayButtonsViewBase currentPlayButtonView;
 
         private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
+        private IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance.TournamentCommunicator;
 
         private void Awake()
         {
             Assert.IsNotNull(errorScreen);
-            Assert.IsNotNull(playButtonText);
-            Assert.IsNotNull(playButton);
-            Assert.IsNotNull(playButtonImage);
             Assert.IsNotNull(playAvailableSprite);
             Assert.IsNotNull(userActionRequiredSprite);
             Assert.IsNotNull(playBlockedSprite);
@@ -42,50 +40,63 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         public void OnStart()
         {
-            PlayStatusCommunicator.PlayStatusUpdated += UpdatePlayButton;
+            //Subscribe callbacks for play button & train button, each play button will handle it as needed
+            for (int i = 0; i < playButtonViews.Length; i++)
+            {
+                playButtonViews[i].SubscribePlayButtonCallback(PlayTournament, PlayTraining);
+                playButtonViews[i].AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
+            }
 
+            TournamentCommunicator.TournamentUpdated += UpdateTournamentView;
+            UpdateTournamentView(TournamentCommunicator.CurrentTournament.Value);
+
+            PlayStatusCommunicator.PlayStatusUpdated += UpdatePlayButton;
             UpdatePlayButton(PlayStatusCommunicator.CurrentPlayStatus);
         }
 
         private void OnDestroy()
         {
             PlayStatusCommunicator.PlayStatusUpdated -= UpdatePlayButton;
+            TournamentCommunicator.TournamentUpdated -= UpdateTournamentView;
+        }
+
+        private void UpdateTournamentView(TournamentInfo info)
+        {
+            //Check and select new current play button view & enable / disable all play buttons depending on tournament type
+            for (int i = 0; i < playButtonViews.Length; i++)
+            {
+                playButtonViews[i].OnTournamentViewUpdated(info);
+
+                if (playButtonViews[i].ShouldUseThisPlayButtonView(info))
+                    currentPlayButtonView = playButtonViews[i];
+            }
         }
 
         private void UpdatePlayButton(PlayStatusInfo info)
         {
-            playButtonText.text = info.LabelInfo;
-
-            switch (info.PlayStatus)
-            {
-                case PlayStatus.Play:
-                    playButtonImage.sprite = playAvailableSprite;
-                    playButton.interactable = true;
-                    break;
-                case PlayStatus.UserActionRequired:
-                    playButtonImage.sprite = userActionRequiredSprite;
-                    playButton.interactable = true;
-                    break;
-                case PlayStatus.Blocked:
-                    playButtonImage.sprite = playBlockedSprite;
-                    playButton.interactable = false;
-                    break;
-                default:
-                    throw new Exception("Unsupported PlayStatus detected");
-            }
+            currentPlayButtonView.UpdatePlayButton(info);
         }
 
-        [UsedImplicitly]
-        public void PlayGame() => PlayGameAsync().Forget();
+        private void PlayTournament()
+        {
+            UniTask<IRoom> roomTask = PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
+            PlayGameAsync(roomTask).Forget();
+        }
 
-        private async UniTask PlayGameAsync()
+        private void PlayTraining()
+        {
+            UniTask<IRoom> roomTask = ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
+            PlayGameAsync(roomTask).Forget();
+        }
+
+        private async UniTask PlayGameAsync(UniTask<IRoom> roomTask)
         {
             Assert.IsNotNull(MatchConnectingMask.Instance);
             MatchConnectingMask.Instance.ShowOrUpdate(ConnectingSubText);
 
             try
             {
-                _ = await PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
+                _ = await roomTask;
             }
             catch (Exception e)
             {
@@ -96,7 +107,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 else
                 {
                     Debug.LogError($"[PlayGameAsync]: {e}");
-                    errorScreen.Show($"An error has occurred when connecting to the match. Check logs for more info");
+                    errorScreen.Show($"Connecting to match failed. {e.Message}");
                 }
 
                 MatchConnectingMask.Instance.Hide();
