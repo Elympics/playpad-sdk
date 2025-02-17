@@ -75,6 +75,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             if (BlockEventLog(messageType) is false)
                 ElympicsLogger.Log($"Send Void {messageType} message: {message}");
 
+            // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
             DispatchVoidMessage(message);
 
             return;
@@ -144,6 +145,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private static void DispatchVoidMessage(string json)
         {
 #if UNITY_EDITOR || !UNITY_WEBGL
+            // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
             Debug.Log($"[{nameof(JsCommunicator)}]: Void Message {json}");
 #else
 			DispatchMessage(PlayPadHandlers.VoidMessage, json);
