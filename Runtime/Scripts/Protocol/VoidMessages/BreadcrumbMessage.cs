@@ -38,7 +38,7 @@ namespace ElympicsPlayPad
         public string context;
         public string methodName;
 
-        internal static MetaData FromElympicsLoggerContext(ElympicsLoggerContext loggerContext) => new()
+        internal static MetaData FromElympicsLoggerContext(string time, ElympicsLoggerContext loggerContext) => new()
         {
             sessionId = loggerContext.SessionId.ToString(),
             app = loggerContext.App,
@@ -60,7 +60,7 @@ namespace ElympicsPlayPad
             featureAccess = loggerContext.PlayPadContext.FeatureAccess,
             context = loggerContext.Context,
             methodName = loggerContext.MethodName,
-            time = loggerContext.Time,
+            time = time,
         };
     }
 }

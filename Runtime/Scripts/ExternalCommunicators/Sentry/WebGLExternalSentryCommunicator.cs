@@ -16,7 +16,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             ElympicsLogger.RegisterLoggerClient(this);
         }
 
-        public void LogCaptured(ElympicsLoggerContext log, LogLevel level)
+        public void LogCaptured(string message, string time, ElympicsLoggerContext log, LogLevel level)
         {
             if (BlockLog(log, level))
                 return;
@@ -24,8 +24,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             var data = new BreadcrumbMessage
             {
                 level = (int)level,
-                message = log.LogMessage,
-                data = MetaData.FromElympicsLoggerContext(log),
+                message = message,
+                data = MetaData.FromElympicsLoggerContext(time, log),
             };
 
             _jsCommunicator.SendVoidMessage<BreadcrumbMessage>(VoidEventTypes.BreadcrumbMessage, data);
