@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
-    public class SampleGameplayManager : SoloScoreProviderBase, IInitializable, IUpdatable, IClientHandlerGuid
+    public class SampleGameplayManager : ScoreProviderBase, IInitializable, IUpdatable, IClientHandlerGuid
     {
         [SerializeField] private int secondsToEndGameAutomatically = 30;
         [SerializeField] private ViewManager viewManager;
@@ -16,12 +16,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private bool gameStarted = false;
 
-        private bool pointsBumpRequested = false;
-        private bool endGameRequested = false;
-
         private int CurrentGameTimeInSeconds => Mathf.FloorToInt((Elympics.Tick - _tickOfGameStarted.Value) * Elympics.TickDuration);
 
-        public override float Score => _points.Value;
+        public override float[] Scores => new float[] { _points.Value };
 
         public void Initialize()
         {
@@ -37,9 +34,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             _remainingSecondsToEndGame.Value = secondsToEndGameAutomatically;
             _points.Value = 0;
 
-            var serverHandler = FindObjectOfType<GenericSoloServerHandler>();
+            var serverHandler = FindObjectOfType<GenericServerHandler>();
             Assert.IsNotNull(serverHandler);
-            serverHandler.GameStarted += StartGame;
+            serverHandler.GameJustStarted += StartGame;
         }
 
         private void StartGame()
@@ -62,51 +59,35 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 EndGameServer();
                 return;
             }
-
-            if (!Elympics.IsClient)
-                return;
-
-            if (pointsBumpRequested)
-            {
-                Debug.Log("BumpPoints at client");
-                pointsBumpRequested = false;
-                _points.Value++; // needed to predict the outcome at the client and avoid reconciliations
-                viewManager.RandomizeBackgroundColor();
-
-                RpcBumpPoints();
-            }
-
-            if (endGameRequested)
-            {
-                endGameRequested = false;
-                RpcEndGame();
-            }
         }
 
         // Runs only at the Client
         public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView(_points.Value);
 
-        [UsedImplicitly] // by EndGameButton
-        public void RequestGameEnd() => endGameRequested = true;
+        [UsedImplicitly] // by EndGameButton - possible to call directly because Predicion in the GameCondig is set to false
+        public void RequestGameEnd() => RpcEndGame();
 
         [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
         private void RpcEndGame() => EndGameServer();
 
         private void EndGameServer()
         {
-            var soloMatchEnder = FindObjectOfType<SoloMatchEnder>();
-            Assert.IsNotNull(soloMatchEnder);
+            var matchEnder = FindObjectOfType<MatchEnder>();
+            Assert.IsNotNull(matchEnder);
 
-            soloMatchEnder.EndGame();
+            matchEnder.EndMatch();
         }
 
 
         // Please note it is only possible outside of ElympicsUpdate because Prediction in the ElympicsGameConfig was set to False
-        [UsedImplicitly] // by BumpPointsButton
+        [UsedImplicitly] // by BumpPointsButton - possible to call directly because Predicion in the GameCondig is set to false
         public void RequestBumpPoints()
         {
-            Debug.Log("RequestBumpPoints at client");
-            pointsBumpRequested = true;
+            Debug.Log("BumpPoints at client");
+
+            viewManager.RandomizeBackgroundColor();
+
+            RpcBumpPoints();
         }
 
         // Do not let players influencne their points directly like this in your game!
