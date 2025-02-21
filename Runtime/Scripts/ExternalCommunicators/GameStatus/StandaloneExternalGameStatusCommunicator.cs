@@ -51,8 +51,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct);
         }
-        public void RttUpdated(TimeSpan rtt)
-        { }
+
         public void HideSplashScreen() => Debug.Log($"Hide splash screen.");
         public void Dispose()
         { }

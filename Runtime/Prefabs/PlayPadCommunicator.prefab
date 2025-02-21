@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 773821390082990742}
   - component: {fileID: 2308011412948500162}
   - component: {fileID: 2963147157415642878}
-  - component: {fileID: 5884929917180315980}
   m_Layer: 0
   m_Name: PlayPadCommunicator
   m_TagString: Untagged
@@ -92,17 +91,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c93a25caa2615343bb3cb72341f93eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5884929917180315980
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 773821390082990743}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6a07a0d5a67fdc4cbc3506a57dbf493, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

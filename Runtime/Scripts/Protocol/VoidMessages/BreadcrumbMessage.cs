@@ -1,10 +1,10 @@
 using System;
 using Elympics.ElympicsSystems.Internal;
 
-namespace ElympicsPlayPad
+namespace ElympicsPlayPad.Protocol.WebMessages
 {
     [Serializable]
-    public struct BreadcrumbMessage
+    internal struct BreadcrumbMessage
     {
         public int level;
         public string message;
@@ -12,7 +12,7 @@ namespace ElympicsPlayPad
     }
 
     [Serializable]
-    public struct MetaData
+    internal struct MetaData
     {
         public string sessionId;
         public string app;

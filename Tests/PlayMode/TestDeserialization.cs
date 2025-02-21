@@ -62,5 +62,21 @@ namespace ElympicsPlayPad.Tests.PlayMode
             };
             var message = _factory.GetVoidMessageJson<SystemInfoDataMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
         }
+
+        [Test]
+        public void NetworkStatusMessage()
+        {
+            const string matchId = "testMatchId";
+            var systemInfoDataMessage = new NetworkStatusMessage
+            {
+                matchId = matchId,
+                serializedData = new byte[]
+                    { }
+            };
+            var message = _factory.GetVoidMessageJson<NetworkStatusMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
+
+            var deserialized = JsonUtility.FromJson<VoidMessage<NetworkStatusMessage>>(message);
+            Assert.AreSame(matchId,deserialized.payload.matchId);
+        }
     }
 }
