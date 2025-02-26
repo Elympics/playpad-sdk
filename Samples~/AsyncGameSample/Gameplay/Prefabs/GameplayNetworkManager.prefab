@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 6505273636500013732}
   - component: {fileID: 3243345787180007073}
   - component: {fileID: 6432352403823856203}
+  - component: {fileID: 9214336655454983649}
   - component: {fileID: 6654560827073783884}
   - component: {fileID: 7114124055747847020}
-  - component: {fileID: 9214336655454983649}
   m_Layer: 0
   m_Name: GameplayNetworkManager
   m_TagString: Untagged
@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forceNetworkId: 0
-  networkId: 5
+  networkId: 9
   predictableFor:
     playerIndex: -2
   isUpdatableForNonOwners: 0
@@ -78,6 +78,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfd7f1ad7c0a686448f49de22f1e1380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoTerminateServer: 1
+  autoTerminationOnLeft: 1
+  startGameTimeoutSeconds: 180
+  rejoiningTimeoutInSeconds: 120
+  synchronizedRandomizer: {fileID: 7114124055747847020}
+--- !u!114 &9214336655454983649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6505273636500013733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf9700b05bcc32343b2eda34c18a8a00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shouldZeroScoreBeInterpretedAsNotPlayedMatch: 1
+  scoreProvider: {fileID: 0}
 --- !u!114 &6654560827073783884
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,6 +109,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ba363d58b38d214c9911f51f179f5a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ReconnectingPopupTimeout: 2
+  DefiniteDisconnectionTimeout: 8
 --- !u!114 &7114124055747847020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,18 +121,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19c8030a2259edc42a95dddecddc3e04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &9214336655454983649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6505273636500013733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf9700b05bcc32343b2eda34c18a8a00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &8161200084046615299
