@@ -16,14 +16,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         [SerializeField] private GameObject authenticationInProgressScreen;
 
-        private MatchesConfig matchesConfig;
         private SessionManager sessionManager;
 
         private void Start()
         {
-            matchesConfig = MatchesConfig.LoadFromResources();
-            Assert.IsNotNull(matchesConfig);
-
             sessionManager = FindObjectOfType<SessionManager>();
             Assert.IsNotNull(sessionManager);
 
@@ -34,8 +30,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             sessionManager.StartSessionInfoUpdate += SetAuthenticationScreenActive;
             sessionManager.FinishSessionInfoUpdate += SetAuthenticationScreenInactive;
-            if (matchesConfig.RejoiningEnabled)
-                sessionManager.FinishSessionInfoUpdate += RejoinIfHasOngoingMatch;
+            sessionManager.FinishSessionInfoUpdate += RejoinIfHasOngoingMatch;
 
             bool shouldHideSplashScreen = false;
 
@@ -60,6 +55,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void SetAuthenticationScreenInactive() => authenticationInProgressScreen.SetActive(false);
 
         // If the game dependens on local state too much, making the game rejoinable won't be possible
+        // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not 
         private void RejoinIfHasOngoingMatch()
         {
             var joinedRooms = ElympicsLobbyClient.Instance.RoomsManager.ListJoinedRooms();
@@ -75,8 +71,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             sessionManager.StartSessionInfoUpdate -= SetAuthenticationScreenActive;
             sessionManager.FinishSessionInfoUpdate -= SetAuthenticationScreenInactive;
-            if (matchesConfig.RejoiningEnabled)
-                sessionManager.FinishSessionInfoUpdate -= RejoinIfHasOngoingMatch;
+            sessionManager.FinishSessionInfoUpdate -= RejoinIfHasOngoingMatch;
         }
     }
 }

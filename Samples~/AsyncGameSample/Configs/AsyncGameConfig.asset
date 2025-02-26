@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameName: AsynchronousGameSample
   gameId: 36b35382-23fe-42d2-b559-6e655be5f700
-  gameVersion: 24
+  gameVersion: 26
   players: 1
   gameplayScene: Assets/PlayPadSamples/AsyncGameSample/Gameplay/Scenes/AsyncGameSampleGameplay.unity
   gameplaySceneAsset: {fileID: 102900000, guid: fdb2caf0af7f9ad4ca444f6739859556,
@@ -24,6 +24,7 @@ MonoBehaviour:
   enableReconnect: 0
   connectionConfig:
     sessionConnectTimeout: 15
+    sessionConnectRetries: 5
     synchronizerTimeout: 20
     minContinuousSynchronizationInterval: 0.02
     unreliablePingTimeout: 5
@@ -38,7 +39,8 @@ MonoBehaviour:
   inputLagTicks: 2
   inputToSendBufferSize: 3
   maxAllowedLagInTicks: 15
-  prediction: 1
+  forceJumpThresholdInTicks: 6
+  prediction: 0
   predictionLimitInTicks: 8
   detailedNetworkLog: 0
   mode: 1

@@ -3,7 +3,6 @@ using System.Collections;
 using Elympics;
 using MatchTcpClients.Synchronizer;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -13,20 +12,25 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         [SerializeField] private int ReconnectingPopupTimeout = 2;
         [SerializeField] private int DefiniteDisconnectionTimeout = 8;
-
-        private MatchDisconnectionMask disconnectionMask;
+        [SerializeField] private MatchDisconnectionMask disconnectionMask;
 
         private float secondsWithoutConnection = -1;
         private Coroutine waitingForDefiniteDisconnection = null;
         private bool matchEnded = false;
 
+        private bool IsMatchConnectingMaskAvailable()
+        {
+            if (MatchConnectingMask.Instance != null)
+                return true;
+
+            Debug.LogWarning($"[{nameof(MatchConnectionHandler)}] - {nameof(MatchConnectingMask)} instance is not assigned");
+            return false;
+        }
 
         private void Awake()
         {
-            Assert.IsNotNull(MatchConnectingMask.Instance);
-
-            disconnectionMask = FindObjectOfType<MatchDisconnectionMask>(true);
-            Assert.IsNotNull(disconnectionMask);
+            if (disconnectionMask == null)
+                throw new NullReferenceException($"You need to provide {nameof(MatchDisconnectionMask)} for connection issues handling - ensure that it is assigned to the {nameof(MatchConnectionHandler)} component");
 
             if (ElympicsLobbyClient.Instance != null)
                 ElympicsLobbyClient.Instance.WebSocketSession.Disconnected += WebSocketSession_Disconnected;
@@ -43,7 +47,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             Debug.Log($"[{nameof(MatchConnectionHandler)}.{nameof(OnStandaloneClientInit)}]");
 
-            MatchConnectingMask.Instance.ShowOrUpdate(MatchConnectionSubText);
+            if (IsMatchConnectingMaskAvailable())
+                MatchConnectingMask.Instance.ShowOrUpdate(MatchConnectionSubText);
         }
 
         public void OnConnected(TimeSynchronizationData data)
@@ -52,7 +57,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             secondsWithoutConnection = 0;
 
-            MatchConnectingMask.Instance.Hide();
+            if (IsMatchConnectingMaskAvailable())
+                MatchConnectingMask.Instance.Hide();
         }
 
         public void OnMatchEnded(Guid matchId)
@@ -73,7 +79,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 StopCoroutine(waitingForDefiniteDisconnection);
                 waitingForDefiniteDisconnection = null;
 
-                disconnectionMask.Hide();
+                if (IsMatchConnectingMaskAvailable())
+                    disconnectionMask.Hide();
             }
         }
 
@@ -98,6 +105,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             // there is still a chance for reconnection
             yield return new WaitForSeconds(DefiniteDisconnectionTimeout);
 
+            Debug.LogError($"[{nameof(MatchConnectionHandler)}] - Definite Disconnection");
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection();
         }
@@ -107,7 +115,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void WebSocketSession_Disconnected(DisconnectionData data)
         {
             // Necesary check so that the popup doesn't show up when the user is connecting wallet via external applications or other intended web socket disconnects
-            if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown or DisconnectionReason.Reconnection)
+            if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown)
             {
                 Debug.Log($"Web socket disconnected: {data.Reason}");
                 return;
@@ -126,7 +134,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection("Couldn't connect to the server. Check your Internet connection and reload the game.");
 
-            MatchConnectingMask.Instance.Hide();
+            if (IsMatchConnectingMaskAvailable())
+                MatchConnectingMask.Instance.Hide();
         }
 
         public void OnAuthenticatedFailed(string errorMessage)
@@ -136,7 +145,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection("Couldn't authenticate. Check your Internet connection and reload the game.");
 
-            MatchConnectingMask.Instance.Hide();
+            if (IsMatchConnectingMaskAvailable())
+                MatchConnectingMask.Instance.Hide();
         }
 
         public void OnMatchJoinedFailed(string errorMessage)
@@ -146,19 +156,32 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection("Couldn't connect to the match. Check your Internet connection and reload the game.");
 
-            MatchConnectingMask.Instance.Hide();
+            if (IsMatchConnectingMaskAvailable())
+                MatchConnectingMask.Instance.Hide();
         }
-        #endregion
 
-        #region diagnosis
         public void OnDisconnectedByServer()
         {
-            Debug.Log($"[{nameof(MatchConnectionHandler)}.{nameof(OnDisconnectedByServer)}]");
+            if (matchEnded)
+                return;
+
+            Debug.LogError($"[{nameof(MatchConnectionHandler)}.{nameof(OnDisconnectedByServer)}]");
+
+
+            secondsWithoutConnection = -1;
+            disconnectionMask.ShowDefiniteDisconnection("Lost connection to the server (disconnected by server).");
         }
 
         public void OnDisconnectedByClient()
         {
-            Debug.Log($"[{nameof(MatchConnectionHandler)}.{nameof(OnDisconnectedByClient)}]");
+            if (matchEnded)
+                return;
+
+            Debug.LogError($"[{nameof(MatchConnectionHandler)}.{nameof(OnDisconnectedByClient)}]");
+
+
+            secondsWithoutConnection = -1;
+            disconnectionMask.ShowDefiniteDisconnection("Lost connection to the server (disconnected by client).");
         }
         #endregion
     }
