@@ -11,7 +11,7 @@ using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
-    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsLoggerClient, IElympicsObserver<RttReceived>
+    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsLoggerClient, IElympicsObserver<RttReceived>, IElympicsObserver<GameplayFinished>
     {
         private readonly JsCommunicator _jsCommunicator;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
@@ -21,8 +21,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             _jsCommunicator = jsCommunicator;
             _rttReporter = new(32, _jsCommunicator);
             ElympicsLogger.RegisterLoggerClient(this);
-            ElympicsLobbyClient.Instance!.GameplaySceneMonitor.GameplayFinished += _rttReporter.FlushRttBuffer;
-            CrossAssemblyEventBroadcaster.AddObserver(this);
+            CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
+            CrossAssemblyEventBroadcaster.AddObserver<GameplayFinished>(this);
         }
 
         public void LogCaptured(string message, string time, ElympicsLoggerContext log, LogLevel level)
@@ -65,10 +65,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         public void Dispose()
         {
             ElympicsLogger.UnregisterLoggerClient(this);
-            ElympicsLobbyClient.Instance!.GameplaySceneMonitor.GameplayFinished -= _rttReporter.FlushRttBuffer;
             _rttReporter.Dispose();
         }
 
         public void OnEvent(RttReceived argument) => _rttReporter.OnRttReceived(argument);
+        public void OnEvent(GameplayFinished argument) => _rttReporter.FlushRttBuffer();
     }
 }
