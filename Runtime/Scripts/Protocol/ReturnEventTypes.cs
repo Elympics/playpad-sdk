@@ -33,6 +33,7 @@ namespace ElympicsPlayPad.Protocol
         public const string ElympicsStateUpdated = "ElympicsStateUpdated";
         public const string BreadcrumbMessage = "BreadcrumbMessage";
         public const string Debug = "Debug";
+        public const string NetworkStatusMessage = "NetworkStatusMessage";
     }
 
     public static class DebugMessageTypes

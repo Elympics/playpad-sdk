@@ -18,6 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public abstract void HideSplashScreen();
         public abstract UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
         public abstract UniTask<IRoom> PlayGame(PlayGameConfig queueName, CancellationToken ct = default);
-        public abstract void RttUpdated(TimeSpan rtt);
+        [Obsolete("Replaced by new automatic RTT reporting system.", false)]
+        public virtual void RttUpdated(TimeSpan rtt) { }
     }
 }
