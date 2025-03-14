@@ -38,6 +38,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
             AuthData = null;
             _mockWebSocket?.ToggleConnection(false);
         }
+        public void WatchReplay() => throw new NotImplementedException();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
             AuthData = data;
