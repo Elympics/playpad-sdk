@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:Speculos/Assets/Feel/NiceVibrations/OlderVersions/v3.9/NiceVibrations-v-3-9-0.unitypackage.meta
 fileFormatVersion: 2
 guid: e112cc245ccdb3e4f98031e3d9d2b42f
 TextScriptImporter:
@@ -6,12 +5,3 @@ TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-========
-fileFormatVersion: 2
-guid: 78fbad76b0116d442a58c1552d9de372
-DefaultImporter:
-  externalObjects: {}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
->>>>>>>> 1b46b0f3 (feat: Implement chat functionality.):Speculos/Assets/Plugins/StreamChat/SampleProject/Scenes/ChatDemo.unity.meta
