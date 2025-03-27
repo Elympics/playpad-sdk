@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using Elympics.AssemblyCommunicator.Events;
 
 namespace ElympicsPlayPad.Protocol.WebMessages
 {
@@ -8,6 +9,6 @@ namespace ElympicsPlayPad.Protocol.WebMessages
     internal struct NetworkStatusMessage
     {
         public string matchId;
-        public byte[] serializedData;
+        public RttReceived[] data;
     }
 }

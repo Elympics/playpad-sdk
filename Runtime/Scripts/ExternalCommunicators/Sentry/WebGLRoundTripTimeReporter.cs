@@ -1,9 +1,7 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using Elympics;
-using Elympics.Core.Utils;
 using Elympics.AssemblyCommunicator.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -12,7 +10,7 @@ using ElympicsPlayPad.Protocol.WebMessages;
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
     /// <summary>Collects data about RTT and sends it to PlayPad once enough data was collected.</summary>
-    internal class WebGLRoundTripTimeReporter : IDisposable
+    internal class WebGLRoundTripTimeReporter
     {
         private readonly int _rttBufferSize;
         private readonly List<RttReceived> _rttBuffer;
@@ -44,7 +42,5 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             _jsCommunicator.SendVoidMessage<NetworkStatusMessage>(VoidEventTypes.NetworkStatusMessage, message);
             _rttBuffer.Clear();
         }
-
-        public void Dispose() => ((IDisposable)_networkStatusMessageFactory).Dispose();
     }
 }
