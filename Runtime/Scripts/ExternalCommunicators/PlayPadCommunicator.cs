@@ -137,7 +137,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
-            _sentry?.Dispose();
         }
 
         #region internal

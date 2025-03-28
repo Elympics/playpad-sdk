@@ -63,8 +63,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             return false;
         }
 
-        public void Dispose() => _rttReporter.Dispose();
-
         public void OnEvent(RttReceived argument) => _rttReporter.OnRttReceived(argument);
         public void OnEvent(GameplayFinished argument) => _rttReporter.FlushRttBuffer();
         public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Message, argument.Time, argument.Context, argument.LogLevel);

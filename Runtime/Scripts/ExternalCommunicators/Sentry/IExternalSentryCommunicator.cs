@@ -1,6 +1,7 @@
-using System;
+#nullable enable
+
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
-    public interface IExternalSentryCommunicator : IDisposable
+    public interface IExternalSentryCommunicator
     { }
 }
