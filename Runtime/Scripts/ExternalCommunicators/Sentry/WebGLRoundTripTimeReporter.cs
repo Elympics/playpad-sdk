@@ -15,16 +15,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         private readonly int _rttBufferSize;
         private readonly List<RttReceived> _rttBuffer;
         private readonly JsCommunicator _jsCommunicator;
-        private readonly NetworkStatusMessageFactory _networkStatusMessageFactory;
 
         /// <param name="rttBufferSize">Number of calls to <see cref="OnRttReceived(RttReceived)"/> after which <see cref="FlushRttBuffer"/> will be called automatically.</param>
         /// <param name="jsCommunicator">Used to send collected data to PlayPad.</param>
         public WebGLRoundTripTimeReporter(int rttBufferSize, JsCommunicator jsCommunicator)
         {
             _rttBufferSize = rttBufferSize;
-            _rttBuffer = new(rttBufferSize);
+            _rttBuffer = new List<RttReceived>(rttBufferSize);
             _jsCommunicator = jsCommunicator;
-            _networkStatusMessageFactory = new NetworkStatusMessageFactory(rttBufferSize);
         }
 
         public void OnRttReceived(RttReceived value)
@@ -35,10 +33,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                 FlushRttBuffer();
         }
 
-        /// <summary>Notify all <see cref="_reportReceivers"/> and clear collected data.</summary>
         public void FlushRttBuffer()
         {
-            var message = _networkStatusMessageFactory.CreateMessage(ElympicsLobbyClient.Instance!.MatchDataGuid!.MatchId, _rttBuffer);
+            var message = new NetworkStatusMessage { matchId = ElympicsLobbyClient.Instance!.MatchDataGuid!.MatchId.ToString(), data = _rttBuffer };
             _jsCommunicator.SendVoidMessage<NetworkStatusMessage>(VoidEventTypes.NetworkStatusMessage, message);
             _rttBuffer.Clear();
         }

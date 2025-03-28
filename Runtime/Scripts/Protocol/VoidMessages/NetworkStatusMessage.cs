@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using Elympics.AssemblyCommunicator.Events;
 
 namespace ElympicsPlayPad.Protocol.WebMessages
@@ -9,6 +10,6 @@ namespace ElympicsPlayPad.Protocol.WebMessages
     internal struct NetworkStatusMessage
     {
         public string matchId;
-        public RttReceived[] data;
+        public List<RttReceived> data;
     }
 }
