@@ -70,11 +70,12 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (Instance == null)
             {
-                LoggerContext = ElympicsLogger.CurrentContext!.Value.WithContext(nameof(PlayPadCommunicator)).WithApp(ElympicsLoggerContext.PlayPadContextApp);
+                var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
+                LoggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
+                LoggerContext = LoggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(JsCommunicator.ProtocolVersion, version).WithContext(nameof(PlayPadCommunicator));
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
-                var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
                 var gameId = ElympicsConfig.LoadCurrentElympicsGameConfig().GameId;
                 _jsCommunicator.Init(LoggerContext);
 
