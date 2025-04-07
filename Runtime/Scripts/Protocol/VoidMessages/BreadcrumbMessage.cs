@@ -16,8 +16,7 @@ namespace ElympicsPlayPad.Protocol.WebMessages
     {
         public string sessionId;
         public string app;
-        //public string elympicsSdkVersion;
-        public string version;
+        public string elympicsSdkVersion;
         public string gameId;
         public string userId;
         public string authType;
@@ -38,16 +37,15 @@ namespace ElympicsPlayPad.Protocol.WebMessages
         public string featureAccess;
         public string context;
         public string methodName;
-        //public string playPadSdkVersion;
-        //public string protocolVersion;
+        public string playPadSdkVersion;
+        public string protocolVersion;
 
         internal static MetaData FromElympicsLoggerContext(string time, ElympicsLoggerContext loggerContext) => new()
         {
             sessionId = loggerContext.SessionId.ToString(),
             app = loggerContext.App,
             gameId = loggerContext.ElympicsContext.GameId,
-            //elympicsSdkVersion = loggerContext.ElympicsContext.Version, use elympicsSdk field instead of "version" after schema update. k.pieta 07.04.2025
-            version = loggerContext.ElympicsContext.SdkVersion,
+            elympicsSdkVersion = loggerContext.ElympicsContext.SdkVersion,
             userId = loggerContext.UserContext.UserId,
             nickName = loggerContext.UserContext.Nickname,
             authType = loggerContext.UserContext.AuthType,
@@ -64,8 +62,8 @@ namespace ElympicsPlayPad.Protocol.WebMessages
             featureAccess = loggerContext.PlayPadContext.FeatureAccess,
             context = loggerContext.Context,
             methodName = loggerContext.MethodName,
-            //playPadSdkVersion = loggerContext.PlayPadContext.SdkVersion,
-            //protocolVersion = loggerContext.PlayPadContext.ProtocolVersion,
+            playPadSdkVersion = loggerContext.PlayPadContext.SdkVersion,
+            protocolVersion = loggerContext.PlayPadContext.ProtocolVersion,
             time = time,
         };
     }
