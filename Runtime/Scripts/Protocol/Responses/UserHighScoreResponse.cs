@@ -7,6 +7,5 @@ namespace ElympicsPlayPad.Protocol.Responses
     {
         public string points;
         public string endedAt;
-
     }
 }

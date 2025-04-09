@@ -47,7 +47,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 switch (message.type)
                 {
                     case WebMessageTypes.TournamentUpdated:
-                        var newTournamentData = JsonUtility.FromJson<TournamentResponse>(message.message);
+                        var newTournamentData = JsonUtility.FromJson<TournamentUpdatedMessage>(message.message);
                         _currentTournament = newTournamentData.ToTournamentInfo();
                         TournamentUpdated?.Invoke(_currentTournament.Value);
                         break;
