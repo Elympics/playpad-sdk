@@ -56,18 +56,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
         }
 
-        public void SendDebugMessage<TInput>(string debugType, TInput? payload = null)
-            where TInput : struct
-        {
-            var debug = _messageFactory.GetDebugMessageJson(debugType, payload);
-            var voidMessage = new StringPayloadResponse()
-            {
-                message = debug
-            };
-            var messageToDispatch = _messageFactory.GetVoidMessageJson<StringPayloadResponse>(VoidEventTypes.Debug, voidMessage);
-            DispatchVoidMessage(messageToDispatch);
-        }
-
         public void SendVoidMessage<TInput>(string messageType, TInput? payload = null)
             where TInput : struct
         {
@@ -80,7 +68,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
             return;
 
-            bool BlockEventLog(string type) => type.Equals(VoidEventTypes.BreadcrumbMessage);
+            bool BlockEventLog(string type) => type.Equals(VoidEventTypes.BreadcrumbMessage) || type.Equals(VoidEventTypes.NetworkStatusMessage);
         }
 
 

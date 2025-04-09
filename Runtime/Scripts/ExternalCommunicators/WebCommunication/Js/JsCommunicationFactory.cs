@@ -1,7 +1,6 @@
 #nullable enable
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.VoidMessages;
-using ElympicsPlayPad.Protocol.VoidMessages.DebugMessages;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
@@ -18,17 +17,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 payload = payload ?? default,
             };
             return JsonUtility.ToJson(voidMessage);
-        }
-
-        public string GetDebugMessageJson<T>(string debugType, T? message)
-            where T : struct
-        {
-            var debugMessage = new DebugMessage<T>()
-            {
-                debugType = debugType,
-                message = message ?? default,
-            };
-            return JsonUtility.ToJson(debugMessage);
         }
 
         public string GenerateRequestMessageJson<TInput>(int requestNumber, string type, TInput? payload)

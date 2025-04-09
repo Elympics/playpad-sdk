@@ -17,9 +17,7 @@ using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
 using UnityEngine;
-#if UNITY_WEBGL && !UNITY_EDITOR
 using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
-#endif
 
 namespace ElympicsPlayPad.ExternalCommunicators
 {
@@ -60,15 +58,24 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private IExternalSentryCommunicator? _sentry;
         internal static ElympicsLoggerContext LoggerContext;
 
+        /// <summary>False in editor and local builds that are not run through PlayPad website.</summary>
+        private static bool UseRealPlayPad =>
+#if UNITY_WEBGL && !UNITY_EDITOR && !ELYMPICS_DISABLE_PLAYPAD
+            true;
+#else
+            false;
+#endif
+
         private void Awake()
         {
             if (Instance == null)
             {
-                LoggerContext = ElympicsLogger.CurrentContext!.Value.WithContext(nameof(PlayPadCommunicator)).WithApp(ElympicsLoggerContext.PlayPadContextApp);
+                var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
+                LoggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
+                LoggerContext = LoggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(JsCommunicator.ProtocolVersion, version).WithContext(nameof(PlayPadCommunicator));
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
-                var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
                 var gameId = ElympicsConfig.LoadCurrentElympicsGameConfig().GameId;
                 _jsCommunicator.Init(LoggerContext);
 
@@ -79,39 +86,42 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 var sessionmanager = GetComponent<SessionManager>();
                 sessionmanager.Init(LoggerContext);
 
-#if UNITY_WEBGL && !UNITY_EDITOR && !ELYMPICS_DISABLE_PLAYPAD
-                _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
-                ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, LoggerContext);
-                var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
-                TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
-                GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!, LoggerContext);
-                ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
-                var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
-                TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
-                LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
-                _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
-#else
-                if (customErc20SmartContractCommunicator != null)
-                    TokenCommunicator = customErc20SmartContractCommunicator;
+                if (UseRealPlayPad)
+                {
+                    _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
+                    ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, LoggerContext);
+                    var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
+                    TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
+                    GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!, LoggerContext);
+                    ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
+                    var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
+                    TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
+                    LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
+                    _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
+                }
                 else
                 {
-                    var standaloneCommunicator = new StandaloneWalletCommunicator();
-                    ExternalAuthenticator = customAuthenticatorCommunicator != null ? customAuthenticatorCommunicator : new StandaloneExternalAuthenticator(standaloneAuthConfig);
-                    TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
+                    if (customErc20SmartContractCommunicator != null)
+                        TokenCommunicator = customErc20SmartContractCommunicator;
+                    else
+                    {
+                        var standaloneCommunicator = new StandaloneWalletCommunicator();
+                        ExternalAuthenticator = customAuthenticatorCommunicator != null ? customAuthenticatorCommunicator : new StandaloneExternalAuthenticator(standaloneAuthConfig);
+                        TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
+                    }
+                    GameStatusCommunicator = customGameStatusCommunicator != null ? customGameStatusCommunicator : new StandaloneExternalGameStatusCommunicator(standaloneGameStatusConfig, _lobby.RoomsManager);
+                    ExternalUiCommunicator = customExternalUiCommunicator != null ? customExternalUiCommunicator : new StandaloneExternalUiCommunicator();
+                    TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
+                    LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
                 }
-                GameStatusCommunicator = customGameStatusCommunicator != null ? customGameStatusCommunicator : new StandaloneExternalGameStatusCommunicator(standaloneGameStatusConfig, _lobby.RoomsManager);
-                ExternalUiCommunicator = customExternalUiCommunicator != null ? customExternalUiCommunicator : new StandaloneExternalUiCommunicator();
-                TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
-                LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
-#endif
+
                 Instance = this;
             }
             else
                 Destroy(gameObject);
         }
 
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_DISABLE_PLAYPAD
-        [Header("Optional. Work only on UnityEditor")]
+        [Header("Optional. Works only in Unity Editor.")]
         [SerializeField] private CustomStandaloneAuthenticationCommunicatorBase? customAuthenticatorCommunicator;
 
         [SerializeField] private CustomStandaloneLeaderboardCommunicatorBase? customLeaderboardCommunicator;
@@ -123,13 +133,11 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private CustomStandaloneExternalUiCommunicatorBase? customExternalUiCommunicator;
 
         [SerializeField] private CustomStandaloneErc20SmartContractCommunicatorBase? customErc20SmartContractCommunicator;
-#endif
 
         private void OnDestroy()
         {
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
-            _sentry?.Dispose();
         }
 
         #region internal

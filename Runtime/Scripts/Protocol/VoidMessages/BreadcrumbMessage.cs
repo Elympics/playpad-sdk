@@ -1,10 +1,10 @@
 using System;
 using Elympics.ElympicsSystems.Internal;
 
-namespace ElympicsPlayPad
+namespace ElympicsPlayPad.Protocol.WebMessages
 {
     [Serializable]
-    public struct BreadcrumbMessage
+    internal struct BreadcrumbMessage
     {
         public int level;
         public string message;
@@ -12,11 +12,11 @@ namespace ElympicsPlayPad
     }
 
     [Serializable]
-    public struct MetaData
+    internal struct MetaData
     {
         public string sessionId;
         public string app;
-        public string version;
+        public string elympicsSdkVersion;
         public string gameId;
         public string userId;
         public string authType;
@@ -37,13 +37,15 @@ namespace ElympicsPlayPad
         public string featureAccess;
         public string context;
         public string methodName;
+        public string playPadSdkVersion;
+        public string protocolVersion;
 
         internal static MetaData FromElympicsLoggerContext(string time, ElympicsLoggerContext loggerContext) => new()
         {
             sessionId = loggerContext.SessionId.ToString(),
             app = loggerContext.App,
-            gameId = loggerContext.AppContext.GameId,
-            version = loggerContext.AppContext.Version,
+            gameId = loggerContext.ElympicsContext.GameId,
+            elympicsSdkVersion = loggerContext.ElympicsContext.SdkVersion,
             userId = loggerContext.UserContext.UserId,
             nickName = loggerContext.UserContext.Nickname,
             authType = loggerContext.UserContext.AuthType,
@@ -60,6 +62,8 @@ namespace ElympicsPlayPad
             featureAccess = loggerContext.PlayPadContext.FeatureAccess,
             context = loggerContext.Context,
             methodName = loggerContext.MethodName,
+            playPadSdkVersion = loggerContext.PlayPadContext.SdkVersion,
+            protocolVersion = loggerContext.PlayPadContext.ProtocolVersion,
             time = time,
         };
     }

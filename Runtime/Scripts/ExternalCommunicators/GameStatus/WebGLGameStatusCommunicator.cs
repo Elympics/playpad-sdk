@@ -16,7 +16,6 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
-using ElympicsPlayPad.Protocol.VoidMessages.DebugMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
@@ -89,12 +88,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct);
         }
-
-        public void RttUpdated(TimeSpan rtt) => _communicator.SendDebugMessage<RttDebugMessage>(DebugMessageTypes.RTT,
-            new RttDebugMessage()
-            {
-                rtt = rtt.TotalMilliseconds
-            });
 
         public void OnWebMessage(WebMessage message)
         {
