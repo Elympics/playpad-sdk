@@ -8,6 +8,7 @@ namespace ElympicsPlayPad.Protocol
         public const int AddressNotFound = 404;
         public const int NotImplementedOnWebComponent = 501;
         public const int SendTransactionFailure = 502;
+        public const int ExternalAuthFailed = 503;
         public const int FeatureUnavailable = 600;
         public const int ModalUnavailable = 700;
         public const int UserRejectedTheRequest = 4001;
@@ -21,6 +22,7 @@ namespace ElympicsPlayPad.Protocol
             NotImplementedOnWebComponent => $"{responseType} is not implemented on web game component.",
             UserRejectedTheRequest => "User rejected the request",
             SendTransactionFailure => "Error executing chain transaction.",
+            ExternalAuthFailed => "External authentication failed.",
             FeatureUnavailable => "Feature not available.",
             ModalUnavailable => "Cannot find the specified modal.",
             _ => $"Undefined error: {responseType}."
