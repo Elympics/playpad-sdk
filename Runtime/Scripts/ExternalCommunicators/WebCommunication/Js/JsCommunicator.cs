@@ -72,17 +72,24 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         }
 
 
+        public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType) => RegisterHandler(receiver, messageType);
+
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes)
         {
             foreach (var messageType in messageTypes)
-                if (_webMessageReceivers.TryGetValue(messageType, out var list))
-                    list.Add(receiver);
-                else
-                    _webMessageReceivers.Add(messageType,
-                        new List<IWebMessageReceiver>()
-                        {
-                            receiver
-                        });
+                RegisterHandler(receiver, messageType);
+        }
+
+        private void RegisterHandler(IWebMessageReceiver receiver, string messageType)
+        {
+            if (_webMessageReceivers.TryGetValue(messageType, out var list))
+                list.Add(receiver);
+            else
+                _webMessageReceivers.Add(messageType,
+                    new List<IWebMessageReceiver>()
+                    {
+                        receiver
+                    });
         }
 
         [UsedImplicitly]

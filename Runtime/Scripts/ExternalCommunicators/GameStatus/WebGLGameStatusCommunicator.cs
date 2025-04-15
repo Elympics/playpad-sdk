@@ -86,7 +86,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
 
 
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct: ct);
         }
 
         public void OnWebMessage(WebMessage message)

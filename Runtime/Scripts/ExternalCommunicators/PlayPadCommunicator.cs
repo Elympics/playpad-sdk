@@ -9,6 +9,7 @@ using ElympicsPlayPad.ExternalCommunicators.Sentry;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.Utility;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract;
 using ElympicsPlayPad.ExternalCommunicators.Web3.Wallet;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -46,6 +47,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         [PublicAPI]
         public IExternalLeaderboardCommunicator? LeaderboardCommunicator;
+
+        [PublicAPI]
+        public IExternalVirtualDepositCommunicator? VirtualDepositCommunicator;
 
         [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
@@ -97,6 +101,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
                     TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
+                    VirtualDepositCommunicator = new WebGLVirtualDepositCommunicator(_jsCommunicator, LoggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
                 }
                 else
@@ -113,6 +118,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     ExternalUiCommunicator = customExternalUiCommunicator != null ? customExternalUiCommunicator : new StandaloneExternalUiCommunicator();
                     TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
                     LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
+                    VirtualDepositCommunicator = customVirtualDepositCommunicator != null ? customVirtualDepositCommunicator : null;
                 }
 
                 Instance = this;
@@ -133,6 +139,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private CustomStandaloneExternalUiCommunicatorBase? customExternalUiCommunicator;
 
         [SerializeField] private CustomStandaloneErc20SmartContractCommunicatorBase? customErc20SmartContractCommunicator;
+
+        [SerializeField] private CustomStandaloneVirtualDepositCommunicatorBase? customVirtualDepositCommunicator;
 
         private void OnDestroy()
         {

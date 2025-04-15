@@ -11,6 +11,7 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.JWT;
 using ElympicsPlayPad.JWT.Extensions;
 using ElympicsPlayPad.Session.Exceptions;
@@ -46,6 +47,8 @@ namespace ElympicsPlayPad.Session
         private static IExternalGameStatusCommunicator GameStatusCommunicator => PlayPadCommunicator.Instance!.GameStatusCommunicator!;
         private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
         private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
+
+        private static IExternalVirtualDepositCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
 
         private ElympicsLoggerContext _logger;
 
@@ -96,6 +99,10 @@ namespace ElympicsPlayPad.Session
                 if (handshake.FeatureAccess.HasUserHighScore())
                     _ = await LeaderboardCommunicator.FetchUserHighScore();
 
+                if (handshake.FeatureAccess.HasVirtualDeposit())
+                    if (VirtualDepositCommunicator != null)
+                        _ = await VirtualDepositCommunicator.GetVirtualDeposit();
+
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
@@ -145,23 +152,23 @@ namespace ElympicsPlayPad.Session
 
         private void SetupSession(HandshakeInfo handshake, string region, AuthData authData)
         {
-            var (accountWallet, signWallet) = ExtractWalletAddresses(authData);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, handshake.Capabilities, handshake.Environment, handshake.IsMobile, region, handshake.FeatureAccess);
+            var (accountWallet, signWallet, tonWallet) = ExtractWalletAddresses(authData);
+            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, handshake.Capabilities, handshake.Environment, handshake.IsMobile, region, handshake.FeatureAccess, tonWallet);
         }
 
         private void SetupSession(AuthData authData, string region, SessionInfo currentSession)
         {
             ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
 
-            var (accountWallet, signWallet) = ExtractWalletAddresses(authData);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features);
+            var (accountWallet, signWallet, tonWallet) = ExtractWalletAddresses(authData);
+            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features, tonWallet);
         }
 
-        private static (string? accountWallet, string? signWallet) ExtractWalletAddresses(AuthData authData)
+        private static (string? accountWallet, string? signWallet, string? tonWallet) ExtractWalletAddresses(AuthData authData)
         {
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            return (accountWallet, signWallet);
+            var (accountWallet, signWallet, tonWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            return (accountWallet, signWallet, tonWallet);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -182,8 +189,7 @@ namespace ElympicsPlayPad.Session
             try
             {
                 var availableRegions = await ElympicsRegions.GetAvailableRegions();
-                if (availableRegions == null
-                    || availableRegions.Count == 0)
+                if (availableRegions == null || availableRegions.Count == 0)
                     return string.Empty;
 
                 var closestRegion = string.Empty;
@@ -225,13 +231,14 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private static Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
+        private static Tuple<string?, string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
         {
             var accountWallet = payload.ethAddress;
             string? signWallet = null;
             if (currentAuthType.IsWallet())
                 signWallet = accountWallet;
-            return new Tuple<string?, string?>(accountWallet, signWallet);
+            var tonAddress = payload.tonAddress;
+            return new Tuple<string?, string?, string?>(accountWallet, signWallet, tonAddress);
         }
 
         private void OnAuthDataChanged(AuthData data)

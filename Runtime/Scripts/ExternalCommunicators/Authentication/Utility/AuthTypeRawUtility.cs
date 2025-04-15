@@ -1,14 +1,14 @@
 using System;
 using Elympics.Models.Authentication;
+using ElympicsPlayPad.JWT;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
 {
     public static class AuthTypeRawUtility
     {
-        public const string AuthTypeClaim = "auth-type";
-        public const string AuthTypeClaimUnity = "authType";
-        public const string EthAddressJwtClaim = "eth-address";
-        public const string EthAddressJwtClaimUnity = "ethAddress";
+        private const string AuthTypeClaim = "auth-type";
+        private const string EthAddressJwtClaim = "eth-address";
+        private const string TonAddressJwtClaim = "ton-address";
         private const string ClientSecret = "client-secret";
         private const string EthAddress = "eth-address";
         private const string TelegramAuth = "telegram-auth";
@@ -21,6 +21,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
             _ => throw new ArgumentOutOfRangeException(nameof(authTypeRaw), authTypeRaw, null)
         };
 
-        public static string ToUnityNaming(string jsonObject) => jsonObject.Replace($"\"{EthAddressJwtClaim}\":", $"\"{EthAddressJwtClaimUnity}\":").Replace(AuthTypeClaim, AuthTypeClaimUnity);
+        public static string ToUnityNaming(string jsonObject) => jsonObject.Replace($"\"{EthAddressJwtClaim}\":", $"\"{JwtPayload.EthAddressKey}\":").Replace(AuthTypeClaim, JwtPayload.AuthTypeKey).Replace($"\"{TonAddressJwtClaim}\":", $"\"{JwtPayload.TonAddressKey}\":");
     }
 }
