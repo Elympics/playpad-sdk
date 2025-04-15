@@ -11,7 +11,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 {
     internal class WebGLTonNftExternalCommunicator : ITonNftExternalCommunicator
     {
-        private const string Type = "TON";
         private readonly JsCommunicator _jsCommunicator;
 
         internal WebGLTonNftExternalCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
@@ -23,7 +22,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                 new MintNftRequest<MintTonNftPayload>
                 {
                     collectionAddress = collectionAddress,
-                    type = Type,
+                    type = NftChainTypes.Ton,
                     payload = new MintTonNftPayload { payload = payload }
                 },
                 ct);
