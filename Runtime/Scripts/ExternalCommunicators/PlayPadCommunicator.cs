@@ -19,6 +19,7 @@ using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
 using UnityEngine;
 using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
+using ElympicsPlayPad.ExternalCommunicators.Web3.NFT;
 
 namespace ElympicsPlayPad.ExternalCommunicators
 {
@@ -50,6 +51,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         [PublicAPI]
         public IExternalVirtualDepositCommunicator? VirtualDepositCommunicator;
+
+        [PublicAPI]
+        public ITonNftExternalCommunicator? TonNftExternalCommunicator;
 
         [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
@@ -103,6 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
                     VirtualDepositCommunicator = new WebGLVirtualDepositCommunicator(_jsCommunicator, LoggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
+                    TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                 }
                 else
                 {
@@ -119,6 +124,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
                     LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
                     VirtualDepositCommunicator = customVirtualDepositCommunicator != null ? customVirtualDepositCommunicator : null;
+                    TonNftExternalCommunicator = customTonNftExternalCommunicator != null ? customTonNftExternalCommunicator : new StandaloneTonNftExternalCommunicator();
                 }
 
                 Instance = this;
@@ -141,6 +147,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private CustomStandaloneErc20SmartContractCommunicatorBase? customErc20SmartContractCommunicator;
 
         [SerializeField] private CustomStandaloneVirtualDepositCommunicatorBase? customVirtualDepositCommunicator;
+
+        [SerializeField] private CustomTonNftExternalCommunicator? customTonNftExternalCommunicator;
 
         private void OnDestroy()
         {
