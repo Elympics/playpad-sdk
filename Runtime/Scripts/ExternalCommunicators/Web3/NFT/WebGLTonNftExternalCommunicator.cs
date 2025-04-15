@@ -9,12 +9,12 @@ using ElympicsPlayPad.Protocol.Responses;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 {
-    internal class PlayPadTonNftExternalCommunicator : ITonNftExternalCommunicator
+    internal class WebGLTonNftExternalCommunicator : ITonNftExternalCommunicator
     {
         private const string Type = "TON";
         private readonly JsCommunicator _jsCommunicator;
 
-        internal PlayPadTonNftExternalCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
+        internal WebGLTonNftExternalCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
 
         public async UniTask<bool> MintNft(string collectionAddress, string payload, CancellationToken ct = default)
         {

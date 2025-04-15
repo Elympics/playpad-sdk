@@ -107,7 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
                     VirtualDepositCommunicator = new WebGLVirtualDepositCommunicator(_jsCommunicator, LoggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
-                    TonNftExternalCommunicator = new PlayPadTonNftExternalCommunicator(_jsCommunicator);
+                    TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                 }
                 else
                 {
