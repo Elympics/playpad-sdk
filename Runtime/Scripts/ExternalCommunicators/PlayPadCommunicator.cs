@@ -19,6 +19,7 @@ using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
 using UnityEngine;
 using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
+using ElympicsPlayPad.ExternalCommunicators.Web3.NFT;
 
 namespace ElympicsPlayPad.ExternalCommunicators
 {
@@ -50,6 +51,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         [PublicAPI]
         public IExternalVirtualDepositCommunicator? VirtualDepositCommunicator;
+
+        [PublicAPI]
+        public ITonNftExternalCommunicator? TonNftExternalCommunicator;
 
         [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
@@ -103,6 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
                     VirtualDepositCommunicator = new WebGLVirtualDepositCommunicator(_jsCommunicator, LoggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
+                    TonNftExternalCommunicator = new PlayPadTonNftExternalCommunicator(_jsCommunicator);
                 }
                 else
                 {
