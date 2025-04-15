@@ -13,6 +13,8 @@ namespace ElympicsPlayPad.Protocol
         public const string GetTournament = "GetTournament";
         public const string GetPlayStatus = "GetPlayStatus";
         public const string ShowPlayPadModal = "ShowPlayPadModal";
+        public const string GetVirtualDeposit = "GetVirtualDeposit";
+        public const string EnsureVirtualDeposit = "EnsureVirtualDeposit";
     }
 
     public static class WebMessageTypes
@@ -24,6 +26,7 @@ namespace ElympicsPlayPad.Protocol
         public const string UserHighScoreUpdated = "UserHighScoreUpdated";
         public const string PlayStatusUpdated = "PlayStatusUpdated";
         public const string RegionUpdated = "RegionUpdated";
+        public const string VirtualDepositUpdated = "VirtualDepositUpdated";
     }
 
     public static class VoidEventTypes

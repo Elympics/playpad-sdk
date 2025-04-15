@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
             }
 
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct: ct);
         }
 
         public void HideSplashScreen() => Debug.Log($"Hide splash screen.");
