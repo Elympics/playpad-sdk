@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace ElympicsPlayPad.Protocol.Responses
 {
@@ -6,5 +7,6 @@ namespace ElympicsPlayPad.Protocol.Responses
     public struct EnsureVirtualDepositResponse
     {
         public bool success;
+        [FormerlySerializedAs("reason")] public string error;
     }
 }

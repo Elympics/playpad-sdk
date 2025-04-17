@@ -54,7 +54,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return _userDepositCollection;
         }
 
-        public async UniTask<bool> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
+        public async UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount of virtual deposit has to be greater than 0", nameof(amount));
@@ -66,7 +66,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 coinId = coinInfo.Id.ToString()
             };
             var result = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
-            return result.success;
+            return new EnsureDepositInfo
+            {
+                Success = result.success,
+                Error = result.error
+            };
         }
         public void OnWebMessage(WebMessage message)
         {

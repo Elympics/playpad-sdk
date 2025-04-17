@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Numerics;
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models
