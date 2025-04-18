@@ -34,6 +34,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
         }
 
+        public async UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default)
+        {
+            //TO DO: Add a new message type instead of using ensure with 0 amount
+            var request = new EnsureVirtualDepositRequest
+            {
+                amount = "0",
+                coinId = coinId.ToString()
+            };
+            _ = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
+        }
+
         public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(ReturnEventTypes.GetVirtualDeposit, null, ct);
