@@ -15,6 +15,7 @@ namespace ElympicsPlayPad.Protocol
         public const string ShowPlayPadModal = "ShowPlayPadModal";
         public const string GetVirtualDeposit = "GetVirtualDeposit";
         public const string EnsureVirtualDeposit = "EnsureVirtualDeposit";
+        public const string ChangeRegion = "ChangeRegion";
         public const string MintNft = "MintNft";
     }
 

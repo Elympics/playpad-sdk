@@ -92,12 +92,14 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
 
                 var sessionmanager = GetComponent<SessionManager>();
+                if (sessionmanager == null)
+                    throw new ArgumentNullException(nameof(sessionmanager), $"Couldn't find {nameof(SessionManager)} component on gameObject {gameObject.name}");
                 sessionmanager.Init(LoggerContext);
 
                 if (UseRealPlayPad)
                 {
                     _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
-                    ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, LoggerContext);
+                    ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, LoggerContext, sessionmanager);
                     var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
                     TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
                     GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!, LoggerContext);
