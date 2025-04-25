@@ -42,7 +42,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 amount = "0",
                 coinId = coinId.ToString()
             };
-            _ = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
+            var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
+
+            if (!response.success)
+                throw new Exception($"Opening deposit popup failed:\n{response.error}");
         }
 
         public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default)
