@@ -16,6 +16,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         [PublicAPI]
         public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
 
+        [PublicAPI]
+        UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
+
         UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default);
         UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
     }
