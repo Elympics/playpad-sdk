@@ -12,6 +12,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<string> RegionUpdated;
         public abstract event Action<AuthData> AuthenticationUpdated;
         public abstract UniTask<AuthData> Authenticate(CancellationToken ct = default);
+        public abstract UniTask ChangeRegion(string newRegion, CancellationToken ct = default);
         public abstract UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
             string gameName,

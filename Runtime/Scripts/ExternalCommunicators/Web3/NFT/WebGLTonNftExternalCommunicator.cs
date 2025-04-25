@@ -15,13 +15,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 
         internal WebGLTonNftExternalCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
 
-        public async UniTask<bool> MintNft(string collectionAddress, string payload, CancellationToken ct = default)
+        public async UniTask<bool> MintNft(string collectionAddress, string price, string payload, CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(
-                ReturnEventTypes.MintNft,
+            var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(ReturnEventTypes.MintNft,
                 new MintNftRequest<MintTonNftPayload>
                 {
                     collectionAddress = collectionAddress,
+                    price = price,
                     type = NftChainTypes.Ton,
                     payload = new MintTonNftPayload { payload = payload }
                 },

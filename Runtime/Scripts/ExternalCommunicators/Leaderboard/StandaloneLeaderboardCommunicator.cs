@@ -15,7 +15,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         public UserHighScoreInfo? UserHighScore { get; private set; }
         public LeaderboardStatusInfo? Leaderboard { get; private set; }
 
-        UniTask<LeaderboardStatusInfo> IExternalLeaderboardCommunicator.FetchLeaderboard(CancellationToken ct = default)
+        public UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
             Leaderboard = new LeaderboardResponse()
             {
@@ -36,7 +36,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
             }.MapToLeaderboardStatus();
             return UniTask.FromResult(Leaderboard.Value);
         }
-
         public UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
             UserHighScore = new UserHighScoreInfo()

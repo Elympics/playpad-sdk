@@ -13,6 +13,7 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Session.Exceptions;
 using UnityEngine;
 
@@ -23,11 +24,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<string>? RegionUpdated;
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly JsCommunicator _jsCommunicator;
+        private readonly SessionManager _sessionManager;
         private ElympicsLoggerContext _logger;
 
-        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
+        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, SessionManager sessionManager)
         {
             _jsCommunicator = jsCommunicator;
+            _sessionManager = sessionManager;
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
             _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
@@ -41,6 +44,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
             return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
         }
+        public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
+        {
+            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(ReturnEventTypes.ChangeRegion, new ChangeRegionRequest() { }, ct);
+            var sessionUpdated = false;
+            _sessionManager.FinishSessionInfoUpdate += OnSessionUpdated;
+            RegionUpdated?.Invoke(newRegion);
+            await UniTask.WaitUntil(() => sessionUpdated, PlayerLoopTiming.Update, ct);
+            _sessionManager.FinishSessionInfoUpdate -= OnSessionUpdated;
+            return;
+
+            void OnSessionUpdated()
+            {
+                sessionUpdated = true;
+            }
+        }
+
         public async UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
             string gameName,
