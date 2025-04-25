@@ -1,0 +1,179 @@
+variables:
+  NODE_VERSION: "18.13.0"
+  DOTNET_VERSION: "6.0"
+  MESSAGEPACK_VERSION: "2.5.124"
+  UNITY_ACTIVATION_FILE: ./unity3d.alf
+  UNITY_VERSION: 2021.3.16f1
+  UNITY_ARCH: linux-il2cpp-1.0.1
+  TESTING_PROJECT_NAME: TestingProject
+  UNITY_DIR: ${CI_PROJECT_DIR}/${TESTING_PROJECT_NAME}
+  PACKAGE_DIR: ${UNITY_DIR}/Packages/com.daftmobile.elympics-playpad
+  FF_ENABLE_BASH_EXIT_CODE_CHECK: 1
+
+stages:
+  - prepare-version
+  - prepare-license
+  - prepare-project
+  - test
+  - check
+
+default:
+  cache: {}
+  tags:
+    - docker
+
+workflow:
+  rules:
+    - if: "$CI_COMMIT_BRANCH"
+    - if: "$CI_COMMIT_TAG"
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+
+.cond.license:
+  rules:
+    - if: "$UNITY_LICENSE != null"
+      when: always
+
+.unity_image:
+  image: unityci/editor:ubuntu-$UNITY_VERSION-$UNITY_ARCH
+
+.node_image:
+  image: node:$NODE_VERSION
+
+.bash_image:
+  image: bash
+
+.ubuntu_image:
+  image: ubuntu
+
+.unity_default:
+  before_script: &unity_default_before_script
+    - ./.scripts/ci/before_script.sh
+
+get-activation-file:
+  extends:
+    - .bash_image
+  rules:
+    - if: "$UNITY_LICENSE == null"
+      when: manual
+  stage: prepare-license
+  variables:
+    GIT_DEPTH: 1
+  before_script:
+    - *unity_default_before_script
+  script:
+    - ./.scripts/ci/get_activation_file.sh
+  artifacts:
+    paths:
+      - $UNITY_ACTIVATION_FILE
+    expire_in: 10 min
+
+create-testing-project:
+  extends:
+    - .unity_image
+    - .cond.license
+  stage: prepare-project
+  variables:
+    GIT_DEPTH: 1
+  before_script:
+    - *unity_default_before_script
+    - wget -O /usr/local/bin/yq 'https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64' && chmod +x /usr/local/bin/yq
+  script:
+    - ./.scripts/ci/create_testing_project.sh
+    - ./.scripts/ci/run_with_defines.sh ELYMPICS_DEBUG
+    - ./.scripts/ci/generate_solution_files.sh
+  artifacts:
+    paths:
+      - "./$TESTING_PROJECT_NAME"
+    expire_in: 1 hour
+
+.test:
+  extends:
+    - .unity_image
+    - .cond.license
+  stage: test
+  needs:
+    - job: create-testing-project
+      artifacts: true
+  before_script:
+    - *unity_default_before_script
+    - apt-get update && apt-get install -y --no-install-recommends xsltproc
+  script:
+    - ./.scripts/ci/test.sh
+  artifacts:
+    when: always
+    paths:
+      - "$TEST_PLATFORM-results.xml"
+    expire_in: 2 weeks
+    reports:
+      junit: "$TEST_PLATFORM-results.xml"
+
+test:playmode:
+  extends: .test
+  variables:
+    TEST_PLATFORM: playmode
+    TESTING_TYPE: JUNIT
+    GIT_DEPTH: 1
+
+test:editmode:
+  extends: .test
+  variables:
+    TEST_PLATFORM: editmode
+    TESTING_TYPE: JUNIT
+    GIT_DEPTH: 1
+
+verify-formatting:
+  extends:
+    - .unity_image
+    - .cond.license
+  stage: check
+  needs:
+    - job: test:playmode
+      artifacts: false
+    - job: test:editmode
+      artifacts: false
+    - job: create-testing-project
+      artifacts: true
+  variables:
+    GIT_DEPTH: 1
+  before_script:
+    - wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
+    - apt-get update && apt-get install -y --no-install-recommends jq dotnet-sdk-$DOTNET_VERSION
+  script:
+    - ./.scripts/ci/generate_formatting_report.sh
+  artifacts:
+    when: always
+    paths:
+      - format-report.codequality.json
+    expire_in: 2 weeks
+    reports:
+      codequality: format-report.codequality.json
+
+verify-messagepack-generated:
+  extends:
+    - .unity_image
+    - .cond.license
+  stage: check
+  needs:
+    - job: test:playmode
+      artifacts: false
+    - job: test:editmode
+      artifacts: false
+    - job: create-testing-project
+      artifacts: true
+  variables:
+    GIT_DEPTH: 1
+    ORIGINAL_GENERATED_PATH: "${PACKAGE_DIR}/Runtime/Plugins/MessagePackGenerated.cs"
+    CORRECT_GENERATED_PATH: ./MessagePackGenerated.cs
+  before_script:
+    - wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
+    - apt-get update && apt-get install -y --no-install-recommends jq dotnet-sdk-$DOTNET_VERSION
+    - dotnet tool install --global MessagePack.Generator --version $MESSAGEPACK_VERSION
+  script:
+    - '"${HOME}/.dotnet/tools/mpc" -i "${UNITY_DIR}/Elympics.csproj" -o "$CORRECT_GENERATED_PATH"'
+    - diff "$ORIGINAL_GENERATED_PATH" "$CORRECT_GENERATED_PATH"
+  artifacts:
+    when: always
+    paths:
+      - MessagePackGenerated.cs
+    expire_in: 1 day
