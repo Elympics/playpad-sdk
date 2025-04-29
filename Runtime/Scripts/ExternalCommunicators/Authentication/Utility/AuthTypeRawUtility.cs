@@ -8,7 +8,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
     {
         private const string AuthTypeClaim = "auth-type";
         private const string EthAddressJwtClaim = "eth-address";
-        private const string TonAddressJwtClaim = "ton-address";
+        private const string TonAddressJwtClaim = "ton-address-unbouncable";
         private const string ClientSecret = "client-secret";
         private const string EthAddress = "eth-address";
         private const string TelegramAuth = "telegram-auth";

@@ -167,8 +167,8 @@ namespace ElympicsPlayPad.Session
         private static (string? accountWallet, string? signWallet, string? tonWallet) ExtractWalletAddresses(AuthData authData)
         {
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var (accountWallet, signWallet, tonWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            return (accountWallet, signWallet, tonWallet);
+            var result = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            return (result.accountWallet, result.signWallet, result.tonWallet);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -231,14 +231,14 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private static Tuple<string?, string?, string?> GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
+        private static (string? accountWallet, string? signWallet, string? tonWallet) GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
         {
             var accountWallet = payload.ethAddress;
             string? signWallet = null;
             if (currentAuthType.IsWallet())
                 signWallet = accountWallet;
             var tonAddress = payload.tonAddress;
-            return new Tuple<string?, string?, string?>(accountWallet, signWallet, tonAddress);
+            return (accountWallet, signWallet, tonAddress);
         }
 
         private void OnAuthDataChanged(AuthData data)
