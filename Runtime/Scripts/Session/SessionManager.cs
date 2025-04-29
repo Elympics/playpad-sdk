@@ -237,7 +237,7 @@ namespace ElympicsPlayPad.Session
             string? signWallet = null;
             if (currentAuthType.IsWallet())
                 signWallet = accountWallet;
-            var tonAddress = payload.tonAddress;
+            var tonAddress = payload.tonNoBounceAddress ?? payload.tonAddress;
             return (accountWallet, signWallet, tonAddress);
         }
 

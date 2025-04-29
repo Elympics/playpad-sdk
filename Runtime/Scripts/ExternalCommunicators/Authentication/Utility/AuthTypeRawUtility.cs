@@ -8,7 +8,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
     {
         private const string AuthTypeClaim = "auth-type";
         private const string EthAddressJwtClaim = "eth-address";
-        private const string TonAddressJwtClaim = "ton-address-unbouncable";
+        private const string TonAddressJwtClaim = "ton-address";
+        private const string TonNoBounceAddressJwtClaim = "ton-address-unbouncable";
         private const string ClientSecret = "client-secret";
         private const string EthAddress = "eth-address";
         private const string TelegramAuth = "telegram-auth";
@@ -21,6 +22,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
             _ => throw new ArgumentOutOfRangeException(nameof(authTypeRaw), authTypeRaw, null)
         };
 
-        public static string ToUnityNaming(string jsonObject) => jsonObject.Replace($"\"{EthAddressJwtClaim}\":", $"\"{JwtPayload.EthAddressKey}\":").Replace(AuthTypeClaim, JwtPayload.AuthTypeKey).Replace($"\"{TonAddressJwtClaim}\":", $"\"{JwtPayload.TonAddressKey}\":");
+        public static string ToUnityNaming(string jsonObject) => jsonObject.Replace($"\"{EthAddressJwtClaim}\":", $"\"{JwtPayload.EthAddressKey}\":").Replace(AuthTypeClaim, JwtPayload.AuthTypeKey).Replace($"\"{TonAddressJwtClaim}\":", $"\"{JwtPayload.TonAddressKey}\":").Replace($"\"{TonNoBounceAddressJwtClaim}\":", $"\"{JwtPayload.TonNoBounceAddressKey}\":");
     }
 }
