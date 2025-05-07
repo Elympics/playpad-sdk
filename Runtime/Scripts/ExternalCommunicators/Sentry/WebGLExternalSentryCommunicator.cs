@@ -12,7 +12,7 @@ using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
-    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsObserver<RttReceived>, IElympicsObserver<GameplayFinished>, IElympicsObserver<ElympicsLogEvent>
+    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsObserver<RttReceived>, IElympicsObserver<ElympicsStateChanged>, IElympicsObserver<ElympicsLogEvent>
     {
         private readonly JsCommunicator _jsCommunicator;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
@@ -22,11 +22,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             _jsCommunicator = jsCommunicator;
             _rttReporter = new(32, _jsCommunicator);
             CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
-            CrossAssemblyEventBroadcaster.AddObserver<GameplayFinished>(this);
+            CrossAssemblyEventBroadcaster.AddObserver<ElympicsStateChanged>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsLogEvent>(this);
         }
 
-        public void LogCaptured(string message, string time, ElympicsLoggerContext log, LogLevel level)
+        private void LogCaptured(string message, string time, ElympicsLoggerContext log, LogLevel level)
         {
             if (BlockLog(log, level))
                 return;
@@ -64,7 +64,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         }
 
         public void OnEvent(RttReceived argument) => _rttReporter.OnRttReceived(argument);
-        public void OnEvent(GameplayFinished argument) => _rttReporter.FlushRttBuffer();
+        public void OnEvent(ElympicsStateChanged argument)
+        {
+            if (argument.PreviousState == ElympicsState.PlayingMatch)
+                _rttReporter.FlushRttBuffer();
+        }
         public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Message, argument.Time, argument.Context, argument.LogLevel);
     }
 }

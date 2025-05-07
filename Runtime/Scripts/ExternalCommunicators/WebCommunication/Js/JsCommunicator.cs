@@ -21,7 +21,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public event Action<string>? ResponseObjectReceived;
         public event Action<WebMessage>? WebObjectReceived;
 
-        private Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new Dictionary<string, List<IWebMessageReceiver>>();
+        private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
         private int _requestCounter;
         internal const string ProtocolVersion = "0.2.1";

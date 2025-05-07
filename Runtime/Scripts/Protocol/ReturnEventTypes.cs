@@ -28,6 +28,7 @@ namespace ElympicsPlayPad.Protocol
         public const string UserHighScoreUpdated = "UserHighScoreUpdated";
         public const string PlayStatusUpdated = "PlayStatusUpdated";
         public const string RegionUpdated = "RegionUpdated";
+        public const string SnapshotReplay = "SnapshotReplay";
         public const string VirtualDepositUpdated = "VirtualDepositUpdated";
     }
 

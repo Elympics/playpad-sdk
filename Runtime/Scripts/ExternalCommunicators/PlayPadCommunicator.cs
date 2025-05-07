@@ -2,9 +2,11 @@
 using System;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
+using Elympics.SnapshotAnalysis.Retrievers;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.Replay;
 using ElympicsPlayPad.ExternalCommunicators.Sentry;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
@@ -50,6 +52,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
         public IExternalLeaderboardCommunicator? LeaderboardCommunicator;
 
         [PublicAPI]
+        public IExternalReplayCommunicator? ReplayCommunicator;
+        
+        [PublicAPI]
         public IExternalVirtualDepositCommunicator? VirtualDepositCommunicator;
 
         [PublicAPI]
@@ -59,6 +64,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
         [SerializeField] private StandaloneExternalGameStatusConfig standaloneGameStatusConfig = null!;
 
+        private PlayPadCommunicatorInternal _communicatorInternal;
         private JsCommunicator _jsCommunicator = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
         private IElympicsLobbyWrapper _lobby = null!;
@@ -84,7 +90,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
-                var gameId = ElympicsConfig.LoadCurrentElympicsGameConfig().GameId;
                 _jsCommunicator.Init(LoggerContext);
 
                 _lobby = GetComponent<IElympicsLobbyWrapper>();
@@ -109,6 +114,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, LoggerContext);
                     VirtualDepositCommunicator = new WebGLVirtualDepositCommunicator(_jsCommunicator, LoggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
+                    ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, LoggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                 }
                 else
@@ -128,6 +134,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     VirtualDepositCommunicator = customVirtualDepositCommunicator != null ? customVirtualDepositCommunicator : null;
                     TonNftExternalCommunicator = customTonNftExternalCommunicator != null ? customTonNftExternalCommunicator : new StandaloneTonNftExternalCommunicator();
                 }
+
+                _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
+                LobbyRegister.PlayPadLobby = _communicatorInternal;
 
                 Instance = this;
             }

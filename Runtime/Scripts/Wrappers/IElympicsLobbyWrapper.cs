@@ -10,7 +10,6 @@ namespace ElympicsPlayPad.Wrappers
 {
     internal interface IElympicsLobbyWrapper
     {
-        public event Action<ElympicsState, ElympicsState>? ElympicsStateUpdated;
         IGameplaySceneMonitor GameplaySceneMonitor { get; }
 
         IRoomsManager RoomsManager { get; }
@@ -22,6 +21,8 @@ namespace ElympicsPlayPad.Wrappers
         IWebSocketSession WebSocketSession { get; }
 
         void SignOut();
+
+        void WatchReplay();
 
         UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
         UniTask ConnectToElympicsAsync(ConnectionData connectionData);

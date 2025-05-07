@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.AssemblyCommunicator;
+using Elympics.AssemblyCommunicator.Events;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
@@ -23,7 +25,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
-    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver
+    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver, IElympicsObserver<ElympicsStateChanged>
     {
         public PlayStatusInfo CurrentPlayStatus { get; private set; }
         public event Action<PlayStatusInfo>? PlayStatusUpdated;
@@ -42,19 +44,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _tournamentCommunicator = tournamentCommunicator;
             _logger = logger;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
-            _lobby.ElympicsStateUpdated += OnElympicsStateUpdated;
+            CrossAssemblyEventBroadcaster.AddObserver(this);
             _roomsManager = _lobby.RoomsManager;
             _logger = logger.WithContext(nameof(WebGLGameStatusCommunicator));
-        }
-        private void OnElympicsStateUpdated(ElympicsState previousState, ElympicsState newState)
-        {
-            var message = new ElympicsStateUpdatedMessage
-            {
-                previousState = (int)previousState,
-                newState = (int)newState
-            };
-
-            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidEventTypes.ElympicsStateUpdated, message);
         }
 
         public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidEventTypes.HideSplashScreen);
@@ -129,7 +121,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public void Dispose()
         {
             _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
-            _lobby.ElympicsStateUpdated -= OnElympicsStateUpdated;
+        }
+        public void OnEvent(ElympicsStateChanged argument)
+        {
+            var message = new ElympicsStateUpdatedMessage
+            {
+                previousState = (int)argument.PreviousState,
+                newState = (int)argument.NewState
+            };
+
+            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidEventTypes.ElympicsStateUpdated, message);
         }
     }
 }

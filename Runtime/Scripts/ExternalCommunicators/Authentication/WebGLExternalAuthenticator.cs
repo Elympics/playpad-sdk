@@ -25,7 +25,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly JsCommunicator _jsCommunicator;
         private readonly SessionManager _sessionManager;
-        private ElympicsLoggerContext _logger;
+        private readonly ElympicsLoggerContext _logger;
 
         public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, SessionManager sessionManager)
         {
