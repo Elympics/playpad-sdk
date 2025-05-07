@@ -6,8 +6,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web
 {
     internal class WebGLWebCommunicator : IExternalWebCommunicator
     {
-        private readonly JsCommunicator _jsCommunicator;
-        public WebGLWebCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
+        public WebGLWebCommunicator(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
         public void OpenUrl(Uri uri)
         {
@@ -21,7 +21,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web
                 url = uri.AbsoluteUri,
             };
 
-            _jsCommunicator.SendVoidMessage<OpenUrlMessage>(VoidMessageTypes.OpenUrlMessage, message);
+            _playPadMessagingSystem.SendVoidMessage<OpenUrlMessage>(VoidMessageTypes.OpenUrlMessage, message);
         }
     }
 }

@@ -23,23 +23,23 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
         private ElympicsLoggerContext _logger;
 
-        private readonly JsCommunicator _jsCommunicator;
-        public WebGLLeaderboardCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
+        public WebGLLeaderboardCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger)
         {
-            _jsCommunicator = jsCommunicator;
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
+            _playPadMessagingSystem = playPadMessagingSystem;
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
             _logger = logger.WithContext(nameof(WebGLLeaderboardCommunicator));
         }
 
         public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(RequestResponseMessageTypes.GetLeaderboard, default, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, LeaderboardResponse>(RequestResponseMessageTypes.GetLeaderboard, default, ct);
             Leaderboard = result.MapToLeaderboardStatus();
             return Leaderboard.Value;
         }
         public async UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(RequestResponseMessageTypes.GetUserHighScore, default, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(RequestResponseMessageTypes.GetUserHighScore, default, ct);
             UserHighScore = response.MapToUserHighScore();
             return UserHighScore;
         }

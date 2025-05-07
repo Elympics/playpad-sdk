@@ -140,15 +140,6 @@ namespace ElympicsPlayPad.Session
         {
             var logger = _logger.WithMethodName();
             var result = await ExternalAuthenticator.Authenticate() ?? throw logger.CaptureAndThrow(new SessionManagerAuthException($"External authenticator did not return AuthData."));
-#if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
-            var standaloneAuthType = result.AuthType;
-            if (standaloneAuthType != AuthType.ClientSecret)
-                throw new SessionManagerAuthException($"Cannot authenticate with {standaloneAuthType} on Editor or with ELYMPICS_DISABLE_PLAYPAD. Please use {AuthType.ClientSecret}");
-
-            await _lobbyWrapper.ConnectStandaloneEditorToElympicsAsync(result, _region);
-
-            return _lobbyWrapper.AuthData!;
-#else
             try
             {
                 await AuthWithCached(result, _region, false);
@@ -158,7 +149,6 @@ namespace ElympicsPlayPad.Session
             {
                 throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
             }
-#endif
         }
 
         private void SetupSession(HandshakeInfo handshake, string region, AuthData authData)

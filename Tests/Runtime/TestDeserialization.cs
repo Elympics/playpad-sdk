@@ -12,7 +12,7 @@ namespace ElympicsPlayPad.Tests
     [Category("Deserialization")]
     public class TestDeserialization
     {
-        private readonly JsCommunicationFactory _factory = new();
+        private readonly PlayPadMessageFactory _factory = new();
         private const string User1Guid = "00000000-0000-0000-0000-000000000001";
         private const string MatchId = "00000000-0000-0000-0000-000000000002";
 

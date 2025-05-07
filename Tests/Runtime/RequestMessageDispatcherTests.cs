@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
@@ -17,7 +18,6 @@ namespace ElympicsPlayPad.Tests
     public class RequestMessageDispatcherTests : ElympicsMonoBaseTest
     {
         private RequestMessageDispatcher _sut;
-        private JsCommunicatorRetrieverMock _jsMock;
         private int _ticketCounter;
 
         public override string SceneName => "ElympicsEmptyTestScene";
@@ -26,8 +26,8 @@ namespace ElympicsPlayPad.Tests
         [OneTimeSetUp]
         public new void Setup()
         {
-            _jsMock = new JsCommunicatorRetrieverMock();
-            _sut = new RequestMessageDispatcher(_jsMock, default);
+            var logger = new ElympicsLoggerContext(Guid.Empty);
+            _sut = new RequestMessageDispatcher(logger);
         }
 
         [UnityTest]
@@ -36,7 +36,8 @@ namespace ElympicsPlayPad.Tests
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             _ = await task;
             Assert.AreEqual(0, _sut.TicketStatus.Count);
 
@@ -47,7 +48,8 @@ namespace ElympicsPlayPad.Tests
         {
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
             _ = await task;
             Assert.AreEqual(0, _sut.TicketStatus.Count);
@@ -59,9 +61,10 @@ namespace ElympicsPlayPad.Tests
         {
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             LogAssert.Expect(LogType.Error, new Regex("Status map already contains response"));
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
         });
 
 
@@ -69,7 +72,8 @@ namespace ElympicsPlayPad.Tests
         public IEnumerator Test_Response_WithoutTicket() => UniTask.ToCoroutine(async () =>
         {
             LogAssert.Expect(LogType.Error, new Regex("Did not found ticketStatus"));
-            _jsMock.SendHandshakeResponse(0, 0);
+            var response = GenerateHandshakeResponse(0, 0);
+            _sut.OnResponseObjectReceived(response);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
 
         });
@@ -82,7 +86,8 @@ namespace ElympicsPlayPad.Tests
             _sut.RegisterTicket(ticket);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
             cts.Cancel();
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             var exceptionThrown = false;
             try
             {
@@ -103,7 +108,8 @@ namespace ElympicsPlayPad.Tests
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
-            _jsMock.SendHandshakeResponse(ticket, 1);
+            var response = GenerateHandshakeResponse(ticket, 1);
+            _sut.OnResponseObjectReceived(response);
             var exceptionThrown = false;
             try
             {
@@ -126,7 +132,8 @@ namespace ElympicsPlayPad.Tests
             _sut.RegisterTicket(ticket);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
             cts.Cancel();
-            _jsMock.SendHandshakeResponse(ticket, 1);
+            var response = GenerateHandshakeResponse(ticket, 1);
+            _sut.OnResponseObjectReceived(response);
             var exceptionThrown = false;
             try
             {
@@ -160,7 +167,8 @@ namespace ElympicsPlayPad.Tests
             }
             Assert.True(exceptionThrown);
             Assert.AreEqual(1, _sut.TicketStatus.Count);
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
         });
 
@@ -184,7 +192,8 @@ namespace ElympicsPlayPad.Tests
             }
             Assert.True(exceptionThrown);
             Assert.AreEqual(1, _sut.TicketStatus.Count);
-            _jsMock.SendHandshakeResponse(ticket, 0);
+            var response = GenerateHandshakeResponse(ticket, 0);
+            _sut.OnResponseObjectReceived(response);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
             cts.Dispose();
 
@@ -197,5 +206,29 @@ namespace ElympicsPlayPad.Tests
             _ = _sut.SetTimeoutLenght(TimeSpan.FromSeconds(10 * 60));
             _sut.Reset();
         }
+
+        public string GenerateHandshakeResponse(int ticket, int status)
+        {
+            var handshakeResponse = GetHandshakeResponse();
+            var response = new ResponseMessage
+            {
+                ticket = ticket,
+                type = RequestResponseMessageTypes.Handshake,
+                status = status,
+                response = JsonUtility.ToJson(handshakeResponse),
+            };
+
+            return JsonUtility.ToJson(response);
+        }
+
+        private static HandshakeResponse GetHandshakeResponse() => new()
+        {
+            error = null,
+            device = "mobile",
+            environment = "PROD",
+            capabilities = 3,
+            featureAccess = 5,
+            closestRegion = "mumbai",
+        };
     }
 }

@@ -29,18 +29,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         private readonly Dictionary<Guid, VirtualDepositInfo> _userDepositCollection = new();
         private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
         private readonly List<KeyValuePair<Guid, VirtualDepositInfo>> _tempDeletedCoinsCache;
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly ElympicsLoggerContext _logger;
         private readonly Dictionary<Guid, CoinInfo> _elympicsCoins = new();
         private readonly Dictionary<Guid, VirtualDepositInfo> _removedDeposits = new();
 
-        public WebGLBlockChainCurrencyCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
+        public WebGLBlockChainCurrencyCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger)
         {
-            _jsCommunicator = jsCommunicator;
+            _playPadMessagingSystem = playPadMessagingSystem;
             _tempUpdatedCoinsCache = new Dictionary<Guid, VirtualDepositInfo>();
             _tempDeletedCoinsCache = new List<KeyValuePair<Guid, VirtualDepositInfo>>();
             _logger = logger.WithContext(nameof(WebGLBlockChainCurrencyCommunicator));
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
         }
 
         public async UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default)
@@ -51,7 +51,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 amount = "0",
                 coinId = coinId.ToString(),
             };
-            var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
 
             if (!response.success)
                 throw new Exception($"Opening deposit popup failed:\n{response.error}");
@@ -63,7 +63,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             {
                 coinId = coinId.ToString(),
             };
-            var response = await _jsCommunicator.SendRequestMessage<ShowOnRampRequest, ShowOnRampResponse>(RequestResponseMessageTypes.ShowOnRamp, request, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<ShowOnRampRequest, ShowOnRampResponse>(RequestResponseMessageTypes.ShowOnRamp, request, ct);
 
             if (!response.success)
                 throw new Exception($"Failed to show on ramp:\n{response.error}");
@@ -71,7 +71,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
             _userDepositCollection.Clear();
 
             if (result.deposits == null)
@@ -86,12 +86,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return _userDepositCollection;
         }
 
-        public UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) =>
-            VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, amount, coinInfo, ct);
+        public UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) => VirtualDepositOperations.EnsureVirtualDeposit(_playPadMessagingSystem, amount, coinInfo, ct);
 
         public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
             _elympicsCoins.Clear();
 
             if (result.currencies == null)
@@ -144,7 +143,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 walletAddress = walletAddress,
             };
 
-            var result = await _jsCommunicator.SendRequestMessage<WalletCurrencyBalanceRequest, WalletCurrencyBalanceResponse>(RequestResponseMessageTypes.GetWalletCurrencyBalance, request, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<WalletCurrencyBalanceRequest, WalletCurrencyBalanceResponse>(RequestResponseMessageTypes.GetWalletCurrencyBalance, request, ct);
             return result.ToWalletBalanceInfo(cachedCoin.Currency.Decimals);
         }
 

@@ -11,16 +11,18 @@ using ElympicsPlayPad.Protocol.Responses;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
-    public class StandaloneLeaderboardCommunicator : IExternalLeaderboardCommunicator
+    public class StandaloneLeaderboardCommunicator : CustomStandaloneLeaderboardCommunicatorBase
     {
-        public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
-        public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
-        public UserHighScoreInfo? UserHighScore { get; private set; }
-        public LeaderboardStatusInfo? Leaderboard { get; private set; }
+        public override event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        public override event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        public override UserHighScoreInfo? UserHighScore => _userHighScoreInfo;
+        private UserHighScoreInfo? _userHighScoreInfo;
+        public override LeaderboardStatusInfo? Leaderboard => _leaderboard;
+        private LeaderboardStatusInfo? _leaderboard;
 
-        public UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
+        public override UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
-            Leaderboard = new LeaderboardResponse
+            _leaderboard = new LeaderboardResponse()
             {
                 entries = new[]
                 {
@@ -38,9 +40,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
             }.MapToLeaderboardStatus();
             return UniTask.FromResult(Leaderboard.Value);
         }
-        public UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
+        public override UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
-            UserHighScore = new UserHighScoreInfo
+            _userHighScoreInfo = new UserHighScoreInfo()
             {
                 Points = 99,
                 ScoredAt = DateTime.Now - TimeSpan.FromDays(1),

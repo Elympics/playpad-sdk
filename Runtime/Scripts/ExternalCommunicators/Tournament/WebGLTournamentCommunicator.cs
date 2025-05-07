@@ -28,20 +28,20 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public TournamentInfo? CurrentTournament { get; private set; }
 
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
-        private readonly IJsCommunicator _jsCommunicator;
+        private readonly IPlayPadMessagingSystem _playPadMessagingSystem;
         private readonly ElympicsLoggerContext _logger;
 
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IJsCommunicator jsCommunicator)
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
         {
             _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
-            _jsCommunicator = jsCommunicator;
+            _playPadMessagingSystem = playPadMessagingSystem;
             _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
 
         public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(RequestResponseMessageTypes.GetTournament, null, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, TournamentResponse>(RequestResponseMessageTypes.GetTournament, null, ct);
             CurrentTournament = response.ToTournamentInfo();
             return CurrentTournament.Value;
         }
@@ -67,7 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     prizeDistribution = requestInfo.PrizeDistribution?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray() ?? Array.Empty<string>(),
                 };
 
-            var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
 
             var feesInfo = new FeeInfo[response.rollings.Length];
             for (var i = 0; i < response.rollings.Length; i++)
@@ -91,7 +91,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             if (maxCount <= 0)
                 return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
 
-            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(
+            var response = await _playPadMessagingSystem.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(
                 RequestResponseMessageTypes.GetRollingTournamentHistory,
                 new GetRollingTournamentHistoryRequest
                 {
@@ -163,7 +163,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         }
         public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, GetRollingTournamentUnreadSettlementsResponse>(RequestResponseMessageTypes.GetUnreadSettlements, null, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, GetRollingTournamentUnreadSettlementsResponse>(RequestResponseMessageTypes.GetUnreadSettlements, null, ct);
             return new RollingTournamentSettlementStatus
             {
                 NewSettlements = result.unreadSettledCount,
@@ -174,7 +174,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public async UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default)
         {
             var payload = new SetActiveTournamentRequest { tournamentId = tournamentId };
-            var response = await _jsCommunicator.SendRequestMessage<SetActiveTournamentRequest, TournamentUpdatedMessage>(RequestResponseMessageTypes.SetActiveTournament, payload, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<SetActiveTournamentRequest, TournamentUpdatedMessage>(RequestResponseMessageTypes.SetActiveTournament, payload, ct);
 
             if (string.IsNullOrEmpty(response.id))
                 throw new ArgumentException($"Tournament with ID {tournamentId} does not exist.", nameof(tournamentId));
@@ -186,9 +186,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public async UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default)
         {
             var payload = new GetRollingTournamentDetailsRequest { matchId = matchId.ToString() };
-            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails,
-                payload,
-                ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails, payload, ct);
 
             var tournamentState = response.state switch
             {

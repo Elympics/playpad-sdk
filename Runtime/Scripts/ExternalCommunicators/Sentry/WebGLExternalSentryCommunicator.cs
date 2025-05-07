@@ -14,13 +14,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
     internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsObserver<RttReceived>, IElympicsObserver<ElympicsStateChanged>, IElympicsObserver<ElympicsLogEvent>
     {
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
 
-        public WebGLExternalSentryCommunicator(JsCommunicator jsCommunicator)
+        public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem)
         {
-            _jsCommunicator = jsCommunicator;
-            _rttReporter = new(32, _jsCommunicator);
+            _playPadMessagingSystem = playPadMessagingSystem;
+            _rttReporter = new(32, _playPadMessagingSystem);
             CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsStateChanged>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsLogEvent>(this);
@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                 data = MetaData.FromElympicsLoggerContext(time, log),
             };
 
-            _jsCommunicator.SendVoidMessage<BreadcrumbMessage>(VoidMessageTypes.BreadcrumbMessage, data);
+            _playPadMessagingSystem.SendVoidMessage<BreadcrumbMessage>(VoidMessageTypes.BreadcrumbMessage, data);
         }
         private static bool BlockLog(ElympicsLoggerContext log, LogLevel level) => level switch
         {

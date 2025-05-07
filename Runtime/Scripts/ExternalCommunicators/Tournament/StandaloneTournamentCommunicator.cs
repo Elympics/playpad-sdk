@@ -25,11 +25,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         private readonly StandaloneExternalTournamentConfig _config;
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
 
-        internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, StandaloneExternalAuthenticatorConfig authConfig, JsCommunicator jsCommunicator)
+        internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, StandaloneExternalAuthenticatorConfig authConfig, PlayPadMessagingSystem playPadMessagingSystem)
         {
             _config = config;
             _authConfig = authConfig;
-            jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
+            playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
         public UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {

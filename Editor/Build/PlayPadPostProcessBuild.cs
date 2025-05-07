@@ -33,7 +33,7 @@ namespace ElympicsPlayPad.Editor.Build
                 var metaData = new PlayPadMeta
                 {
                     sdkVersion = version,
-                    protocolVersion = JsCommunicator.ProtocolVersion,
+                    protocolVersion = PlayPadMessagingSystem.ProtocolVersion,
                     gameVersion = config.GameVersion,
                 };
 

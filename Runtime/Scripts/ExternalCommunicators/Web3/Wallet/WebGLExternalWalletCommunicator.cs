@@ -11,8 +11,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
     // ReSharper disable once ClassNeverInstantiated.Global
     internal class WebGLExternalWalletCommunicator : IExternalWalletCommunicator
     {
-        private readonly JsCommunicator _communicator;
-        public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator) => _communicator = jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
+        public WebGLExternalWalletCommunicator(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
         public async UniTask<string> SignMessage(string address, string message, CancellationToken ct = default)
         {
@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
                 dataToSign = message,
             };
 
-            var result = await _communicator.SendRequestMessage<SignTypedDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.SignTypedData, payload, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<SignTypedDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.SignTypedData, payload, ct);
             return result.message;
         }
 
@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
                 from = from,
                 data = data,
             };
-            var result = await _communicator.SendRequestMessage<TransactionToSignRequest, StringPayloadResponse>(RequestResponseMessageTypes.SendTransaction, transaction, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<TransactionToSignRequest, StringPayloadResponse>(RequestResponseMessageTypes.SendTransaction, transaction, ct);
             return result.message;
         }
 
