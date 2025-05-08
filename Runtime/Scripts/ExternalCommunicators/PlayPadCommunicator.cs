@@ -12,6 +12,7 @@ using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.Utility;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
+using ElympicsPlayPad.ExternalCommunicators.Web;
 using ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract;
 using ElympicsPlayPad.ExternalCommunicators.Web3.Wallet;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -53,12 +54,15 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         [PublicAPI]
         public IExternalReplayCommunicator? ReplayCommunicator;
-        
+
         [PublicAPI]
         public IExternalVirtualDepositCommunicator? VirtualDepositCommunicator;
 
         [PublicAPI]
         public ITonNftExternalCommunicator? TonNftExternalCommunicator;
+
+        [PublicAPI]
+        public IExternalWebCommunicator? ExternalWebCommunicator;
 
         [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
@@ -70,7 +74,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private IElympicsLobbyWrapper _lobby = null!;
 
         private IExternalSentryCommunicator? _sentry;
-        internal static ElympicsLoggerContext LoggerContext;
+        private static ElympicsLoggerContext LoggerContext;
 
         /// <summary>False in editor and local builds that are not run through PlayPad website.</summary>
         private static bool UseRealPlayPad =>
@@ -116,6 +120,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
                     ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, LoggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
+                    ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
                 }
                 else
                 {
@@ -133,6 +138,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
                     VirtualDepositCommunicator = customVirtualDepositCommunicator != null ? customVirtualDepositCommunicator : null;
                     TonNftExternalCommunicator = customTonNftExternalCommunicator != null ? customTonNftExternalCommunicator : new StandaloneTonNftExternalCommunicator();
+                    ExternalWebCommunicator = new StandaloneWebCommunicator();
                 }
 
                 _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);

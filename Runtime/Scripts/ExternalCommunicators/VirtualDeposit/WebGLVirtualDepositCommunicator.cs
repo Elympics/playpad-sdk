@@ -42,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 amount = "0",
                 coinId = coinId.ToString()
             };
-            var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
+            var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
 
             if (!response.success)
                 throw new Exception($"Opening deposit popup failed:\n{response.error}");
@@ -50,7 +50,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(ReturnEventTypes.GetVirtualDeposit, null, ct);
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
 
             if (result.deposits == null)
                 return _userDepositCollection;
@@ -79,7 +79,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 amount = weiAmount,
                 coinId = coinInfo.Id.ToString()
             };
-            var result = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(ReturnEventTypes.EnsureVirtualDeposit, request, ct);
+            var result = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
             return new EnsureDepositInfo
             {
                 Success = result.success,

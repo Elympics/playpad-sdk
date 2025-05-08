@@ -8,7 +8,7 @@ using Elympics.ElympicsSystems.Internal;
 using Elympics.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Protocol.VoidMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                 data = MetaData.FromElympicsLoggerContext(time, log),
             };
 
-            _jsCommunicator.SendVoidMessage<BreadcrumbMessage>(VoidEventTypes.BreadcrumbMessage, data);
+            _jsCommunicator.SendVoidMessage<BreadcrumbMessage>(VoidMessageTypes.BreadcrumbMessage, data);
         }
         private static bool BlockLog(ElympicsLoggerContext log, LogLevel level) => level switch
         {
