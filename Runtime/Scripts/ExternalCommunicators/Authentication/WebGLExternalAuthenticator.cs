@@ -46,7 +46,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
-            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion, new ChangeRegionRequest() { }, ct);
+            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
+                new ChangeRegionRequest
+                {
+                    newRegion = newRegion
+                },
+                ct);
             var sessionUpdated = false;
             _sessionManager.FinishSessionInfoUpdate += OnSessionUpdated;
             RegionUpdated?.Invoke(newRegion);
