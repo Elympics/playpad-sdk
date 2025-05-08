@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _logger = logger.WithContext(nameof(WebGLGameStatusCommunicator));
         }
 
-        public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidEventTypes.HideSplashScreen);
+        public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideSplashScreen);
 
         public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
@@ -57,7 +57,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             {
                 autoResolve = autoResolve
             };
-            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request, ct);
+            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(RequestResponseMessageTypes.GetPlayStatus, request, ct);
             CurrentPlayStatus = response.ToPlayStateInfo();
             return CurrentPlayStatus;
         }
@@ -115,7 +115,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
             };
 
-            _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
+            _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
         }
 
         public void Dispose()
@@ -130,7 +130,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 newState = (int)argument.NewState
             };
 
-            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidEventTypes.ElympicsStateUpdated, message);
+            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidMessageTypes.ElympicsStateUpdated, message);
         }
     }
 }

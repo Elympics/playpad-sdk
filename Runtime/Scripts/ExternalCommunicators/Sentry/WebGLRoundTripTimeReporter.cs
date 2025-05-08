@@ -5,7 +5,7 @@ using Elympics;
 using Elympics.AssemblyCommunicator.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Protocol.VoidMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -36,7 +36,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         public void FlushRttBuffer()
         {
             var message = new NetworkStatusMessage { matchId = ElympicsLobbyClient.Instance!.MatchDataGuid!.MatchId.ToString(), data = _rttBuffer };
-            _jsCommunicator.SendVoidMessage<NetworkStatusMessage>(VoidEventTypes.NetworkStatusMessage, message);
+            _jsCommunicator.SendVoidMessage<NetworkStatusMessage>(VoidMessageTypes.NetworkStatusMessage, message);
             _rttBuffer.Clear();
         }
     }

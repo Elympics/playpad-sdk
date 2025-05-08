@@ -1,7 +1,7 @@
 using System;
 using Elympics.ElympicsSystems.Internal;
 
-namespace ElympicsPlayPad.Protocol.WebMessages
+namespace ElympicsPlayPad.Protocol.VoidMessages
 {
     [Serializable]
     internal struct BreadcrumbMessage

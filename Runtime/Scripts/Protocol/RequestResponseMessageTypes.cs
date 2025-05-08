@@ -1,6 +1,6 @@
 namespace ElympicsPlayPad.Protocol
 {
-    public static class ReturnEventTypes
+    public static class RequestResponseMessageTypes
     {
         public const string SignTypedData = "SignTypedData";
         public const string EncodeFunctionData = "EncodeFunctionData";
@@ -32,7 +32,7 @@ namespace ElympicsPlayPad.Protocol
         public const string VirtualDepositUpdated = "VirtualDepositUpdated";
     }
 
-    public static class VoidEventTypes
+    public static class VoidMessageTypes
     {
         public const string HideSplashScreen = "HideSplashScreen";
         public const string SystemInfoData = "SystemInfoData";
@@ -40,6 +40,7 @@ namespace ElympicsPlayPad.Protocol
         public const string BreadcrumbMessage = "BreadcrumbMessage";
         public const string Debug = "Debug";
         public const string NetworkStatusMessage = "NetworkStatusMessage";
+        public const string OpenUrlMessage = "OpenUrlMessage";
     }
 
     public static class DebugMessageTypes

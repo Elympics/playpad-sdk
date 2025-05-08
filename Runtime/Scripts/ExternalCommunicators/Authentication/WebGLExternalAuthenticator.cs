@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(ReturnEventTypes.GetAuthentication, null, ct);
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(RequestResponseMessageTypes.GetAuthentication, null, ct);
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
-            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(ReturnEventTypes.ChangeRegion, new ChangeRegionRequest() { }, ct);
+            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion, new ChangeRegionRequest() { }, ct);
             var sessionUpdated = false;
             _sessionManager.FinishSessionInfoUpdate += OnSessionUpdated;
             RegionUpdated?.Invoke(newRegion);
@@ -79,7 +79,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var logger = _logger.WithMethodName();
             try
             {
-                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(ReturnEventTypes.Handshake, message, ct);
+                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;

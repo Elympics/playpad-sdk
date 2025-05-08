@@ -17,7 +17,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 
         public async UniTask<bool> MintNft(string collectionAddress, string price, string payload, CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(ReturnEventTypes.MintNft,
+            var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(RequestResponseMessageTypes.MintNft,
                 new MintNftRequest<MintTonNftPayload>
                 {
                     collectionAddress = collectionAddress,

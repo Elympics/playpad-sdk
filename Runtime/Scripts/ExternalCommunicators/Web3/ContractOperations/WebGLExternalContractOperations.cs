@@ -26,7 +26,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
                 function = valueName,
                 parameters = parameters,
             };
-            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(ReturnEventTypes.GetValue, message, ct);
+            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.GetValue, message, ct);
             return result.message;
         }
         public async UniTask<string> GetFunctionCallData(SmartContract contract, string functionName, CancellationToken ct = default, params object[] parameters)
@@ -42,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
                 function = functionName,
                 parameters = _cache.ToArray(),
             };
-            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(ReturnEventTypes.EncodeFunctionData, message, ct);
+            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.EncodeFunctionData, message, ct);
             return result.message;
         }
     }

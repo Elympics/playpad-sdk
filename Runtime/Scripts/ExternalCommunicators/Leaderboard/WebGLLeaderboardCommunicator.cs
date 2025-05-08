@@ -35,13 +35,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 
         public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(ReturnEventTypes.GetLeaderboard, default, ct);
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(RequestResponseMessageTypes.GetLeaderboard, default, ct);
             _leaderboard = result.MapToLeaderboardStatus();
             return _leaderboard.Value;
         }
         public async UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(ReturnEventTypes.GetUserHighScore, default, ct);
+            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(RequestResponseMessageTypes.GetUserHighScore, default, ct);
             _userHighScore = response.MapToUserHighScore();
             return _userHighScore;
         }

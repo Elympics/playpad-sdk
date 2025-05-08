@@ -1,6 +1,6 @@
 using System;
 
-namespace ElympicsPlayPad
+namespace ElympicsPlayPad.Protocol.WebMessages
 {
     [Serializable]
     public struct CanPlayUpdatedMessage

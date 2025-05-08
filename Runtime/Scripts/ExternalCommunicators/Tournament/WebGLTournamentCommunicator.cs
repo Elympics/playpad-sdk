@@ -27,7 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(ReturnEventTypes.GetTournament, null, ct);
+            var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(RequestResponseMessageTypes.GetTournament, null, ct);
             _currentTournament = response.ToTournamentInfo();
             return _currentTournament.Value;
         }
