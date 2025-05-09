@@ -19,7 +19,7 @@ namespace ElympicsPlayPad.Tests.PlayMode.Mocks
             var response = new ResponseMessage
             {
                 ticket = ticket,
-                type = ReturnEventTypes.Handshake,
+                type = RequestResponseMessageTypes.Handshake,
                 status = status,
                 response = JsonUtility.ToJson(handshakeResponse)
             };

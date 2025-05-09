@@ -1,10 +1,11 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using Elympics.ElympicsSystems.Internal;
+using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Utils;
@@ -14,7 +15,6 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
-using ElympicsPlayPad.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
@@ -22,14 +22,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
     internal class WebGLVirtualDepositCommunicator : IExternalVirtualDepositCommunicator, IWebMessageReceiver
     {
         public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
+        public event Action<CoinInfo>? VirtualDepositRemoved;
         public IReadOnlyDictionary<Guid, VirtualDepositInfo>? UserDepositCollection => _userDepositCollection;
         private Dictionary<Guid, VirtualDepositInfo>? _userDepositCollection;
+        private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
+        private readonly List<KeyValuePair<Guid,VirtualDepositInfo>> _tempDeletedCoinsCache;
         private readonly JsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
 
         public WebGLVirtualDepositCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
             _jsCommunicator = jsCommunicator;
+            _tempUpdatedCoinsCache = new Dictionary<Guid, VirtualDepositInfo>();
+            _tempDeletedCoinsCache = new List<KeyValuePair<Guid, VirtualDepositInfo>>();
             _logger = logger.WithContext(nameof(WebGLVirtualDepositCommunicator));
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
         }
@@ -52,8 +57,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
 
-            if (result.deposits == null)
-                return _userDepositCollection;
+            if (result.deposits == null || result.deposits.Length == 0)
+                return _userDepositCollection = null;
 
             _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
             _userDepositCollection.Clear();
@@ -99,16 +104,38 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         private async UniTaskVoid HandleVirtualDepositUpdatedMessage(VirtualDepositUpdatedMessage message)
         {
-            _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
+            if (message.deposits == null || message.deposits.Length == 0)
+            {
+                if (_userDepositCollection == null) return;
+
+                var removedDeposits = _userDepositCollection;
+                _userDepositCollection = null;
+
+                foreach (var deposit in removedDeposits)
+                    VirtualDepositRemoved?.Invoke(deposit.Value.CoinInfo);
+
+                return;
+            }
+            _tempUpdatedCoinsCache.Clear();
             foreach (var deposit in message.deposits)
             {
+                _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
                 var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(deposit.currency.coinId, out var icon);
                 var virtualDepositInfo = await deposit.ToVirtualDepositInfo(icon, _logger);
                 if (iconFound == false)
                     CachedCoinIcons.CoinIcons.Add(deposit.currency.coinId, virtualDepositInfo.CoinInfo.Currency.Icon);
-                _userDepositCollection[virtualDepositInfo.CoinInfo.Id] = virtualDepositInfo;
-                VirtualDepositUpdated?.Invoke(virtualDepositInfo);
+                _tempUpdatedCoinsCache.Add(virtualDepositInfo.CoinInfo.Id, virtualDepositInfo);
             }
+
+            _tempDeletedCoinsCache.Clear();
+            _tempDeletedCoinsCache.AddRange(_userDepositCollection!.Where(kvp => !_tempUpdatedCoinsCache.ContainsKey(kvp.Key)));
+            _userDepositCollection!.Clear();
+            _userDepositCollection.AddRange(_tempUpdatedCoinsCache);
+
+            foreach (var deletedCoin in _tempDeletedCoinsCache)
+                VirtualDepositRemoved?.Invoke(deletedCoin.Value.CoinInfo);
+            foreach (var updatedCoin in _userDepositCollection)
+                VirtualDepositUpdated?.Invoke(updatedCoin.Value);
         }
     }
 }
