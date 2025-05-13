@@ -43,7 +43,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
                         using var ms = new MemoryStream(bytes);
                         var replay = SnapshotDeserializer.DeserializeSnapshots(ms);
                         _snapshotAnalysisRetriever = new PlayPadSnapshotRetriever(replay);
-                        ReplayRetrieved?.Invoke();
+
+                        var replayVersion = _snapshotAnalysisRetriever.RetrieveInitData().GameVersion;
+                        var currentVersion = ElympicsConfig.LoadCurrentElympicsGameConfig().GameVersion;
+
+                        if (replayVersion != currentVersion)
+                            _logger.Error($"Game version mismatch. Replay was recorded using game version {replayVersion} and current game version is {currentVersion}. Use a matching version of the game to watch this replay.");
+                        else
+                            ReplayRetrieved?.Invoke();
+
                         break;
                     }
                     default:
