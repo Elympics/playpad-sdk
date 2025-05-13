@@ -19,8 +19,6 @@ namespace ElympicsPlayPad.Wrappers
 
         void SignOut();
 
-        void WatchReplay();
-
         UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
         UniTask ConnectToElympicsAsync(ConnectionData connectionData);
     }

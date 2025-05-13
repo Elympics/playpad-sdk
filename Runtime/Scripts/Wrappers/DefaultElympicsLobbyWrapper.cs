@@ -8,7 +8,7 @@ namespace ElympicsPlayPad.Wrappers
 {
     public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
     {
-        private IMatchLauncher _matchLauncher = null!;
+        private ElympicsLobbyClient _matchLauncher = null!;
         private void Awake()
         {
             if (ElympicsLobbyClient.Instance != null)

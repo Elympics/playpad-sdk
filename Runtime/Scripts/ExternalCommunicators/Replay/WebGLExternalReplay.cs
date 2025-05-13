@@ -57,11 +57,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
             }
 
         }
-        public void PlayReplay()
+        internal void PlayReplay()
         {
             if (_snapshotAnalysisRetriever == null)
                 throw new InvalidOperationException("No replay has been found.");
-            _lobbyWrapper.WatchReplay();
+            //_lobbyWrapper.WatchReplay(); TO DO: Add this once replays are not a developer only feature on PlayPad
         }
         SnapshotAnalysisRetriever IExternalReplayCommunicator.SnapshotRetriever() => _snapshotAnalysisRetriever;
         public void OnEvent(ElympicsStateChanged argument)
