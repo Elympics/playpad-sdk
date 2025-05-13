@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
