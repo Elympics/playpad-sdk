@@ -23,12 +23,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
     {
         public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
         public event Action<CoinInfo>? VirtualDepositRemoved;
+        public IReadOnlyDictionary<Guid, CoinInfo>? ElympicsCoins => _elympicsCoins;
         public IReadOnlyDictionary<Guid, VirtualDepositInfo>? UserDepositCollection => _userDepositCollection;
         private Dictionary<Guid, VirtualDepositInfo>? _userDepositCollection;
         private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
-        private readonly List<KeyValuePair<Guid,VirtualDepositInfo>> _tempDeletedCoinsCache;
+        private readonly List<KeyValuePair<Guid, VirtualDepositInfo>> _tempDeletedCoinsCache;
         private readonly JsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
+        private Dictionary<Guid, CoinInfo>? _elympicsCoins;
 
         public WebGLVirtualDepositCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
@@ -90,6 +92,24 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 Success = result.success,
                 Error = result.error
             };
+        }
+        public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct)
+        {
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
+            if (result.currencies == null || result.currencies.Length == 0)
+                return _elympicsCoins = null;
+
+            _elympicsCoins ??= new Dictionary<Guid, CoinInfo>();
+            _elympicsCoins.Clear();
+            foreach (var currencyResponse in result.currencies)
+            {
+                var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(currencyResponse.coinId, out var icon);
+                var coinInfo = await currencyResponse.ToCoinInfo(icon, _logger);
+                if (iconFound == false)
+                    CachedCoinIcons.CoinIcons.Add(currencyResponse.coinId, coinInfo.Currency.Icon);
+                _elympicsCoins[coinInfo.Id] = coinInfo;
+            }
+            return _elympicsCoins;
         }
         public void OnWebMessage(WebMessage message)
         {

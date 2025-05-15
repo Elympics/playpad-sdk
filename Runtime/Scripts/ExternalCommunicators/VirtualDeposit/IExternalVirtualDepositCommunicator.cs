@@ -11,6 +11,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
     public interface IExternalVirtualDepositCommunicator
     {
         [PublicAPI]
+        IReadOnlyDictionary<Guid, CoinInfo>? ElympicsCoins { get; }
+
+        [PublicAPI]
         IReadOnlyDictionary<Guid, VirtualDepositInfo>? UserDepositCollection { get; }
 
         [PublicAPI]
@@ -21,8 +24,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         [PublicAPI]
         UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
-
         UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default);
         UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
+        UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct = default);
     }
 }

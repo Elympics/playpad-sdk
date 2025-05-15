@@ -110,7 +110,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
                     ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, LoggerContext, sessionmanager);
                     var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
-                    TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
                     GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!, LoggerContext);
                     ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
                     var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
@@ -121,6 +120,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, LoggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                     ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
+                    TournamentCommunicator = new WebGLTournamentCommunicator(LoggerContext, VirtualDepositCommunicator, _jsCommunicator);
                 }
                 else
                 {

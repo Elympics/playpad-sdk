@@ -14,5 +14,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public abstract TournamentInfo? CurrentTournament { get; }
         public event Action<TournamentInfo>? TournamentUpdated;
         public abstract UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default);
+        public abstract UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default);
     }
 }

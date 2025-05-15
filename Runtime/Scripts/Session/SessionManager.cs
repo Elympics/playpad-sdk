@@ -47,7 +47,6 @@ namespace ElympicsPlayPad.Session
         private static IExternalGameStatusCommunicator GameStatusCommunicator => PlayPadCommunicator.Instance!.GameStatusCommunicator!;
         private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
         private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
-
         private static IExternalVirtualDepositCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
 
         private ElympicsLoggerContext _logger;
@@ -92,6 +91,9 @@ namespace ElympicsPlayPad.Session
                 }
 
                 _ = await GameStatusCommunicator.CanPlayGame(false);
+
+                if (VirtualDepositCommunicator != null)
+                    _ = await VirtualDepositCommunicator.GetElympicsCoins();
 
                 if (handshake.FeatureAccess.HasLeaderboard())
                     _ = await LeaderboardCommunicator.FetchLeaderboard();

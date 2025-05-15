@@ -1,0 +1,20 @@
+﻿#nullable enable
+using System;
+using JetBrains.Annotations;
+namespace ElympicsPlayPad.Tournament.Data
+{
+    [PublicAPI]
+    public readonly struct TournamentFeeInfo
+    {
+        public FeeInfo[] Fees { get; init; }
+    }
+
+
+    [PublicAPI]
+    public readonly struct FeeInfo
+    {
+        public string? EntryFeeRaw { get; init; }
+        public decimal? EntryFee { get; init; }
+        public string? Error { get; init; }
+    }
+}

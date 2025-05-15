@@ -1,13 +1,16 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using Elympics.ElympicsSystems.Internal;
-using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
@@ -21,9 +24,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public TournamentInfo? CurrentTournament => _currentTournament;
 
         private TournamentInfo? _currentTournament;
+        private readonly IExternalVirtualDepositCommunicator _virtualDepositCommunicator;
+        private readonly JsCommunicator _jsCommunicator;
+        private readonly ElympicsLoggerContext _logger;
 
-        private ElympicsLoggerContext _logger;
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger) => _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalVirtualDepositCommunicator virtualDepositCommunicator, JsCommunicator jsCommunicator)
+        {
+            _virtualDepositCommunicator = virtualDepositCommunicator;
+            _jsCommunicator = jsCommunicator;
+            _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
+            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
+        }
 
         public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
@@ -31,11 +42,43 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             _currentTournament = response.ToTournamentInfo();
             return _currentTournament.Value;
         }
-        private readonly JsCommunicator _jsCommunicator;
-        public WebGLTournamentCommunicator(JsCommunicator jsCommunicator)
+        public async UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
-            _jsCommunicator = jsCommunicator;
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
+            if (_virtualDepositCommunicator.ElympicsCoins is null)
+                throw new NullReferenceException($"Can't request fee when {_virtualDepositCommunicator.ElympicsCoins} is null.");
+
+            if (requestData.Length == 0)
+                return null;
+
+            var message = new TournamentFeeRequest
+            {
+                rollings = new RollingDetail[requestData.Length]
+            };
+
+            foreach (var (requestInfo, index) in requestData.Select((value, i) => (value, i)))
+                message.rollings[index] = new RollingDetail
+                {
+                    rollingId = Guid.NewGuid().ToString(),
+                    coinId = requestInfo.CoinInfo.Id.ToString(),
+                    playersCount = requestInfo.PlayersCount,
+                    prize = WeiConverter.ToWei(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
+                };
+
+            var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
+
+            var feesInfo = new FeeInfo[response.rollings.Length];
+            foreach (var fee in response.rollings)
+            {
+                var requestIndex = message.rollings.Select((value, index) => new { value, index }).Where(x => x.value.rollingId == fee.rollingId).Select(x => x.index).First();
+                var coinId = requestData[requestIndex].CoinInfo.Id;
+                if (_virtualDepositCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo) is false)
+                    throw new ElympicsException("Couldn't find coinInfo.");
+                feesInfo[requestIndex] = fee.ToTournamentFeeInfo(coinInfo);
+            }
+            return new TournamentFeeInfo
+            {
+                Fees = feesInfo,
+            };
         }
         public void OnWebMessage(WebMessage message)
         {

@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Globalization;
+using System.Linq;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
@@ -9,7 +11,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
 {
-    public static class TournamentExt
+    internal static class TournamentExt
     {
         public static TournamentInfo ToTournamentInfo(this TournamentResponse dto, PrizePoolInfo? prizePoolInfo = null)
         {
@@ -84,6 +86,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
                 Description = response.description,
                 Type = response.type,
                 Image = sprite
+            };
+        }
+
+        public static FeeInfo ToTournamentFeeInfo(this TournamentFee feeResponse, CoinInfo coinInfo)
+        {
+            var decimals = coinInfo.Currency.Decimals;
+            return new FeeInfo
+            {
+                EntryFeeRaw = string.IsNullOrEmpty(feeResponse.error) ? feeResponse.entryFee : null,
+                EntryFee = string.IsNullOrEmpty(feeResponse.error) ? WeiConverter.FromWei(feeResponse.entryFee, decimals) : null,
+                Error = feeResponse.error
             };
         }
     }

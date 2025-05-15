@@ -10,72 +10,85 @@ using UnityEngine.Networking;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 {
-    public static class VirtualDepositExt
+    internal static class VirtualDepositExt
     {
-        internal static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositResponse response, Texture2D? cachedTexture, ElympicsLoggerContext logger)
+        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositResponse response, Texture2D? cachedTexture, ElympicsLoggerContext logger)
         {
-            var currencyInfo = new CurrencyInfo
-            {
-                Ticker = response.currency.ticker,
-                Address = response.currency.address,
-                Decimals = response.currency.decimals,
-                Icon = cachedTexture ? cachedTexture : await GetIcon(response.currency.iconUrl, logger)
-            };
 
-            var chainInfo = new ChainInfo
-            {
-                Type = response.currency.chainType,
-                Name = response.currency.chainName,
-                ExternalId = response.currency.chainExternalId
-            };
-
-            var coinInfo = new CoinInfo
-            {
-                Id = Guid.Parse(response.currency.coinId),
-                Currency = currencyInfo,
-                Chain = chainInfo
-            };
+            var coinInfo = await response.currency.ToCoinInfo(cachedTexture, logger);
 
             var depositInfo = new VirtualDepositInfo
             {
-                Amount = WeiConverter.FromWei(response.amount, currencyInfo.Decimals),
+                Amount = WeiConverter.FromWei(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
                 CoinInfo = coinInfo
             };
             return depositInfo;
         }
 
-        internal static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositUpdated response, Texture2D? cachedTexture, ElympicsLoggerContext logger)
+        public static async UniTask<CoinInfo> ToCoinInfo(this CurrencyResponse currencyResponse, Texture2D? cachedTexture, ElympicsLoggerContext logger)
         {
             var currencyInfo = new CurrencyInfo
             {
-                Ticker = response.currency.ticker,
-                Address = response.currency.address,
-                Decimals = response.currency.decimals,
-                Icon = cachedTexture ? cachedTexture : await GetIcon(response.currency.iconUrl, logger)
+                Ticker = currencyResponse.ticker,
+                Address = currencyResponse.address,
+                Decimals = currencyResponse.decimals,
+                Icon = cachedTexture ? cachedTexture : await GetIcon(currencyResponse.iconUrl, logger)
             };
 
             var chainInfo = new ChainInfo
             {
-                Type = response.currency.chainType,
-                Name = response.currency.chainName,
-                ExternalId = response.currency.chainExternalId
+                Type = currencyResponse.chainType,
+                Name = currencyResponse.chainName,
+                ExternalId = currencyResponse.chainExternalId
             };
 
             var coinInfo = new CoinInfo
             {
-                Id = Guid.Parse(response.currency.coinId),
+                Id = Guid.Parse(currencyResponse.coinId),
                 Currency = currencyInfo,
                 Chain = chainInfo
             };
+            return coinInfo;
+        }
+
+        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositUpdated response, Texture2D? cachedTexture, ElympicsLoggerContext logger)
+        {
+            var coinInfo = await response.currency.ToCoinInfo(cachedTexture, logger);
 
             var depositInfo = new VirtualDepositInfo
             {
-                Amount = WeiConverter.FromWei(response.amount, currencyInfo.Decimals),
+                Amount = WeiConverter.FromWei(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
                 CoinInfo = coinInfo
             };
             return depositInfo;
+        }
+
+        public static async UniTask<CoinInfo> ToCoinInfo(this CurrencyUpdated currencyResponse, Texture2D? cachedTexture, ElympicsLoggerContext logger)
+        {
+            var currencyInfo = new CurrencyInfo
+            {
+                Ticker = currencyResponse.ticker,
+                Address = currencyResponse.address,
+                Decimals = currencyResponse.decimals,
+                Icon = cachedTexture ? cachedTexture : await GetIcon(currencyResponse.iconUrl, logger)
+            };
+
+            var chainInfo = new ChainInfo
+            {
+                Type = currencyResponse.chainType,
+                Name = currencyResponse.chainName,
+                ExternalId = currencyResponse.chainExternalId
+            };
+
+            var coinInfo = new CoinInfo
+            {
+                Id = Guid.Parse(currencyResponse.coinId),
+                Currency = currencyInfo,
+                Chain = chainInfo
+            };
+            return coinInfo;
         }
 
         private static async UniTask<Texture2D?> GetIcon(string url, ElympicsLoggerContext logger)
