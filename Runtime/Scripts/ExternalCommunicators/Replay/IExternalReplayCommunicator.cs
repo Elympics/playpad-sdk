@@ -7,5 +7,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
     {
         public event Action? ReplayRetrieved;
         internal SnapshotAnalysisRetriever SnapshotRetriever();
+        public void PlayReplay();
     }
 }
