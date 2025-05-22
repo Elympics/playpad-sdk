@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
@@ -15,11 +16,12 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Session;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
-    internal class WebGLVirtualDepositCommunicator : IExternalVirtualDepositCommunicator, IWebMessageReceiver
+    internal class WebGLBlockChainCurrencyCommunicator : IExternalBlockChainCurrencyCommunicator, IWebMessageReceiver
     {
         public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
         public event Action<CoinInfo>? VirtualDepositRemoved;
@@ -32,12 +34,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         private readonly ElympicsLoggerContext _logger;
         private Dictionary<Guid, CoinInfo>? _elympicsCoins;
 
-        public WebGLVirtualDepositCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
+        public WebGLBlockChainCurrencyCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
             _jsCommunicator = jsCommunicator;
             _tempUpdatedCoinsCache = new Dictionary<Guid, VirtualDepositInfo>();
             _tempDeletedCoinsCache = new List<KeyValuePair<Guid, VirtualDepositInfo>>();
-            _logger = logger.WithContext(nameof(WebGLVirtualDepositCommunicator));
+            _logger = logger.WithContext(nameof(WebGLBlockChainCurrencyCommunicator));
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
         }
 
@@ -111,6 +113,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             }
             return _elympicsCoins;
         }
+        public UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default) => RetrieveBalanceInfo(string.Empty, coinId, ct);
+
+        public UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default)
+        {
+            if (string.IsNullOrEmpty(walletAddress))
+                throw new ArgumentNullException(nameof(walletAddress));
+
+            return RetrieveBalanceInfo(walletAddress, coinId, ct);
+        }
         public void OnWebMessage(WebMessage message)
         {
             switch (message.type)
@@ -120,6 +131,25 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                     HandleVirtualDepositUpdatedMessage(webMessage).Forget();
                     break;
             }
+        }
+
+        private async UniTask<WalletBalanceInfo> RetrieveBalanceInfo(string walletAddress, Guid coinId, CancellationToken ct)
+        {
+
+            if (_elympicsCoins is null || _elympicsCoins.Count == 0)
+                throw new ElympicsException($"Can't get available coins. ElympicsCoins is null or empty. Please initialize PlayPad using {nameof(SessionManager.AuthenticateFromExternalAndConnect)}");
+
+            if (_elympicsCoins.TryGetValue(coinId, out var cachedCoin) is false)
+                throw new ElympicsException($"Coin with {coinId} is not recognized.");
+
+            var request = new WalletCurrencyBalanceRequest()
+            {
+                coinId = coinId.ToString(),
+                walletAddress = walletAddress,
+            };
+
+            var result = await _jsCommunicator.SendRequestMessage<WalletCurrencyBalanceRequest, WalletCurrencyBalanceResponse>(RequestResponseMessageTypes.GetWalletCurrencyBalance, request, ct);
+            return result.ToWalletBalanceInfo(cachedCoin.Currency.Decimals);
         }
 
         private async UniTaskVoid HandleVirtualDepositUpdatedMessage(VirtualDepositUpdatedMessage message)

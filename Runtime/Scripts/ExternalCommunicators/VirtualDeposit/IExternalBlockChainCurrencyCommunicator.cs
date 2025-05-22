@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
-    public interface IExternalVirtualDepositCommunicator
+    public interface IExternalBlockChainCurrencyCommunicator
     {
         [PublicAPI]
         IReadOnlyDictionary<Guid, CoinInfo>? ElympicsCoins { get; }
@@ -27,5 +27,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default);
         UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
         UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct = default);
+
+        UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default);
+
+        UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default);
+
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
-    public abstract class CustomStandaloneVirtualDepositCommunicatorBase : MonoBehaviour, IExternalVirtualDepositCommunicator
+    public abstract class CustomStandaloneBlockChainCurrencyCommunicatorBase : MonoBehaviour, IExternalBlockChainCurrencyCommunicator
     {
         public abstract IReadOnlyDictionary<Guid, CoinInfo> ElympicsCoins { get; }
         public abstract IReadOnlyDictionary<Guid, VirtualDepositInfo> UserDepositCollection { get; }
@@ -18,5 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         public abstract UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default);
         public abstract UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
         public abstract UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct);
+        public abstract UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default);
+        public abstract UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default);
     }
 }
