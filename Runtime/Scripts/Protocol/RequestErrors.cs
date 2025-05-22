@@ -6,6 +6,7 @@ namespace ElympicsPlayPad.Protocol
     {
         public const int Unknown = 1;
         public const int AddressNotFound = 404;
+        public const int InternalError = 500;
         public const int NotImplementedOnWebComponent = 501;
         public const int SendTransactionFailure = 502;
         public const int ExternalAuthFailed = 503;
