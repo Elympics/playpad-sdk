@@ -1,10 +1,7 @@
 #nullable enable
-using System;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Wrappers
 {
@@ -22,9 +19,9 @@ namespace ElympicsPlayPad.Wrappers
 
         void SignOut();
 
-        void WatchReplay();
-
         UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
         UniTask ConnectToElympicsAsync(ConnectionData connectionData);
+
+        public void WatchReplay();
     }
 }

@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -9,7 +8,7 @@ namespace ElympicsPlayPad.Wrappers
 {
     public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
     {
-        private IMatchLauncher _matchLauncher = null!;
+        private ElympicsLobbyClient _matchLauncher = null!;
         private void Awake()
         {
             if (ElympicsLobbyClient.Instance != null)
