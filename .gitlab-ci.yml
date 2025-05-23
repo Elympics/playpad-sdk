@@ -81,6 +81,15 @@ get-activation-file:
       - $UNITY_ACTIVATION_FILE
     expire_in: 10 min
 
+check-commits:
+  extends:
+    - .bash_image
+  stage: prepare-project
+  variables:
+    GIT_DEPTH: 0
+  script:
+    - ./.scripts/ci/check_for_tmp_commits.sh
+
 create-testing-project:
   extends:
     - .unity_image
