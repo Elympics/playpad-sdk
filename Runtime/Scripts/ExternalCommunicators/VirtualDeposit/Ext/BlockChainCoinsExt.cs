@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 {
-    internal static class VirtualDepositExt
+    internal static class BlockChainCoinsExt
     {
         public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositResponse response, Texture2D? cachedTexture, ElympicsLoggerContext logger)
         {
@@ -65,7 +65,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             return depositInfo;
         }
 
-        public static async UniTask<CoinInfo> ToCoinInfo(this CurrencyUpdated currencyResponse, Texture2D? cachedTexture, ElympicsLoggerContext logger)
+        public static WalletBalanceInfo ToWalletBalanceInfo(this WalletCurrencyBalanceResponse response, int decimals)
+        {
+            return new WalletBalanceInfo
+            {
+                AmountRaw = string.IsNullOrEmpty(response.error) ? response.amount : string.Empty,
+                Amount = string.IsNullOrEmpty(response.error) ? WeiConverter.FromWei(response.amount, decimals) : 0,
+                Error = response.error
+            };
+        }
+
+        private static async UniTask<CoinInfo> ToCoinInfo(this CurrencyUpdated currencyResponse, Texture2D? cachedTexture, ElympicsLoggerContext logger)
         {
             var currencyInfo = new CurrencyInfo
             {

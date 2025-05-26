@@ -24,13 +24,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public TournamentInfo? CurrentTournament => _currentTournament;
 
         private TournamentInfo? _currentTournament;
-        private readonly IExternalVirtualDepositCommunicator _virtualDepositCommunicator;
+        private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
         private readonly JsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
 
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalVirtualDepositCommunicator virtualDepositCommunicator, JsCommunicator jsCommunicator)
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, JsCommunicator jsCommunicator)
         {
-            _virtualDepositCommunicator = virtualDepositCommunicator;
+            _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
             _jsCommunicator = jsCommunicator;
             _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
@@ -44,8 +44,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         }
         public async UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
-            if (_virtualDepositCommunicator.ElympicsCoins is null)
-                throw new NullReferenceException($"Can't request fee when {_virtualDepositCommunicator.ElympicsCoins} is null.");
+            if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
+                throw new NullReferenceException($"Can't request fee when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
 
             if (requestData.Length == 0)
                 return null;
@@ -71,7 +71,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             {
                 var requestIndex = message.rollings.Select((value, index) => new { value, index }).Where(x => x.value.rollingId == fee.rollingId).Select(x => x.index).First();
                 var coinId = requestData[requestIndex].CoinInfo.Id;
-                if (_virtualDepositCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo) is false)
+                if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo) is false)
                     throw new ElympicsException("Couldn't find coinInfo.");
                 feesInfo[requestIndex] = fee.ToTournamentFeeInfo(coinInfo);
             }
