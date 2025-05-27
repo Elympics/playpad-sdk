@@ -10,7 +10,6 @@ namespace ElympicsPlayPad.Protocol.Requests
     [Serializable]
     internal struct RollingDetail
     {
-        public string rollingId;
         public string coinId;
         public int playersCount;
         public string prize;

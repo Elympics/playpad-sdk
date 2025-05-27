@@ -1,4 +1,5 @@
 #nullable enable
+
 using System;
 using System.Globalization;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
@@ -92,6 +93,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
             var decimals = coinInfo.Currency.Decimals;
             return new FeeInfo
             {
+                RollingTournamentId = Guid.Parse(feeResponse.rollingId),
                 EntryFeeRaw = string.IsNullOrEmpty(feeResponse.error) ? feeResponse.entryFee : null,
                 EntryFee = string.IsNullOrEmpty(feeResponse.error) ? WeiConverter.FromWei(feeResponse.entryFee, decimals) : null,
                 Error = feeResponse.error
