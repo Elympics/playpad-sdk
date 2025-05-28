@@ -34,20 +34,24 @@ echo "Elympics Playpad package moved ✅"
 
 echo "Adding Elympics SDK dependency..."
 
-CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE="${CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE:-https://github.com/Elympics/Unity-SDK.git}"
+GIT_CREDENTIALS_FILE=~/.git-credentials
+BASE_URL=$(echo $CI_REPOSITORY_URL | sed "s;\/*$CI_PROJECT_PATH.*;;")
+echo "$BASE_URL" > $GIT_CREDENTIALS_FILE
+git config --global credential.helper store --file=$GIT_CREDENTIALS_FILE
+
 echo "Using Elympics SDK git path: $CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE"
-DEFAULT_HASH="$(git ls-remote "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" HEAD | sed 's/\s\+HEAD$//i')"
+DEFAULT_REF_HASH="$(git ls-remote "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" HEAD | sed 's/\s\+HEAD$//i')"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'" = "'"$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE"'"' "$PACKAGES_MANIFEST_PATH"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'" = { "version": "'"$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE"'", "source": "git" }' "$PACKAGES_LOCK_PATH"
 
-if git ls-remote --exit-code --heads "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" "refs/heads/$CI_COMMIT_REF_NAME"
+if git ls-remote --exit-code --heads "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" "refs/heads/$CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"
 then
-  CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE="${CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE:-$CI_COMMIT_REF_NAME}"
+  :
 elif git ls-remote --exit-code --heads "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" "refs/heads/develop"
 then
-  CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE="${CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE:-develop}"
+  CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE="develop"
 else
-  CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE="${CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE:-$DEFAULT_HASH}"
+  CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE="$DEFAULT_REF_HASH"
 fi
 echo "Using Elympics SDK commit ref: $CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'".hash = "'"$CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"'"' "$PACKAGES_LOCK_PATH"

@@ -14,13 +14,10 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   FF_ENABLE_BASH_EXIT_CODE_CHECK: 1
   CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE:
-    value: ""
+    value: "$CI_COMMIT_REF_NAME"
     description: "Override Elympics SDK commit ref"
   CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE:
-    value: ""
-    options:
-      - ""
-      - "https://gitlab.app.daftmobile.com/elympics/unity-sdk-package.git"
+    value: "https://gitlab.app.daftmobile.com/elympics/unity-sdk-package.git"
     description: "Override Elympics SDK git path"
 
 stages:
