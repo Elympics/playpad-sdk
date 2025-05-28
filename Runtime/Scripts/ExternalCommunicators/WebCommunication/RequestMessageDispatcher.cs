@@ -13,7 +13,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 {
     internal class RequestMessageDispatcher
     {
-        private readonly Dictionary<int, TicketStatus> _ticketStatus = new();
         private readonly TimeSpan _requestTimeOut;
         private ElympicsLoggerContext _logger;
 
@@ -26,8 +25,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 
         public void RegisterTicket(int ticket)
         {
-            var added = _ticketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
-            if (added is true)
+            var added = TicketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
+            if (added)
                 return;
 
             var logger = _logger.WithMethodName();
@@ -38,7 +37,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             where TReturn : struct
         {
             var logger = _logger.WithMethodName();
-            if (_ticketStatus.TryGetValue(ticket, out var ticketStatus) is false)
+            if (!TicketStatus.TryGetValue(ticket, out var ticketStatus))
                 throw logger.CaptureAndThrow(new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty));
             var token = ticketStatus.Timeout.Token;
             if (ct != default)
@@ -71,12 +70,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             }
             var response = GetResponseData<TReturn>(ticketStatus, _logger);
             ClearTicketStatus(ticket);
-            UniTask.ReturnToMainThread();
+            _ = UniTask.ReturnToMainThread();
             return response!;
         }
         private void ClearTicketStatus(int ticket)
         {
-            if (_ticketStatus.Remove(ticket, out var removedTicketStatus))
+            if (TicketStatus.Remove(ticket, out var removedTicketStatus))
                 removedTicketStatus.Dispose();
         }
 
@@ -92,7 +91,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
             var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
 
-            if (_ticketStatus.TryGetValue(response.ticket, out var ticketStatus) is false)
+            if (!TicketStatus.TryGetValue(response.ticket, out var ticketStatus))
             {
                 logger.Error($"Did not found ticketStatus for ticket: {response.ticket} type: {response.type}");
                 return;
@@ -133,8 +132,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             }
         }
 
-        internal Dictionary<int, TicketStatus> TicketStatus => _ticketStatus;
+        internal Dictionary<int, TicketStatus> TicketStatus { get; } = new();
         internal const string RequestTimeOutSecFieldName = nameof(_requestTimeOut);
-        internal void Reset() => _ticketStatus.Clear();
+        internal void Reset() => TicketStatus.Clear();
     }
 }

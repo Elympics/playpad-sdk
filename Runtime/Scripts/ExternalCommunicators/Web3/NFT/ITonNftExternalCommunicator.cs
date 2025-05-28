@@ -7,6 +7,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 {
     public interface ITonNftExternalCommunicator
     {
-        public UniTask<bool> MintNft(string collectionAddress, string price, string payload, CancellationToken ct = default);
+        UniTask<bool> MintNft(string collectionAddress, string price, string payload, CancellationToken ct = default);
     }
 }

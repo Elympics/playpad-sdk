@@ -59,6 +59,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                         return true;
                     }
                     return false;
+                default:
+                    break;
             }
             return false;
         }

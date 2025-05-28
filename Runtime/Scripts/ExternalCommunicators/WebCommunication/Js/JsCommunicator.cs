@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
@@ -60,7 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             where TInput : struct
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
-            if (BlockEventLog(messageType) is false)
+            if (!BlockEventLog(messageType))
                 ElympicsLogger.Log($"Send Void {messageType} message: {message}");
 
             // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
@@ -68,7 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
             return;
 
-            bool BlockEventLog(string type) => type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage);
+            static bool BlockEventLog(string type) => type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage);
         }
 
 

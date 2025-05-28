@@ -18,9 +18,9 @@ namespace ElympicsPlayPad.Utility
 
         public static string ToWei(decimal amount, int decimalPlacesToUnit)
         {
-            var mantissa = (BigInteger) amount;
+            var mantissa = (BigInteger)amount;
             var exponent = 0;
-            for (var num = 1M; (decimal) mantissa != amount * num; mantissa = (BigInteger) (amount * num))
+            for (var num = 1M; (decimal)mantissa != amount * num; mantissa = (BigInteger)(amount * num))
             {
                 --exponent;
                 num *= 10M;

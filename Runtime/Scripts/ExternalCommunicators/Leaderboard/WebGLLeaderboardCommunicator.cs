@@ -16,11 +16,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     internal class WebGLLeaderboardCommunicator : IExternalLeaderboardCommunicator, IWebMessageReceiver
     {
-        public UserHighScoreInfo? UserHighScore => _userHighScore;
-        public LeaderboardStatusInfo? Leaderboard => _leaderboard;
+        public UserHighScoreInfo? UserHighScore { get; private set; }
+        public LeaderboardStatusInfo? Leaderboard { get; private set; }
 
-        private UserHighScoreInfo? _userHighScore;
-        private LeaderboardStatusInfo? _leaderboard;
         public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
         public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
         private ElympicsLoggerContext _logger;
@@ -36,14 +34,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, LeaderboardResponse>(RequestResponseMessageTypes.GetLeaderboard, default, ct);
-            _leaderboard = result.MapToLeaderboardStatus();
-            return _leaderboard.Value;
+            Leaderboard = result.MapToLeaderboardStatus();
+            return Leaderboard.Value;
         }
         public async UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
             var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, UserHighScoreResponse>(RequestResponseMessageTypes.GetUserHighScore, default, ct);
-            _userHighScore = response.MapToUserHighScore();
-            return _userHighScore;
+            UserHighScore = response.MapToUserHighScore();
+            return UserHighScore;
         }
         public void OnWebMessage(WebMessage message)
         {
@@ -55,18 +53,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                     case WebMessageTypes.LeaderboardUpdated:
                     {
                         var leaderboardUpdate = JsonUtility.FromJson<LeaderboardUpdatedMessage>(message.message);
-                        _leaderboard = leaderboardUpdate.MapToLeaderboardStatus();
-                        LeaderboardUpdated?.Invoke(_leaderboard.Value);
+                        Leaderboard = leaderboardUpdate.MapToLeaderboardStatus();
+                        LeaderboardUpdated?.Invoke(Leaderboard.Value);
                         break;
                     }
                     case WebMessageTypes.UserHighScoreUpdated:
                     {
                         var highScoreUpdate = JsonUtility.FromJson<UserHighScoreUpdatedMessage>(message.message);
-                        _userHighScore = highScoreUpdate.MapToUserHighScore();
-                        if (_userHighScore.HasValue is false)
+                        UserHighScore = highScoreUpdate.MapToUserHighScore();
+                        if (!UserHighScore.HasValue)
                             return;
 
-                        UserHighScoreUpdated?.Invoke(_userHighScore.Value);
+                        UserHighScoreUpdated?.Invoke(UserHighScore.Value);
                         break;
                     }
                     default:

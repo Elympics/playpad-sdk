@@ -75,7 +75,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (_tournamentCommunicator.CurrentTournament.HasValue)
                 _joinedCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
             else
-                _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+                _ = _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
 
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct: ct);

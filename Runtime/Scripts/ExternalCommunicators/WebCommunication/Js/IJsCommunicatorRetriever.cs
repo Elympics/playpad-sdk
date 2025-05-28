@@ -5,7 +5,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal interface IJsCommunicatorRetriever
     {
-        public event Action<string> ResponseObjectReceived;
-        public event Action<WebMessage> WebObjectReceived;
+        event Action<string> ResponseObjectReceived;
+        event Action<WebMessage> WebObjectReceived;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.VoidMessages;
@@ -13,9 +13,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web
         {
             if (uri is null)
                 throw new ArgumentNullException(nameof(uri));
-            if (uri.IsAbsoluteUri is false)
+            if (!uri.IsAbsoluteUri)
                 throw new ArgumentException("The provided url must be absolute.", nameof(uri));
-            if (uri.IsWellFormedOriginalString() is false)
+            if (!uri.IsWellFormedOriginalString())
                 throw new ArgumentException("The uri is not well-formed.", nameof(uri));
 
             var message = new OpenUrlMessage()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
@@ -24,15 +24,15 @@ namespace ElympicsPlayPad.JWT
         /// </summary>
         public static IJsonSerializer JsonSerializer = new DefaultJsonSerializer();
 
-        private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime UnixEpoch = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         static JsonWebToken()
         {
             HashAlgorithms = new Dictionary<JwtHashAlgorithm, Func<byte[], byte[], byte[]>>
             {
-                { JwtHashAlgorithm.HS256, (key, value) => { using (var sha = new HMACSHA256(key)) { return sha.ComputeHash(value); } } },
-                { JwtHashAlgorithm.HS384, (key, value) => { using (var sha = new HMACSHA384(key)) { return sha.ComputeHash(value); } } },
-                { JwtHashAlgorithm.HS512, (key, value) => { using (var sha = new HMACSHA512(key)) { return sha.ComputeHash(value); } } }
+                { JwtHashAlgorithm.HS256, (key, value) => { using var sha = new HMACSHA256(key); return sha.ComputeHash(value); } },
+                { JwtHashAlgorithm.HS384, (key, value) => { using var sha = new HMACSHA384(key); return sha.ComputeHash(value); } },
+                { JwtHashAlgorithm.HS512, (key, value) => { using var sha = new HMACSHA512(key); return sha.ComputeHash(value); } }
             };
         }
 
@@ -40,7 +40,7 @@ namespace ElympicsPlayPad.JWT
         /// Creates a JWT given a header, a payload, the signing key, and the algorithm to use.
         /// </summary>
         /// <param name="extraHeaders">An arbitrary set of extra headers. Will be augmented with the standard "typ" and "alg" headers.</param>
-        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).</param>
+        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).</param>
         /// <param name="key">The key bytes used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
@@ -53,8 +53,8 @@ namespace ElympicsPlayPad.JWT
                 { "alg", algorithm.ToString() }
             };
 
-            byte[] headerBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(header));
-            byte[] payloadBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
+            var headerBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(header));
+            var payloadBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
 
             segments.Add(Base64UrlEncode(headerBytes));
             segments.Add(Base64UrlEncode(payloadBytes));
@@ -63,7 +63,7 @@ namespace ElympicsPlayPad.JWT
 
             var bytesToSign = Encoding.UTF8.GetBytes(stringToSign);
 
-            byte[] signature = HashAlgorithms[algorithm](key, bytesToSign);
+            var signature = HashAlgorithms[algorithm](key, bytesToSign);
             segments.Add(Base64UrlEncode(signature));
 
             return string.Join(".", segments.ToArray());
@@ -72,7 +72,7 @@ namespace ElympicsPlayPad.JWT
         /// <summary>
         /// Creates a JWT given a payload, the signing key, and the algorithm to use.
         /// </summary>
-        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).</param>
+        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).</param>
         /// <param name="key">The key used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
@@ -85,7 +85,7 @@ namespace ElympicsPlayPad.JWT
         /// Creates a JWT given a set of arbitrary extra headers, a payload, the signing key, and the algorithm to use.
         /// </summary>
         /// <param name="extraHeaders">An arbitrary set of extra headers. Will be augmented with the standard "typ" and "alg" headers.</param>
-        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).</param>
+        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).</param>
         /// <param name="key">The key bytes used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
@@ -97,7 +97,7 @@ namespace ElympicsPlayPad.JWT
         /// <summary>
         /// Creates a JWT given a payload, the signing key, and the algorithm to use.
         /// </summary>
-        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).</param>
+        /// <param name="payload">An arbitrary payload (must be serializable to JSON via <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).</param>
         /// <param name="key">The key used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
@@ -189,7 +189,7 @@ namespace ElympicsPlayPad.JWT
         }
 
         /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
+        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
         /// </summary>
         /// <param name="token">The JWT.</param>
         /// <param name="key">The key that was used to sign the JWT.</param>
@@ -204,7 +204,7 @@ namespace ElympicsPlayPad.JWT
         }
 
         /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
+        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
         /// </summary>
         /// <param name="token">The JWT.</param>
         /// <param name="key">The key that was used to sign the JWT.</param>
@@ -217,7 +217,7 @@ namespace ElympicsPlayPad.JWT
         }
 
         /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
+        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
         /// </summary>
         /// <typeparam name="T">The <see cref="Type"/> to return</typeparam>
         /// <param name="token">The JWT.</param>
@@ -233,7 +233,7 @@ namespace ElympicsPlayPad.JWT
         }
 
         /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
+        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
         /// </summary>
         /// <typeparam name="T">The <see cref="Type"/> to return</typeparam>
         /// <param name="token">The JWT.</param>
@@ -248,13 +248,13 @@ namespace ElympicsPlayPad.JWT
 
         private static JwtHashAlgorithm GetHashAlgorithm(string algorithm)
         {
-            switch (algorithm)
+            return algorithm switch
             {
-                case "HS256": return JwtHashAlgorithm.HS256;
-                case "HS384": return JwtHashAlgorithm.HS384;
-                case "HS512": return JwtHashAlgorithm.HS512;
-                default: throw new SignatureVerificationException("Algorithm not supported.");
-            }
+                "HS256" => JwtHashAlgorithm.HS256,
+                "HS384" => JwtHashAlgorithm.HS384,
+                "HS512" => JwtHashAlgorithm.HS512,
+                _ => throw new SignatureVerificationException("Algorithm not supported."),
+            };
         }
 
         // from JWT spec
@@ -275,10 +275,16 @@ namespace ElympicsPlayPad.JWT
             output = output.Replace('_', '/'); // 63rd char of encoding
             switch (output.Length % 4) // Pad with trailing '='s
             {
-                case 0: break; // No pad chars in this case
-                case 2: output += "=="; break; // Two pad chars
-                case 3: output += "="; break;  // One pad char
-                default: throw new Exception("Illegal base64url string!");
+                case 0:
+                    break; // No pad chars in this case
+                case 2:
+                    output += "==";
+                    break; // Two pad chars
+                case 3:
+                    output += "=";
+                    break;  // One pad char
+                default:
+                    throw new Exception("Illegal base64url string!");
             }
             var converted = Convert.FromBase64String(output); // Standard base64 decoder
             return converted;

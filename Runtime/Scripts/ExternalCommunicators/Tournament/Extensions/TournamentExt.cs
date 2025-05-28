@@ -1,13 +1,11 @@
 #nullable enable
 using System;
 using System.Globalization;
-using System.Linq;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
 using ElympicsPlayPad.Utility;
-using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
 {

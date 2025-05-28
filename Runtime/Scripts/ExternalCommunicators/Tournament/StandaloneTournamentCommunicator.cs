@@ -18,9 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
     public class StandaloneTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
         public event Action<TournamentInfo>? TournamentUpdated;
-        public TournamentInfo? CurrentTournament => _currentTournamentInfo;
-
-        private TournamentInfo? _currentTournamentInfo;
+        public TournamentInfo? CurrentTournament { get; private set; }
 
         private readonly StandaloneExternalTournamentConfig _config;
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
@@ -46,8 +44,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     endDate = _config.EndDate,
                     isDefault = _config.IsDefault,
                 };
-                _currentTournamentInfo = dto.ToTournamentInfo(_config.PrizePool);
-                return UniTask.FromResult(_currentTournamentInfo);
+                CurrentTournament = dto.ToTournamentInfo(_config.PrizePool);
+                return UniTask.FromResult(CurrentTournament);
             }
             return UniTask.FromResult<TournamentInfo?>(null);
         }
@@ -55,12 +53,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         public void OnWebMessage(WebMessage message)
         {
-            if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
+            if (!string.Equals(message.type, WebMessageTypes.TournamentUpdated))
                 throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
 
             var newTournamentData = JsonUtility.FromJson<TournamentUpdatedMessage>(message.message);
-            _currentTournamentInfo = newTournamentData.ToTournamentInfo();
-            TournamentUpdated?.Invoke(_currentTournamentInfo.Value);
+            CurrentTournament = newTournamentData.ToTournamentInfo();
+            TournamentUpdated?.Invoke(CurrentTournament.Value);
         }
     }
 }

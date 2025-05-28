@@ -8,11 +8,7 @@ namespace ElympicsPlayPad.JWT.Extensions
     {
         public static JwtPayload ExtractUnityPayloadFromJwt(this string jwt)
         {
-            var payload = JsonWebToken.Decode(jwt, string.Empty, false);
-            if (payload is null)
-            {
-                throw new Exception("Couldn't decode payload form jwt token.");
-            }
+            var payload = JsonWebToken.Decode(jwt, string.Empty, false) ?? throw new Exception("Couldn't decode payload form jwt token.");
             var formattedPayload = AuthTypeRawUtility.ToUnityNaming(payload);
             return JsonUtility.FromJson<JwtPayload>(formattedPayload);
         }

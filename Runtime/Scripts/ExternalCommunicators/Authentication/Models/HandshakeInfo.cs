@@ -1,7 +1,4 @@
 #nullable enable
-using Elympics.Models.Authentication;
-using ElympicsPlayPad.Tournament.Data;
-
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
 {
     public readonly struct HandshakeInfo

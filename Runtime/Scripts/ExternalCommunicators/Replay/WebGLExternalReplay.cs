@@ -4,14 +4,14 @@ using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
 using Elympics.ElympicsSystems.Internal;
+using Elympics.SnapshotAnalysis.Retrievers;
+using Elympics.SnapshotAnalysis.Serialization;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.WebMessages;
-using UnityEngine;
-using Elympics.SnapshotAnalysis.Retrievers;
-using Elympics.SnapshotAnalysis.Serialization;
 using ElympicsPlayPad.Wrappers;
+using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Replay
 {

@@ -1,8 +1,4 @@
 #nullable enable
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace ElympicsPlayPad
 {
     public readonly struct EnsureDepositInfo

@@ -79,15 +79,15 @@ namespace ElympicsPlayPad.Session
 
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
-                logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
+                _ = logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
                 var wallets = ExtractWalletAddresses(authData);
-                logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname).SetWalletAddress(wallets.signWallet ?? wallets.accountWallet ?? string.Empty);
+                _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname).SetWalletAddress(wallets.signWallet ?? wallets.accountWallet ?? string.Empty);
                 if (handshake.FeatureAccess.HasTournament())
                 {
                     var tournament = await TournamentCommunicator.GetTournament();
-                    logger.SetTournamentId(tournament?.Id);
+                    _ = logger.SetTournamentId(tournament?.Id);
                 }
 
                 _ = await GameStatusCommunicator.CanPlayGame(false);
@@ -128,9 +128,7 @@ namespace ElympicsPlayPad.Session
         private async UniTask<AuthData> Authenticate()
         {
             var logger = _logger.WithMethodName();
-            var result = await ExternalAuthenticator.Authenticate();
-            if (result == null)
-                throw logger.CaptureAndThrow(new SessionManagerAuthException($"External authenticator did not return AuthData."));
+            var result = await ExternalAuthenticator.Authenticate() ?? throw logger.CaptureAndThrow(new SessionManagerAuthException($"External authenticator did not return AuthData."));
 #if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
             var standaloneAuthType = result.AuthType;
             if (standaloneAuthType != AuthType.ClientSecret)
@@ -272,7 +270,7 @@ namespace ElympicsPlayPad.Session
 
         private void ThrowIfCurrentSessionNull(string message)
         {
-            if (CurrentSession.HasValue is false)
+            if (!CurrentSession.HasValue)
                 throw new SessionmanagerException(message);
         }
 
