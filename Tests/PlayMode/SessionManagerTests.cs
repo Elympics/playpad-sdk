@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -10,7 +9,6 @@ using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using ElympicsPlayPad.JWT.Extensions;
 using ElympicsPlayPad.Session;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
