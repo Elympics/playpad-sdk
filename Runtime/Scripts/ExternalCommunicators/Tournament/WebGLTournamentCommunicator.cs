@@ -21,9 +21,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
     internal class WebGLTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
         public event Action<TournamentInfo>? TournamentUpdated;
-        public TournamentInfo? CurrentTournament => _currentTournament;
+        public TournamentInfo? CurrentTournament { get; private set; }
 
-        private TournamentInfo? _currentTournament;
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
         private readonly JsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
@@ -39,8 +38,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public async UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default)
         {
             var response = await _jsCommunicator.SendRequestMessage<EmptyPayload, TournamentResponse>(RequestResponseMessageTypes.GetTournament, null, ct);
-            _currentTournament = response.ToTournamentInfo();
-            return _currentTournament.Value;
+            CurrentTournament = response.ToTournamentInfo();
+            return CurrentTournament.Value;
         }
         public async UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
@@ -71,7 +70,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             {
                 var requestIndex = message.rollings.Select((value, index) => new { value, index }).Where(x => x.value.rollingId == fee.rollingId).Select(x => x.index).First();
                 var coinId = requestData[requestIndex].CoinInfo.Id;
-                if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo) is false)
+                if (!_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo))
                     throw new ElympicsException("Couldn't find coinInfo.");
                 feesInfo[requestIndex] = fee.ToTournamentFeeInfo(coinInfo);
             }
@@ -83,7 +82,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public void OnWebMessage(WebMessage message)
         {
             var logger = _logger.WithMethodName();
-            if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
+            if (!string.Equals(message.type, WebMessageTypes.TournamentUpdated))
                 throw logger.CaptureAndThrow(new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type."));
             try
             {
@@ -91,8 +90,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 {
                     case WebMessageTypes.TournamentUpdated:
                         var newTournamentData = JsonUtility.FromJson<TournamentUpdatedMessage>(message.message);
-                        _currentTournament = newTournamentData.ToTournamentInfo();
-                        TournamentUpdated?.Invoke(_currentTournament.Value);
+                        CurrentTournament = newTournamentData.ToTournamentInfo();
+                        TournamentUpdated?.Invoke(CurrentTournament.Value);
                         break;
                     default:
                         logger.Error($"Unable to handle message {message.type}");

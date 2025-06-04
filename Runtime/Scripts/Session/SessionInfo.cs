@@ -1,7 +1,6 @@
 #nullable enable
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
-using ElympicsPlayPad.Tournament.Data;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Session
@@ -43,6 +42,6 @@ namespace ElympicsPlayPad.Session
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);
 
-        public bool IsWallet() => AuthData.AuthType is (AuthType.EthAddress /*or TON */) || string.IsNullOrEmpty(TonWalletAddress) is false;
+        public bool IsWallet() => AuthData.AuthType is AuthType.EthAddress /*or TON */ || !string.IsNullOrEmpty(TonWalletAddress);
     }
 }

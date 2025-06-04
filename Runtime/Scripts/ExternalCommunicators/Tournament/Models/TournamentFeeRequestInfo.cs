@@ -1,4 +1,3 @@
-﻿using System;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 namespace ElympicsPlayPad.Tournament.Data
 {

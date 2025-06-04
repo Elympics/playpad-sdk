@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Utility
 {
-    internal class WebGLFunctionalities: IDisposable
+    internal class WebGLFunctionalities : IDisposable
     {
         private readonly JsCommunicator _jsCommunicator;
 
@@ -25,6 +25,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Utility
             {
                 case WebMessageTypes.WebGLKeyboardInputControl:
                     OnKeyboardInputControlsRequested(message.message);
+                    break;
+                default:
                     break;
             }
         }

@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+#nullable enable
 using JetBrains.Annotations;
 namespace ElympicsPlayPad.Tournament.Data
 {

@@ -70,7 +70,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             {
                 var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(depositResponse.currency.coinId, out var icon);
                 var depositInfo = await depositResponse.ToVirtualDepositInfo(icon, _logger);
-                if (iconFound is false)
+                if (!iconFound)
                     CachedCoinIcons.CoinIcons.Add(depositResponse.currency.coinId, depositInfo.CoinInfo.Currency.Icon);
                 _userDepositCollection.Add(depositInfo.CoinInfo.Id, depositInfo);
             }
@@ -107,7 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             {
                 var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(currencyResponse.coinId, out var icon);
                 var coinInfo = await currencyResponse.ToCoinInfo(icon, _logger);
-                if (iconFound == false)
+                if (!iconFound)
                     CachedCoinIcons.CoinIcons.Add(currencyResponse.coinId, coinInfo.Currency.Icon);
                 _elympicsCoins[coinInfo.Id] = coinInfo;
             }
@@ -130,6 +130,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                     var webMessage = JsonUtility.FromJson<VirtualDepositUpdatedMessage>(message.message);
                     HandleVirtualDepositUpdatedMessage(webMessage).Forget();
                     break;
+                default:
+                    break;
             }
         }
 
@@ -139,7 +141,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             if (_elympicsCoins is null || _elympicsCoins.Count == 0)
                 throw new ElympicsException($"Can't get available coins. ElympicsCoins is null or empty. Please initialize PlayPad using {nameof(SessionManager.AuthenticateFromExternalAndConnect)}");
 
-            if (_elympicsCoins.TryGetValue(coinId, out var cachedCoin) is false)
+            if (!_elympicsCoins.TryGetValue(coinId, out var cachedCoin))
                 throw new ElympicsException($"Coin with {coinId} is not recognized.");
 
             var request = new WalletCurrencyBalanceRequest()
@@ -156,7 +158,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         {
             if (message.deposits == null || message.deposits.Length == 0)
             {
-                if (_userDepositCollection == null) return;
+                if (_userDepositCollection == null)
+                    return;
 
                 var removedDeposits = _userDepositCollection;
                 _userDepositCollection = null;
@@ -172,7 +175,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
                 var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(deposit.currency.coinId, out var icon);
                 var virtualDepositInfo = await deposit.ToVirtualDepositInfo(icon, _logger);
-                if (iconFound == false)
+                if (!iconFound)
                     CachedCoinIcons.CoinIcons.Add(deposit.currency.coinId, virtualDepositInfo.CoinInfo.Currency.Icon);
                 _tempUpdatedCoinsCache.Add(virtualDepositInfo.CoinInfo.Id, virtualDepositInfo);
             }

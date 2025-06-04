@@ -24,7 +24,8 @@ namespace ElympicsPlayPad.Web3.Data.Providers
         {
             get
             {
-                if (_tokenConfig is not null) return _tokenConfig.Value;
+                if (_tokenConfig is not null)
+                    return _tokenConfig.Value;
                 var chainId = _tokenAddressProvider.GetChainId();
                 var tokenAddress = _tokenAddressProvider.GetAddress();
                 _tokenConfig = tokenInfoData.GetTokenConfig(chainId, tokenAddress);

@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
             {
                 _finalCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
-                _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+                _ = _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
             }
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct: ct);

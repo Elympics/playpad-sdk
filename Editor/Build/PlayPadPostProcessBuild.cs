@@ -24,7 +24,8 @@ namespace ElympicsPlayPad.Editor.Build
 
             Console.WriteLine("Creating PlayPad metadata.");
 
-            var config = ElympicsConfig.LoadCurrentElympicsGameConfig()  ?? throw new ElympicsException("Elympics config not found");;
+            var config = ElympicsConfig.LoadCurrentElympicsGameConfig() ?? throw new ElympicsException("Elympics config not found");
+            ;
             try
             {
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();

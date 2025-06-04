@@ -5,7 +5,7 @@ namespace ElympicsPlayPad.Utility
 {
     internal class SystemInfoDataFactory
     {
-        public static SystemInfoData GetSystemInfoData() => new SystemInfoData
+        public static SystemInfoData GetSystemInfoData() => new()
         {
             systemMemorySize = SystemInfo.systemMemorySize,
             operatingSystemFamily = SystemInfo.operatingSystemFamily.ToString(),

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using JetBrains.Annotations;
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models
 {

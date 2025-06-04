@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Serialization;
 
 namespace ElympicsPlayPad.Protocol.Responses
 {

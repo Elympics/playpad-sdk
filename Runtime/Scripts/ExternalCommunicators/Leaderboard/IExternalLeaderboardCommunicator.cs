@@ -8,11 +8,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 {
     public interface IExternalLeaderboardCommunicator
     {
-        public UserHighScoreInfo? UserHighScore { get; }
-        public LeaderboardStatusInfo? Leaderboard { get; }
-        public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
-        public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
-        public UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default);
-        public UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default);
+        UserHighScoreInfo? UserHighScore { get; }
+        LeaderboardStatusInfo? Leaderboard { get; }
+        event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
+        event Action<UserHighScoreInfo>? UserHighScoreUpdated;
+        UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default);
+        UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default);
     }
 }

@@ -17,10 +17,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         IReadOnlyDictionary<Guid, VirtualDepositInfo>? UserDepositCollection { get; }
 
         [PublicAPI]
-        public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
+        event Action<VirtualDepositInfo>? VirtualDepositUpdated;
 
         [PublicAPI]
-        public event Action<CoinInfo>? VirtualDepositRemoved;
+        event Action<CoinInfo>? VirtualDepositRemoved;
 
         [PublicAPI]
         UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
