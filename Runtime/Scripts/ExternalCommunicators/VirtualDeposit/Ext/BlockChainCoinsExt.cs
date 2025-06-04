@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Protocol.Responses;
