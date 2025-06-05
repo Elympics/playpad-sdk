@@ -1,6 +1,5 @@
 using System;
 using Elympics;
-using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Samples.AsyncGame

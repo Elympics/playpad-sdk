@@ -6,12 +6,12 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
+using Elympics.Communication.Rooms.PublicModels;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -72,13 +72,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
                 _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
 
+            TournamentDetails? tournamentDetails = null;
+
             if (_tournamentCommunicator.CurrentTournament.HasValue)
-                _joinedCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
-            else
-                _ = _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+                tournamentDetails = TournamentDetails.Regular(_tournamentCommunicator.CurrentTournament.Value.Id);
 
-
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct: ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, tournamentDetails: tournamentDetails, ct: ct);
         }
 
         public void OnWebMessage(WebMessage message)

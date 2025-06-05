@@ -57,7 +57,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             foreach (var (requestInfo, index) in requestData.Select((value, i) => (value, i)))
                 message.rollings[index] = new RollingDetail
                 {
-                    rollingId = Guid.NewGuid().ToString(),
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
                     prize = WeiConverter.ToWei(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
@@ -66,14 +65,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
 
             var feesInfo = new FeeInfo[response.rollings.Length];
-            foreach (var fee in response.rollings)
+            for (var i = 0; i < response.rollings.Length; i++)
             {
-                var requestIndex = message.rollings.Select((value, index) => new { value, index }).Where(x => x.value.rollingId == fee.rollingId).Select(x => x.index).First();
-                var coinId = requestData[requestIndex].CoinInfo.Id;
+                var coinId = requestData[i].CoinInfo.Id;
                 if (!_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo))
                     throw new ElympicsException("Couldn't find coinInfo.");
-                feesInfo[requestIndex] = fee.ToTournamentFeeInfo(coinInfo);
+                feesInfo[i] = response.rollings[i].ToTournamentFeeInfo(coinInfo);
             }
+
             return new TournamentFeeInfo
             {
                 Fees = feesInfo,

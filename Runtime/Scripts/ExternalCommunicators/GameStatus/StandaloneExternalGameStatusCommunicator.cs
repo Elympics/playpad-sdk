@@ -7,7 +7,6 @@ using Elympics;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
