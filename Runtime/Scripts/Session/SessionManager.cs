@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
@@ -51,6 +52,12 @@ namespace ElympicsPlayPad.Session
 
         private ElympicsLoggerContext _logger;
 
+        private AuthData? _newAuthDataRequest;
+        private string? _newRegionChange;
+
+
+        private CancellationTokenSource _sessionManagerToken = new();
+
 
         internal void Init(ElympicsLoggerContext logger)
         {
@@ -82,8 +89,9 @@ namespace ElympicsPlayPad.Session
                 _ = logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-                var wallets = ExtractWalletAddresses(authData);
-                _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname).SetWalletAddress(wallets.signWallet ?? wallets.accountWallet ?? string.Empty);
+                var (accountWallet, signWallet, _) = ExtractWalletAddresses(authData);
+                _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname)
+                    .SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
                 if (handshake.FeatureAccess.HasTournament())
                 {
                     var tournament = await TournamentCommunicator.GetTournament();
@@ -108,6 +116,7 @@ namespace ElympicsPlayPad.Session
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
+                AuthChangeRequestDispatcher(_sessionManagerToken.Token).Forget(logger.Exception);
                 logger.Log($"PlayPad connection established.");
             }
             else
@@ -140,7 +149,7 @@ namespace ElympicsPlayPad.Session
 #else
             try
             {
-                await AuthWithCached(result, false);
+                await AuthWithCached(result, _region, false);
                 return result;
             }
             catch (Exception e)
@@ -161,14 +170,22 @@ namespace ElympicsPlayPad.Session
             ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
 
             var (accountWallet, signWallet, tonWallet) = ExtractWalletAddresses(authData);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, currentSession.Capabilities, currentSession.Environment, currentSession.IsMobile, region, currentSession.Features, tonWallet);
+            CurrentSession = new SessionInfo(authData,
+                accountWallet,
+                signWallet,
+                currentSession.Capabilities,
+                currentSession.Environment,
+                currentSession.IsMobile,
+                region,
+                currentSession.Features,
+                tonWallet);
         }
 
         private static (string? accountWallet, string? signWallet, string? tonWallet) ExtractWalletAddresses(AuthData authData)
         {
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var result = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            return (result.accountWallet, result.signWallet, result.tonWallet);
+            var (accountWallet, signWallet, tonWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            return (accountWallet, signWallet, tonWallet);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -211,7 +228,7 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private async UniTask AuthWithCached(AuthData cachedData, bool autoRetry)
+        private async UniTask AuthWithCached(AuthData cachedData, string region, bool autoRetry)
         {
             try
             {
@@ -221,13 +238,13 @@ namespace ElympicsPlayPad.Session
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
                 await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData()
                 {
-                    Region = new RegionData(_region),
+                    Region = new RegionData(region),
                     AuthFromCacheData = new CachedAuthData(cachedData, autoRetry)
                 });
             }
             catch (Exception e)
             {
-                throw new SessionManagerAuthException($"Couldn't login using cached data. Logging as guest. Reason: {Environment.NewLine} {e.Message}");
+                throw new SessionManagerAuthException($"Couldn't login using cached data. Reason: {Environment.NewLine} {e.Message}");
             }
         }
 
@@ -241,37 +258,90 @@ namespace ElympicsPlayPad.Session
             return (accountWallet, signWallet, tonAddress);
         }
 
-        private void OnAuthDataChanged(AuthData data)
+        private void OnAuthDataChanged(AuthData data) => _newAuthDataRequest = data;
+
+        private UniTask OnAuthChangedWithRegionAsync(AuthData authData, string newRegion)
+        {
+            _region = newRegion;
+            return OnAuthDataChangedAsync(authData);
+        }
+
+        private async UniTask OnAuthDataChangedAsync(AuthData data)
         {
             StartSessionInfoUpdate?.Invoke();
             ThrowIfCurrentSessionNull("No initial authentication was performed. Can't re-authenticate.");
-
-            AuthWithCached(data, false).ContinueWith(() =>
+            try
             {
+                await AuthWithCached(data, _region, false);
                 SetupSession(data, _region, CurrentSession!.Value);
+            }
+            finally
+            {
                 FinishSessionInfoUpdate?.Invoke();
-            }).Forget();
+            }
         }
 
-        private void OnRegionUpdated(string newRegion)
+        private void OnRegionUpdated(string newRegion) => _newRegionChange = newRegion;
+
+        private async UniTask OnRegionUpdatedAsync(string newRegion)
         {
             ThrowIfCurrentSessionNull("No initial authentication was performed. Can't re-authenticate.");
 
             _region = newRegion;
             StartSessionInfoUpdate?.Invoke();
-            AuthWithCached(CurrentSession!.Value.AuthData, false).ContinueWith(() =>
+            try
             {
+                await AuthWithCached(CurrentSession!.Value.AuthData, _region, false);
                 SetupSession(CurrentSession.Value.AuthData, _region, CurrentSession.Value);
+            }
+            finally
+            {
                 FinishSessionInfoUpdate?.Invoke();
-            }).Forget();
+            }
         }
+        private async UniTask AuthChangeRequestDispatcher(CancellationToken token)
+        {
+            while (true)
+            {
+                if (token.IsCancellationRequested)
+                    return;
 
-        private void OnDestroy() => ExternalAuthenticator.AuthenticationUpdated -= OnAuthDataChanged;
+                try
+                {
+                    var currentAuthData = _newAuthDataRequest;
+                    var currentRegion = _newRegionChange;
+                    _newAuthDataRequest = null;
+                    _newRegionChange = null;
+
+                    if (currentAuthData != null && string.IsNullOrEmpty(currentRegion) is false)
+                        await OnAuthChangedWithRegionAsync(currentAuthData, currentRegion!);
+                    else if (currentAuthData != null)
+                        await OnAuthDataChangedAsync(currentAuthData);
+                    else if (string.IsNullOrEmpty(currentRegion) is false)
+                        await OnRegionUpdatedAsync(currentRegion!);
+                }
+                catch (Exception e)
+                {
+                    var logger = _logger.WithMethodName();
+                    logger.Exception(e);
+                }
+                finally
+                {
+                    await UniTask.Yield();
+                }
+            }
+        }
 
         private void ThrowIfCurrentSessionNull(string message)
         {
             if (!CurrentSession.HasValue)
                 throw new SessionmanagerException(message);
+        }
+
+        private void OnDestroy()
+        {
+            _sessionManagerToken.Cancel();
+            ExternalAuthenticator.AuthenticationUpdated -= OnAuthDataChanged;
         }
 
         internal void Reset()
