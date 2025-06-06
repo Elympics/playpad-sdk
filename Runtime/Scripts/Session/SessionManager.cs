@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
@@ -90,9 +89,9 @@ namespace ElympicsPlayPad.Session
                 _ = logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-                var wallets = ExtractWalletAddresses(authData);
+                var (accountWallet, signWallet, _) = ExtractWalletAddresses(authData);
                 _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname)
-                    .SetWalletAddress(wallets.signWallet ?? wallets.accountWallet ?? string.Empty);
+                    .SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
                 if (handshake.FeatureAccess.HasTournament())
                 {
                     var tournament = await TournamentCommunicator.GetTournament();
@@ -185,8 +184,8 @@ namespace ElympicsPlayPad.Session
         private static (string? accountWallet, string? signWallet, string? tonWallet) ExtractWalletAddresses(AuthData authData)
         {
             var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var result = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            return (result.accountWallet, result.signWallet, result.tonWallet);
+            var (accountWallet, signWallet, tonWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
+            return (accountWallet, signWallet, tonWallet);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
