@@ -57,6 +57,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         {
             NewSettlements = 1,
         });
+        public UniTask<(bool isSuccess, string? error)> SetActiveTournament(string tournamentId, CancellationToken ct = default) => UniTask.FromResult((false, $"Operation not supported by {nameof(StandaloneTournamentCommunicator)}."));
 
         public void OnWebMessage(WebMessage message)
         {

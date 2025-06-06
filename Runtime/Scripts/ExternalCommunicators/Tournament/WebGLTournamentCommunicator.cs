@@ -142,6 +142,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             };
         }
 
+
+        public async UniTask<(bool isSuccess, string? error)> SetActiveTournament(string tournamentId, CancellationToken ct = default)
+        {
+            var response = await _jsCommunicator.SendRequestMessage<SetActiveTournamentRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SetActiveTournament, new SetActiveTournamentRequest { tournamentId = tournamentId }, ct);
+            return (response.success, response.error);
+        }
+
         public void OnWebMessage(WebMessage message)
         {
             var logger = _logger.WithMethodName();
