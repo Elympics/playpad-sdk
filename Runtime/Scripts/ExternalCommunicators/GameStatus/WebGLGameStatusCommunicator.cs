@@ -72,10 +72,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
                 _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
 
-            TournamentDetails? tournamentDetails = null;
+            CompetitivenessConfig? tournamentDetails = null;
 
             if (_tournamentCommunicator.CurrentTournament.HasValue)
-                tournamentDetails = TournamentDetails.Regular(_tournamentCommunicator.CurrentTournament.Value.Id);
+                tournamentDetails = CompetitivenessConfig.Regular(_tournamentCommunicator.CurrentTournament.Value.Id);
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, tournamentDetails: tournamentDetails, ct: ct);
         }
