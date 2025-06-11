@@ -143,10 +143,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         }
 
 
-        public async UniTask<(bool isSuccess, string? error)> SetActiveTournament(string tournamentId, CancellationToken ct = default)
+        public async UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<SetActiveTournamentRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SetActiveTournament, new SetActiveTournamentRequest { tournamentId = tournamentId }, ct);
-            return (response.success, response.error);
+            var payload = new SetActiveTournamentRequest { tournamentId = tournamentId };
+            var response = await _jsCommunicator.SendRequestMessage<SetActiveTournamentRequest, TournamentUpdatedMessage>(RequestResponseMessageTypes.SetActiveTournament, payload, ct);
+
+            if (string.IsNullOrEmpty(response.id))
+                throw new ArgumentException($"Tournament with ID {tournamentId} does not exist.", nameof(tournamentId));
+
+            CurrentTournament = response.ToTournamentInfo();
+            return CurrentTournament.Value;
         }
 
         public void OnWebMessage(WebMessage message)
