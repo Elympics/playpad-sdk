@@ -117,16 +117,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return RetrieveBalanceInfo(walletAddress, coinId, ct);
         }
 
-        public async UniTask<(bool isSuccess, string? error)> SignProofOfEntry(CancellationToken ct = default)
+        public async UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default)
         {
             var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
             if (currentRoom == null)
-                return (false, "Client is not connected to a room.");
+                return new SignProofOfEntryResult(false, "Client is not connected to a room.");
 
             //TO DO: add handling for rolling tournaments
             var betDetails = currentRoom.State.MatchmakingData?.BetDetails;
             if (betDetails == null)
-                return (false, "Current room has no bet.");
+                return new SignProofOfEntryResult(false, "Current room has no bet.");
 
             var request = new SignProofOfEntryRequest
             {
@@ -135,7 +135,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 roomId = currentRoom.RoomId.ToString()
             };
             var response = await _jsCommunicator.SendRequestMessage<SignProofOfEntryRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SignProofOfEntry, request, ct);
-            return (response.success, response.error);
+            return new SignProofOfEntryResult(response.success, response.error);
         }
 
         public void OnWebMessage(WebMessage message)

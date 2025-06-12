@@ -33,6 +33,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default);
 
-        UniTask<(bool isSuccess, string? error)> SignProofOfEntry(CancellationToken ct = default);
+        UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default);
     }
 }
