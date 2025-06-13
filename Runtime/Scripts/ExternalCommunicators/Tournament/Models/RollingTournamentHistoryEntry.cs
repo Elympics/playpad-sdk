@@ -1,0 +1,73 @@
+#nullable enable
+
+using System;
+using System.Collections.ObjectModel;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
+using JetBrains.Annotations;
+
+namespace ElympicsPlayPad.Tournament.Data
+{
+    [PublicAPI]
+    public readonly struct RollingTournamentHistoryEntry
+    {
+        public readonly string State;
+        public readonly decimal Prize;
+        public readonly CoinInfo Coin;
+        public readonly decimal EntryFee;
+        public readonly int NumberOfPlayers;
+        /// <summary>All matches played in this tournament so far in the order of places on the leaderboard.</summary>
+        public readonly ReadOnlyCollection<RollingTournamentMatch> AllMatches;
+        /// <summary>Index of the local player's match in <see cref="AllMatches"/>.</summary>
+        public readonly int LocalPlayerMatchIndex;
+
+        internal RollingTournamentHistoryEntry(
+            string state,
+            decimal prize,
+            CoinInfo coin,
+            decimal entryFee,
+            int numberOfPlayers,
+            ReadOnlyCollection<RollingTournamentMatch> allMatches,
+            int localPlayerMatchIndex)
+        {
+            if (localPlayerMatchIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(localPlayerMatchIndex));
+            if (localPlayerMatchIndex >= allMatches.Count)
+                throw new ArgumentException($"{nameof(localPlayerMatchIndex)} is not a valid index for {nameof(allMatches)}. {nameof(localPlayerMatchIndex)}: {localPlayerMatchIndex} {nameof(allMatches)}.Count: {allMatches.Count}.", nameof(localPlayerMatchIndex));
+
+            State = state;
+            Prize = prize;
+            Coin = coin;
+            EntryFee = entryFee;
+            NumberOfPlayers = numberOfPlayers;
+            AllMatches = allMatches;
+            LocalPlayerMatchIndex = localPlayerMatchIndex;
+        }
+    }
+
+    [PublicAPI]
+    public readonly struct RollingTournamentMatch : IEquatable<RollingTournamentMatch>
+    {
+        public readonly string AvatarUrl;
+        public readonly string Nickname;
+        public readonly DateTime MatchEnded;
+        public readonly float Score;
+
+        internal RollingTournamentMatch(string avatarUrl, string nickname, DateTime matchEnded, float score)
+        {
+            AvatarUrl = avatarUrl;
+            Nickname = nickname;
+            MatchEnded = matchEnded;
+            Score = score;
+        }
+
+        public bool Equals(RollingTournamentMatch other) => AvatarUrl == other.AvatarUrl && Nickname == other.Nickname && MatchEnded.Equals(other.MatchEnded) && Score.Equals(other.Score);
+
+        public override bool Equals(object? obj) => obj is RollingTournamentMatch other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(AvatarUrl, Nickname, MatchEnded, Score);
+
+        public static bool operator ==(RollingTournamentMatch left, RollingTournamentMatch right) => left.Equals(right);
+
+        public static bool operator !=(RollingTournamentMatch left, RollingTournamentMatch right) => !left.Equals(right);
+    }
+}

@@ -13,5 +13,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         event Action<TournamentInfo>? TournamentUpdated;
         UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default);
         UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns the history of rolling tournaments local user participated in.
+        /// This includes currently active tournaments and the ones that have already ended.
+        /// </summary>
+        /// <param name="maxCount">Limits the number of fetched history entries.</param>
+        /// <param name="skip">Number of most recent history entries to skip.</param>
+        UniTask<RollingTournamentHistoryEntry[]> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
     }
 }
