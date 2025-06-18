@@ -75,7 +75,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             CompetitivenessConfig? tournamentDetails = null;
 
             if (_tournamentCommunicator.CurrentTournament.HasValue)
-                tournamentDetails = CompetitivenessConfig.Regular(_tournamentCommunicator.CurrentTournament.Value.Id);
+                tournamentDetails = CompetitivenessConfig.GlobalTournament(_tournamentCommunicator.CurrentTournament.Value.Id);
 
             return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, tournamentDetails: tournamentDetails, ct: ct);
         }
