@@ -93,7 +93,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
             var decimals = coinInfo.Currency.Decimals;
             return new FeeInfo
             {
-                RollingTournamentBetConfigId = Guid.Parse(feeResponse.rollingId),
                 EntryFeeRaw = string.IsNullOrEmpty(feeResponse.error) ? feeResponse.entryFee : null,
                 EntryFee = string.IsNullOrEmpty(feeResponse.error) ? WeiConverter.FromWei(feeResponse.entryFee, decimals) : null,
                 Error = feeResponse.error
