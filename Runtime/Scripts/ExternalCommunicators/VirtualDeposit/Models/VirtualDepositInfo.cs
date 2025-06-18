@@ -1,4 +1,6 @@
 #nullable enable
+using Elympics;
+
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models
 {
     public readonly struct VirtualDepositInfo

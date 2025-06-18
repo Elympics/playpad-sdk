@@ -9,7 +9,6 @@ using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Utils;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -68,10 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             _userDepositCollection.Clear();
             foreach (var depositResponse in result.deposits)
             {
-                var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(depositResponse.currency.coinId, out var icon);
-                var depositInfo = await depositResponse.ToVirtualDepositInfo(icon, _logger);
-                if (!iconFound)
-                    CachedCoinIcons.CoinIcons.Add(depositResponse.currency.coinId, depositInfo.CoinInfo.Currency.Icon);
+                var depositInfo = await depositResponse.ToVirtualDepositInfo(_logger);
                 _userDepositCollection.Add(depositInfo.CoinInfo.Id, depositInfo);
             }
             return _userDepositCollection;
@@ -105,10 +101,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             _elympicsCoins.Clear();
             foreach (var currencyResponse in result.currencies)
             {
-                var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(currencyResponse.coinId, out var icon);
-                var coinInfo = await currencyResponse.ToCoinInfo(icon, _logger);
-                if (!iconFound)
-                    CachedCoinIcons.CoinIcons.Add(currencyResponse.coinId, coinInfo.Currency.Icon);
+                var coinInfo = await currencyResponse.ToCoinInfo(_logger);
                 _elympicsCoins[coinInfo.Id] = coinInfo;
             }
             return _elympicsCoins;
@@ -173,10 +166,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             foreach (var deposit in message.deposits)
             {
                 _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
-                var iconFound = CachedCoinIcons.CoinIcons.TryGetValue(deposit.currency.coinId, out var icon);
-                var virtualDepositInfo = await deposit.ToVirtualDepositInfo(icon, _logger);
-                if (!iconFound)
-                    CachedCoinIcons.CoinIcons.Add(deposit.currency.coinId, virtualDepositInfo.CoinInfo.Currency.Icon);
+                var virtualDepositInfo = await deposit.ToVirtualDepositInfo(_logger);
                 _tempUpdatedCoinsCache.Add(virtualDepositInfo.CoinInfo.Id, virtualDepositInfo);
             }
 

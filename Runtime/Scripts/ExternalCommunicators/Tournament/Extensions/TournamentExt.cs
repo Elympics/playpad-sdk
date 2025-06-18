@@ -2,7 +2,7 @@
 
 using System;
 using System.Globalization;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
+using Elympics;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;

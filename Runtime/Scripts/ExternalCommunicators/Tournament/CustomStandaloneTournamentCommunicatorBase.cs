@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsPlayPad.Tournament.Data;
 using JetBrains.Annotations;
 using UnityEngine;

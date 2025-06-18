@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using JetBrains.Annotations;
 
