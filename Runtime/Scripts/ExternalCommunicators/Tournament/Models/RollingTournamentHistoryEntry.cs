@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.ObjectModel;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
+using Elympics;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data
