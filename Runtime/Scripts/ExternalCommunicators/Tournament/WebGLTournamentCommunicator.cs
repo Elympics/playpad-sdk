@@ -78,6 +78,53 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 Fees = feesInfo,
             };
         }
+
+        public async UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default)
+        {
+            if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
+                throw new NullReferenceException($"Can't request rolling tournament history when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
+            if (maxCount <= 0)
+                return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
+
+            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(
+                RequestResponseMessageTypes.GetRollingTournamentHistory,
+                new GetRollingTournamentHistoryRequest
+                {
+                    skip = skip,
+                    take = maxCount
+                },
+                ct);
+
+            return new RollingTournamentHistory(response.entries.Select(ToPublicModel).ToArray());
+
+            RollingTournamentHistoryEntry ToPublicModel(GetRollingTournamentHistoryResponse.HistoryEntry entry)
+            {
+                var allMatches = entry.allScores.OrderBy(participation => participation.position).Select(ParticipationToMatch).ToList().AsReadOnly();
+                var localPlayerMatch = ParticipationToMatch(entry.myScore);
+                var localPlayerMatchIndex = allMatches.IndexOf(localPlayerMatch);
+
+                if (localPlayerMatchIndex < 0)
+                    throw _logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
+
+                var coinInfo = _blockChainCurrencyCommunicator.ElympicsCoins[Guid.Parse(entry.tournament.coinId)];
+                var prize = WeiConverter.FromWei(entry.tournament.prize, coinInfo.Currency.Decimals);
+                var entryFee = WeiConverter.FromWei(entry.tournament.entryFee, coinInfo.Currency.Decimals);
+
+                return new RollingTournamentHistoryEntry(entry.state, prize, coinInfo, entryFee, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex);
+            }
+
+            RollingTournamentMatch ParticipationToMatch(GetRollingTournamentHistoryResponse.Participation participation)
+            {
+                if (!DateTime.TryParse(participation.matchEnded, out var matchEnded))
+                {
+                    matchEnded = DateTime.MinValue;
+                    _logger.Error($"Received match end date and time is in invalid format: {participation.matchEnded}. SDK will return {matchEnded} instead.");
+                }
+
+                return new RollingTournamentMatch(participation.avatar, participation.nickname, matchEnded, participation.score);
+            }
+        }
+
         public void OnWebMessage(WebMessage message)
         {
             var logger = _logger.WithMethodName();
