@@ -8,6 +8,14 @@ using JetBrains.Annotations;
 namespace ElympicsPlayPad.Tournament.Data
 {
     [PublicAPI]
+    public readonly struct RollingTournamentHistory
+    {
+        public readonly RollingTournamentHistoryEntry[] Entries;
+
+        internal RollingTournamentHistory(RollingTournamentHistoryEntry[] entries) => Entries = entries;
+    }
+
+    [PublicAPI]
     public readonly struct RollingTournamentHistoryEntry
     {
         public readonly string State;

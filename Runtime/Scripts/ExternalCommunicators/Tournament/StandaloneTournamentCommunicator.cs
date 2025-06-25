@@ -51,7 +51,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return UniTask.FromResult<TournamentInfo?>(null);
         }
         public UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => UniTask.FromResult<TournamentFeeInfo?>(null);
-        public UniTask<RollingTournamentHistoryEntry[]> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) => UniTask.FromResult(Array.Empty<RollingTournamentHistoryEntry>());
+        public UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>()));
 
         public void OnWebMessage(WebMessage message)
         {

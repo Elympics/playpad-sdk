@@ -20,6 +20,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// </summary>
         /// <param name="maxCount">Limits the number of fetched history entries.</param>
         /// <param name="skip">Number of most recent history entries to skip.</param>
-        UniTask<RollingTournamentHistoryEntry[]> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
+        /// <param name="ct"></param>
+        UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
     }
 }

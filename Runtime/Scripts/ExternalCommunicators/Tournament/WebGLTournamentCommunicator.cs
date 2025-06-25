@@ -79,12 +79,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             };
         }
 
-        public async UniTask<RollingTournamentHistoryEntry[]> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default)
+        public async UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default)
         {
             if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
                 throw new NullReferenceException($"Can't request rolling tournament history when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
             if (maxCount <= 0)
-                return Array.Empty<RollingTournamentHistoryEntry>();
+                return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
 
             var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(
                 RequestResponseMessageTypes.GetRollingTournamentHistory,
@@ -95,7 +95,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 },
                 ct);
 
-            return response.entries.Select(ToPublicModel).ToArray();
+            return new RollingTournamentHistory(response.entries.Select(ToPublicModel).ToArray());
 
             RollingTournamentHistoryEntry ToPublicModel(GetRollingTournamentHistoryResponse.HistoryEntry entry)
             {
