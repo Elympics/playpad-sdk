@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             CurrentTournament = response.ToTournamentInfo();
             return CurrentTournament.Value;
         }
-        public async UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
+        public async UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
             if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
                 throw new NullReferenceException($"Can't request fee when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
