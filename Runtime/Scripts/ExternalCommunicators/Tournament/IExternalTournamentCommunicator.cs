@@ -12,7 +12,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         TournamentInfo? CurrentTournament { get; }
         event Action<TournamentInfo>? TournamentUpdated;
         UniTask<TournamentInfo?> GetTournament(CancellationToken ct = default);
-        UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default);
+        UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default);
 
         /// <summary>
         /// Returns the history of rolling tournaments local user participated in.
