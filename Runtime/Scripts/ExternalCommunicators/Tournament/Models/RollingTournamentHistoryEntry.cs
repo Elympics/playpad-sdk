@@ -12,7 +12,7 @@ namespace ElympicsPlayPad.Tournament.Data
     {
         public readonly RollingTournamentHistoryEntry[] Entries;
 
-        internal RollingTournamentHistory(RollingTournamentHistoryEntry[] entries) => Entries = entries;
+        public RollingTournamentHistory(RollingTournamentHistoryEntry[] entries) => Entries = entries;
     }
 
     [PublicAPI]
@@ -28,7 +28,7 @@ namespace ElympicsPlayPad.Tournament.Data
         /// <summary>Index of the local player's match in <see cref="AllMatches"/>.</summary>
         public readonly int LocalPlayerMatchIndex;
 
-        internal RollingTournamentHistoryEntry(
+        public RollingTournamentHistoryEntry(
             string state,
             decimal prize,
             CoinInfo coin,
@@ -60,7 +60,7 @@ namespace ElympicsPlayPad.Tournament.Data
         public readonly DateTime MatchEnded;
         public readonly float Score;
 
-        internal RollingTournamentMatch(string avatarUrl, string nickname, DateTime matchEnded, float score)
+        public RollingTournamentMatch(string avatarUrl, string nickname, DateTime matchEnded, float score)
         {
             AvatarUrl = avatarUrl;
             Nickname = nickname;
