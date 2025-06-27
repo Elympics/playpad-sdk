@@ -1,16 +1,12 @@
 #nullable enable
-using System;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Wrappers
 {
     internal interface IElympicsLobbyWrapper
     {
-        public event Action<ElympicsState, ElympicsState>? ElympicsStateUpdated;
         IGameplaySceneMonitor GameplaySceneMonitor { get; }
 
         IRoomsManager RoomsManager { get; }
@@ -25,5 +21,7 @@ namespace ElympicsPlayPad.Wrappers
 
         UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
         UniTask ConnectToElympicsAsync(ConnectionData connectionData);
+
+        void WatchReplay();
     }
 }

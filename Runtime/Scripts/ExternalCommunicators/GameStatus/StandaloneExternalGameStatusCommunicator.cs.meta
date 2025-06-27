@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Runtime/Scripts/Authorization/StandaloneExternalGameStatusCommunicator.cs.meta
 guid: 4e4f08c344da7f744bd16e74044f253e
-========
-guid: 353588e2e6b71be488460e62ecd686ca
->>>>>>>> ec1c09c (feat: add competitive support):Runtime/Scripts/Blockchain/ERC20SmartContractCommunicator.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

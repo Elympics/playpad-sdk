@@ -9,12 +9,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
     public interface IExternalGameStatusCommunicator : IDisposable
     {
-        public event Action<PlayStatusInfo>? PlayStatusUpdated;
+        event Action<PlayStatusInfo>? PlayStatusUpdated;
         PlayStatusInfo CurrentPlayStatus { get; }
-        public void HideSplashScreen();
+        void HideSplashScreen();
         [Obsolete("Replaced by new automatic RTT reporting system.", false)]
-        public void RttUpdated(TimeSpan rtt) { }
-        public UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
-        public UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default);
+        void RttUpdated(TimeSpan rtt) { }
+        UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
+        UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default);
     }
 }

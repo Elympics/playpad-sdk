@@ -10,5 +10,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
         Leaderboard = 2,
         Tournament = 4,
         HighScore = 8,
+        VirtualDeposit = 16,
     }
 }

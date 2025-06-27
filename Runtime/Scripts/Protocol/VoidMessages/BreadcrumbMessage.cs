@@ -1,7 +1,7 @@
 using System;
 using Elympics.ElympicsSystems.Internal;
 
-namespace ElympicsPlayPad.Protocol.WebMessages
+namespace ElympicsPlayPad.Protocol.VoidMessages
 {
     [Serializable]
     internal struct BreadcrumbMessage
@@ -24,7 +24,8 @@ namespace ElympicsPlayPad.Protocol.WebMessages
         public string walletAddress;
         public string time;
         public string ip; //Value assigned by playpad
-        public string fleetId; //Value assigned by playpad
+        public string fleetName;
+        public string gameVersionId;
         public string region;
         public string lobbyUrl;
         public string roomId;
@@ -45,6 +46,8 @@ namespace ElympicsPlayPad.Protocol.WebMessages
             sessionId = loggerContext.SessionId.ToString(),
             app = loggerContext.App,
             gameId = loggerContext.ElympicsContext.GameId,
+            fleetName = loggerContext.ElympicsContext.FleetName,
+            gameVersionId = loggerContext.ElympicsContext.GameVersionId,
             elympicsSdkVersion = loggerContext.ElympicsContext.SdkVersion,
             userId = loggerContext.UserContext.UserId,
             nickName = loggerContext.UserContext.Nickname,

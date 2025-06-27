@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
@@ -18,9 +19,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
     public class StandaloneTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
         public event Action<TournamentInfo>? TournamentUpdated;
-        public TournamentInfo? CurrentTournament => _currentTournamentInfo;
-
-        private TournamentInfo? _currentTournamentInfo;
+        public TournamentInfo? CurrentTournament { get; private set; }
 
         private readonly StandaloneExternalTournamentConfig _config;
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
@@ -46,20 +45,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     endDate = _config.EndDate,
                     isDefault = _config.IsDefault,
                 };
-                _currentTournamentInfo = dto.ToTournamentInfo(_config.PrizePool);
-                return UniTask.FromResult(_currentTournamentInfo);
+                CurrentTournament = dto.ToTournamentInfo(_config.PrizePool);
+                return UniTask.FromResult(CurrentTournament);
             }
             return UniTask.FromResult<TournamentInfo?>(null);
         }
+        public UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => UniTask.FromResult<TournamentFeeInfo?>(null);
+        public UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>()));
 
         public void OnWebMessage(WebMessage message)
         {
-            if (string.Equals(message.type, WebMessageTypes.TournamentUpdated) is false)
+            if (!string.Equals(message.type, WebMessageTypes.TournamentUpdated))
                 throw new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type.");
 
             var newTournamentData = JsonUtility.FromJson<TournamentUpdatedMessage>(message.message);
-            _currentTournamentInfo = newTournamentData.ToTournamentInfo();
-            TournamentUpdated?.Invoke(_currentTournamentInfo.Value);
+            CurrentTournament = newTournamentData.ToTournamentInfo();
+            TournamentUpdated?.Invoke(CurrentTournament.Value);
         }
     }
 }

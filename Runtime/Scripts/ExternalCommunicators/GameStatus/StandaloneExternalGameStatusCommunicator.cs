@@ -7,7 +7,6 @@ using Elympics;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
@@ -46,10 +45,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
             {
                 _finalCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
-                _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+                _ = _finalCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
             }
 
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _finalCustomMatchmakingData, ct: ct);
         }
 
         public void HideSplashScreen() => Debug.Log($"Hide splash screen.");

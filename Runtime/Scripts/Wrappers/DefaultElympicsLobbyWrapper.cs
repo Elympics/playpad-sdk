@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -9,21 +8,19 @@ namespace ElympicsPlayPad.Wrappers
 {
     public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
     {
-        public event Action<ElympicsState, ElympicsState>? ElympicsStateUpdated;
-
+        private ElympicsLobbyClient _matchLauncher = null!;
         private void Awake()
         {
             if (ElympicsLobbyClient.Instance != null)
-                ElympicsLobbyClient.Instance.StateChanged += OnStateChanged;
+                _matchLauncher = ElympicsLobbyClient.Instance;
         }
-        private void OnStateChanged(ElympicsState previousState, ElympicsState newState) => ElympicsStateUpdated?.Invoke(previousState, newState);
-
         public IGameplaySceneMonitor GameplaySceneMonitor => ElympicsLobbyClient.Instance!.GameplaySceneMonitor;
         public IRoomsManager RoomsManager => ElympicsLobbyClient.Instance!.RoomsManager;
         public AuthData? AuthData => ElympicsLobbyClient.Instance!.AuthData;
         public bool IsAuthenticated => ElympicsLobbyClient.Instance!.IsAuthenticated;
         public IWebSocketSession WebSocketSession => ElympicsLobbyClient.Instance!.WebSocketSession;
         public void SignOut() => ElympicsLobbyClient.Instance!.SignOut();
+        public void WatchReplay() => _matchLauncher.WatchReplay();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
             var connectionData = new ConnectionData()
@@ -34,11 +31,5 @@ namespace ElympicsPlayPad.Wrappers
             return ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(connectionData);
         }
         public UniTask ConnectToElympicsAsync(ConnectionData data) => ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(data);
-
-        private void OnDestroy()
-        {
-            if (ElympicsLobbyClient.Instance != null)
-                ElympicsLobbyClient.Instance.StateChanged -= OnStateChanged;
-        }
     }
 }

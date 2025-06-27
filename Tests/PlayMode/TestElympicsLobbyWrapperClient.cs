@@ -38,6 +38,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
             AuthData = null;
             _mockWebSocket?.ToggleConnection(false);
         }
+        public void WatchReplay() => throw new NotImplementedException();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
             AuthData = data;
@@ -45,12 +46,10 @@ namespace ElympicsPlayPad.Tests.PlayMode
             _mockWebSocket.ToggleConnection(true);
             return UniTask.CompletedTask;
         }
-        public UniTask ConnectToElympicsAsync(ConnectionData data)
+        public async UniTask ConnectToElympicsAsync(ConnectionData data)
         {
             if (data.AuthType is not null)
-            {
                 AuthData = new AuthData(Guid.Empty, "", "nickName", data.AuthType.Value);
-            }
             else
             {
                 if (data.AuthFromCacheData is not null)
@@ -59,8 +58,8 @@ namespace ElympicsPlayPad.Tests.PlayMode
                 }
             }
             _mockWebSocket = new MockWebSocket();
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
             _mockWebSocket.ToggleConnection(true);
-            return UniTask.CompletedTask;
         }
     }
 

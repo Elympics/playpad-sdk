@@ -15,7 +15,7 @@ namespace ElympicsPlayPad.Utility
             try
             {
                 var buffer = Convert.FromBase64String(image);
-                texture.LoadImage(buffer);
+                _ = texture.LoadImage(buffer);
             }
             catch (Exception e)
             {

@@ -35,6 +35,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public string StartDate => startDate;
         public string EndDate => endDate;
         public int LeaderboardCapacity => leaderboardCapacity;
+
         public PrizePoolInfo PrizePool => new()
         {
             Type = type,

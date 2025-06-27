@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.AssemblyCommunicator;
+using Elympics.AssemblyCommunicator.Events;
+using Elympics.Communication.Rooms.PublicModels;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.ExternalCommunicators.Tournament.Utility;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -23,7 +25,7 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
-    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver
+    internal class WebGLGameStatusCommunicator : IExternalGameStatusCommunicator, IWebMessageReceiver, IElympicsObserver<ElympicsStateChanged>
     {
         public PlayStatusInfo CurrentPlayStatus { get; private set; }
         public event Action<PlayStatusInfo>? PlayStatusUpdated;
@@ -42,22 +44,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _tournamentCommunicator = tournamentCommunicator;
             _logger = logger;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
-            _lobby.ElympicsStateUpdated += OnElympicsStateUpdated;
+            CrossAssemblyEventBroadcaster.AddObserver(this);
             _roomsManager = _lobby.RoomsManager;
             _logger = logger.WithContext(nameof(WebGLGameStatusCommunicator));
         }
-        private void OnElympicsStateUpdated(ElympicsState previousState, ElympicsState newState)
-        {
-            var message = new ElympicsStateUpdatedMessage
-            {
-                previousState = (int)previousState,
-                newState = (int)newState
-            };
 
-            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidEventTypes.ElympicsStateUpdated, message);
-        }
-
-        public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidEventTypes.HideSplashScreen);
+        public void HideSplashScreen() => _communicator.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideSplashScreen);
 
         public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
@@ -65,7 +57,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             {
                 autoResolve = autoResolve
             };
-            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(ReturnEventTypes.GetPlayStatus, request, ct);
+            var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(RequestResponseMessageTypes.GetPlayStatus, request, ct);
             CurrentPlayStatus = response.ToPlayStateInfo();
             return CurrentPlayStatus;
         }
@@ -80,13 +72,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
                 _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
 
+            CompetitivenessConfig? tournamentDetails = null;
+
             if (_tournamentCommunicator.CurrentTournament.HasValue)
-                _joinedCustomMatchmakingData[TournamentConst.TournamentIdKey] = _tournamentCommunicator.CurrentTournament.Value.Id;
-            else
-                _joinedCustomMatchmakingData.Remove(TournamentConst.TournamentIdKey);
+                tournamentDetails = CompetitivenessConfig.GlobalTournament(_tournamentCommunicator.CurrentTournament.Value.Id);
 
-
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, tournamentDetails: tournamentDetails, ct: ct);
         }
 
         public void OnWebMessage(WebMessage message)
@@ -123,13 +114,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
             };
 
-            _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidEventTypes.SystemInfoData, systemInfoDataMessage);
+            _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
         }
 
         public void Dispose()
         {
             _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
-            _lobby.ElympicsStateUpdated -= OnElympicsStateUpdated;
+        }
+        public void OnEvent(ElympicsStateChanged argument)
+        {
+            var message = new ElympicsStateUpdatedMessage
+            {
+                previousState = (int)argument.PreviousState,
+                newState = (int)argument.NewState
+            };
+
+            _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidMessageTypes.ElympicsStateUpdated, message);
         }
     }
 }

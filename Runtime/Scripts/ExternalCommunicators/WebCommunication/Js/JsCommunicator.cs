@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
@@ -21,7 +20,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public event Action<string>? ResponseObjectReceived;
         public event Action<WebMessage>? WebObjectReceived;
 
-        private Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new Dictionary<string, List<IWebMessageReceiver>>();
+        private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
         private int _requestCounter;
         internal const string ProtocolVersion = "0.2.1";
@@ -60,7 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             where TInput : struct
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
-            if (BlockEventLog(messageType) is false)
+            if (!BlockEventLog(messageType))
                 ElympicsLogger.Log($"Send Void {messageType} message: {message}");
 
             // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
@@ -68,21 +67,28 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
             return;
 
-            bool BlockEventLog(string type) => type.Equals(VoidEventTypes.BreadcrumbMessage) || type.Equals(VoidEventTypes.NetworkStatusMessage);
+            static bool BlockEventLog(string type) => type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage);
         }
 
+
+        public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType) => RegisterHandler(receiver, messageType);
 
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes)
         {
             foreach (var messageType in messageTypes)
-                if (_webMessageReceivers.TryGetValue(messageType, out var list))
-                    list.Add(receiver);
-                else
-                    _webMessageReceivers.Add(messageType,
-                        new List<IWebMessageReceiver>()
-                        {
-                            receiver
-                        });
+                RegisterHandler(receiver, messageType);
+        }
+
+        private void RegisterHandler(IWebMessageReceiver receiver, string messageType)
+        {
+            if (_webMessageReceivers.TryGetValue(messageType, out var list))
+                list.Add(receiver);
+            else
+                _webMessageReceivers.Add(messageType,
+                    new List<IWebMessageReceiver>()
+                    {
+                        receiver
+                    });
         }
 
         [UsedImplicitly]

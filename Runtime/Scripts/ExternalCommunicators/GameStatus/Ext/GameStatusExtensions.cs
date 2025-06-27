@@ -1,6 +1,7 @@
 using System;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Protocol.WebMessages;
 
 namespace ElympicsPlayPad
 {

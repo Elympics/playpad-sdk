@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Elympics.AssemblyCommunicator.Events;
 
-namespace ElympicsPlayPad.Protocol.WebMessages
+namespace ElympicsPlayPad.Protocol.VoidMessages
 {
     [Serializable]
     internal struct NetworkStatusMessage
