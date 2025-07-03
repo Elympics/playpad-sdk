@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Communication.Mappers;
 using Elympics.ElympicsSystems.Internal;
+using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
@@ -19,7 +20,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 
             var depositInfo = new VirtualDepositInfo
             {
-                Amount = WeiConverter.FromWei(response.amount, coinInfo.Currency.Decimals),
+                Amount = RawCoinConverter.FromRaw(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
                 CoinInfo = coinInfo
             };
@@ -58,7 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 
             var depositInfo = new VirtualDepositInfo
             {
-                Amount = WeiConverter.FromWei(response.amount, coinInfo.Currency.Decimals),
+                Amount = RawCoinConverter.FromRaw(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
                 CoinInfo = coinInfo
             };
@@ -70,7 +71,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             return new WalletBalanceInfo
             {
                 AmountRaw = string.IsNullOrEmpty(response.error) ? response.amount : string.Empty,
-                Amount = string.IsNullOrEmpty(response.error) ? WeiConverter.FromWei(response.amount, decimals) : 0,
+                Amount = string.IsNullOrEmpty(response.error) ? RawCoinConverter.FromRaw(response.amount, decimals) : 0,
                 Error = response.error
             };
         }
