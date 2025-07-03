@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: AssemblyCompany("Elympics")]
 [assembly: AssemblyProduct("Elympics PlayPad")]
-[assembly: AssemblyVersion("1.6.0.0")]
+[assembly: AssemblyVersion("1.6.1.0")]
 [assembly: InternalsVisibleTo("ElympicsPlayPad.Tests.PlayMode")]
 [assembly: InternalsVisibleTo("ElympicsPlayPad.Editor")]
 
