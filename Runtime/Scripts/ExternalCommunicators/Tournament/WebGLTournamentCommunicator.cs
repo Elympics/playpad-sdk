@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
+using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -59,7 +60,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 {
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
-                    prize = WeiConverter.ToWei(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
+                    prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
                 };
 
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
@@ -107,8 +108,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     throw _logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
 
                 var coinInfo = _blockChainCurrencyCommunicator.ElympicsCoins[Guid.Parse(entry.tournament.coinId)];
-                var prize = WeiConverter.FromWei(entry.tournament.prize, coinInfo.Currency.Decimals);
-                var entryFee = WeiConverter.FromWei(entry.tournament.entryFee, coinInfo.Currency.Decimals);
+                var prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Currency.Decimals);
+                var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
 
                 return new RollingTournamentHistoryEntry(entry.state, prize, coinInfo, entryFee, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex);
             }

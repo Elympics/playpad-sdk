@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
+using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -78,7 +79,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             if (amount <= 0)
                 throw new ArgumentException("Amount of virtual deposit has to be greater than 0", nameof(amount));
 
-            var weiAmount = WeiConverter.ToWei(amount, coinInfo.Currency.Decimals);
+            var weiAmount = RawCoinConverter.ToRaw(amount, coinInfo.Currency.Decimals);
             var request = new EnsureVirtualDepositRequest
             {
                 amount = weiAmount,

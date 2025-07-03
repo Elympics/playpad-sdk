@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using Elympics;
+using Elympics.Util;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;
@@ -94,7 +95,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
             return new FeeInfo
             {
                 EntryFeeRaw = string.IsNullOrEmpty(feeResponse.error) ? feeResponse.entryFee : null,
-                EntryFee = string.IsNullOrEmpty(feeResponse.error) ? WeiConverter.FromWei(feeResponse.entryFee, decimals) : null,
+                EntryFee = string.IsNullOrEmpty(feeResponse.error) ? RawCoinConverter.FromRaw(feeResponse.entryFee, decimals) : null,
                 Error = feeResponse.error
             };
         }
