@@ -38,9 +38,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Utility
             WebGLInput.captureAllKeyboardInput = !inputControlRequest.isKeyboardControlRequested;
 #endif
         }
-        public void Dispose()
-        {
-            _jsCommunicator.WebObjectReceived -= OnWebMessageReceived;
-        }
+        public void Dispose() => _jsCommunicator.WebObjectReceived -= OnWebMessageReceived;
     }
 }

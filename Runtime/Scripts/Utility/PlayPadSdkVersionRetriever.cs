@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Utility
 {
+    [PublicAPI]
     public static class PlayPadSdkVersionRetriever
     {
         private const string ElympicsName = "elympicsplaypad";
@@ -13,9 +15,6 @@ namespace ElympicsPlayPad.Utility
             return assemblies.Select(x => x.GetName()).FirstOrDefault(x => x.Name.ToLowerInvariant() == ElympicsName)?.Version;
         }
 
-        public static string GetVersionStringFromAssembly()
-        {
-            return GetVersionFromAssembly()?.ToString(3) ?? string.Empty;
-        }
+        public static string GetVersionStringFromAssembly() => GetVersionFromAssembly()?.ToString(3) ?? string.Empty;
     }
 }

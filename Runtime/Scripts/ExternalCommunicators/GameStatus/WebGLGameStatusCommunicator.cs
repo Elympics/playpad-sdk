@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
-        private ElympicsLoggerContext _logger;
+        private readonly ElympicsLoggerContext _logger;
 
         public WebGLGameStatusCommunicator(JsCommunicator communicator, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator, ElympicsLoggerContext logger)
         {
@@ -106,21 +106,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         private void SendSystemInfoData()
         {
-            var joinedRooms = _lobby.RoomsManager.ListJoinedRooms();
+            var joinedRoom = _lobby.RoomsManager.CurrentRoom;
             var systemInfoDataMessage = new SystemInfoDataMessage
             {
                 userId = _lobby.AuthData!.UserId.ToString(),
-                matchId = joinedRooms.Count > 0 ? (joinedRooms[0].State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty) : string.Empty,
+                matchId = joinedRoom?.State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty,
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
             };
 
             _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
         }
 
-        public void Dispose()
-        {
-            _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
-        }
+        public void Dispose() => _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
         public void OnEvent(ElympicsStateChanged argument)
         {
             var message = new ElympicsStateUpdatedMessage

@@ -90,7 +90,9 @@ namespace ElympicsPlayPad.Session
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
                 var (accountWallet, signWallet, _) = ExtractWalletAddresses(authData);
+#pragma warning disable CS0618 // Type or member is obsolete
                 _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname)
+#pragma warning restore CS0618 // Type or member is obsolete
                     .SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
                 if (handshake.FeatureAccess.HasTournament())
                 {
