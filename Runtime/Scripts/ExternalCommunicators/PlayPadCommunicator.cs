@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
@@ -142,11 +144,23 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
                 _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
                 LobbyRegister.PlayPadLobby = _communicatorInternal;
+                RoomsManager.BeforeQuickMatchReady = BeforeQuickMatchReady;
 
                 Instance = this;
             }
             else
                 Destroy(gameObject);
+        }
+
+        private async UniTask BeforeQuickMatchReady(IRoom room, CancellationToken ct)
+        {
+            if (room.State.MatchmakingData?.BetDetails == null)
+                return;
+
+            var result = await VirtualDepositCommunicator!.SignProofOfEntry(room, ct);
+
+            if (!result.IsSuccess)
+                throw new ElympicsException(result.Error);
         }
 
         [Header("Custom implementation of communicators. Works only in Unity Editor.")]

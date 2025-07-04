@@ -117,14 +117,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return RetrieveBalanceInfo(walletAddress, coinId, ct);
         }
 
-        public async UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default)
+        async UniTask<SignProofOfEntryResult> IExternalBlockChainCurrencyCommunicator.SignProofOfEntry(IRoom room, CancellationToken ct)
         {
-            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
-            if (currentRoom == null)
-                return new SignProofOfEntryResult(false, "Client is not connected to a room.");
-
-            //TO DO: add handling for rolling tournaments
-            var betDetails = currentRoom.State.MatchmakingData?.BetDetails;
+            var betDetails = room.State.MatchmakingData?.BetDetails;
             if (betDetails == null)
                 return new SignProofOfEntryResult(false, "Current room has no bet.");
 
@@ -132,10 +127,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             {
                 amount = betDetails.BetValueRaw,
                 coinId = betDetails.Coin.CoinId.ToString(),
-                roomId = currentRoom.RoomId.ToString()
+                roomId = room.RoomId.ToString()
             };
             var response = await _jsCommunicator.SendRequestMessage<SignProofOfEntryRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SignProofOfEntry, request, ct);
             return new SignProofOfEntryResult(response.success, response.error);
+        }
+
+        public async UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default)
+        {
+            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
+            if (currentRoom == null)
+                return new SignProofOfEntryResult(false, "Client is not connected to a room.");
+
+            return await ((IExternalBlockChainCurrencyCommunicator)this).SignProofOfEntry(currentRoom, ct);
         }
 
         public void OnWebMessage(WebMessage message)
