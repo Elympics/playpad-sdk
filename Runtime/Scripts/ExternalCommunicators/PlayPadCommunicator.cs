@@ -85,7 +85,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         private void Awake()
         {
-            if (Instance == null)
+            if (!Instance)
             {
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
                 loggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
@@ -109,17 +109,17 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
                     ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, loggerContext, sessionmanager);
                     var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
-                    GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator!, loggerContext);
+                    VirtualDepositCommunicator = new WebGLBlockChainCurrencyCommunicator(_jsCommunicator, loggerContext);
+                    TournamentCommunicator = new WebGLTournamentCommunicator(loggerContext, VirtualDepositCommunicator, _jsCommunicator);
+                    GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator, loggerContext);
                     ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
                     var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
                     TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
                     LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, loggerContext);
-                    VirtualDepositCommunicator = new WebGLBlockChainCurrencyCommunicator(_jsCommunicator, loggerContext);
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
                     ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, loggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                     ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
-                    TournamentCommunicator = new WebGLTournamentCommunicator(loggerContext, VirtualDepositCommunicator, _jsCommunicator);
                 }
                 else
                 {
