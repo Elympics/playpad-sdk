@@ -32,9 +32,5 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default);
 
         UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default);
-
-        UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default);
-
-        internal UniTask<SignProofOfEntryResult> SignProofOfEntry(IRoom room, CancellationToken ct);
     }
 }

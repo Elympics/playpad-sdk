@@ -117,31 +117,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return RetrieveBalanceInfo(walletAddress, coinId, ct);
         }
 
-        async UniTask<SignProofOfEntryResult> IExternalBlockChainCurrencyCommunicator.SignProofOfEntry(IRoom room, CancellationToken ct)
-        {
-            var betDetails = room.State.MatchmakingData?.BetDetails;
-            if (betDetails == null)
-                return new SignProofOfEntryResult(false, "Current room has no bet.");
-
-            var request = new SignProofOfEntryRequest
-            {
-                amount = betDetails.BetValueRaw,
-                coinId = betDetails.Coin.CoinId.ToString(),
-                roomId = room.RoomId.ToString()
-            };
-            var response = await _jsCommunicator.SendRequestMessage<SignProofOfEntryRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SignProofOfEntry, request, ct);
-            return new SignProofOfEntryResult(response.success, response.error);
-        }
-
-        public async UniTask<SignProofOfEntryResult> SignProofOfEntry(CancellationToken ct = default)
-        {
-            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
-            if (currentRoom == null)
-                return new SignProofOfEntryResult(false, "Client is not connected to a room.");
-
-            return await ((IExternalBlockChainCurrencyCommunicator)this).SignProofOfEntry(currentRoom, ct);
-        }
-
         public void OnWebMessage(WebMessage message)
         {
             switch (message.type)

@@ -73,6 +73,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private JsCommunicator _jsCommunicator = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
         private IElympicsLobbyWrapper _lobby = null!;
+        private ProofOfEntrySigner _proofOfEntrySigner = null!;
 
         private IExternalSentryCommunicator? _sentry;
         private static ElympicsLoggerContext loggerContext;
@@ -96,6 +97,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
                 _jsCommunicator.Init(loggerContext);
+
+                _proofOfEntrySigner = new ProofOfEntrySigner(_jsCommunicator);
 
                 _lobby = GetComponent<IElympicsLobbyWrapper>();
                 if (_lobby == null)
@@ -144,7 +147,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
                 _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
                 LobbyRegister.PlayPadLobby = _communicatorInternal;
-                RoomsManager.BeforeQuickMatchReady = BeforeQuickMatchReady;
+                Room.BeforeMarkYourselfReady = BeforeSetReady;
 
                 Instance = this;
             }
@@ -152,12 +155,12 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 Destroy(gameObject);
         }
 
-        private async UniTask BeforeQuickMatchReady(IRoom room, CancellationToken ct)
+        private async UniTask BeforeSetReady(IRoom room, CancellationToken ct)
         {
             if (room.State.MatchmakingData?.BetDetails == null)
                 return;
 
-            var result = await VirtualDepositCommunicator!.SignProofOfEntry(room, ct);
+            var result = await _proofOfEntrySigner!.SignProofOfEntry(room, ct);
 
             if (!result.IsSuccess)
                 throw new ElympicsException(result.Error);
