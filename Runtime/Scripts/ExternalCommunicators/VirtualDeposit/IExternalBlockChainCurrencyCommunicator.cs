@@ -26,7 +26,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         [PublicAPI]
         UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
         UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default);
-        UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
+        [Obsolete("This method no longer needs to be called and will be removed in the future. The process of ensuring proper deposit values is now handled internally by the SDK.")]
+        UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) => UniTask.FromResult(new EnsureDepositInfo { Success = true });
         UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct = default);
 
         UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default);

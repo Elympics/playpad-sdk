@@ -3,6 +3,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Communication.Mappers;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
@@ -73,7 +74,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private JsCommunicator _jsCommunicator = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
         private IElympicsLobbyWrapper _lobby = null!;
-        private ProofOfEntrySigner _proofOfEntrySigner = null!;
 
         private IExternalSentryCommunicator? _sentry;
         private static ElympicsLoggerContext loggerContext;
@@ -97,8 +97,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
                 _jsCommunicator.Init(loggerContext);
-
-                _proofOfEntrySigner = new ProofOfEntrySigner(_jsCommunicator);
 
                 _lobby = GetComponent<IElympicsLobbyWrapper>();
                 if (_lobby == null)
@@ -157,13 +155,19 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         private async UniTask BeforeSetReady(IRoom room, CancellationToken ct)
         {
-            if (room.State.MatchmakingData?.BetDetails == null)
+            if (room.State.MatchmakingData?.BetDetails is not { } betDetails)
                 return;
 
-            var result = await _proofOfEntrySigner.SignProofOfEntry(room, ct);
+            var logger = loggerContext.WithMethodName();
 
-            if (!result.IsSuccess)
-                throw new ElympicsException(result.Error);
+            var coinInfo = await betDetails.Coin.ToCoinInfo(logger);
+            var ensureVirtualDepositResult = await VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, betDetails.BetValue, coinInfo, ct);
+            if (!ensureVirtualDepositResult.Success)
+                throw logger.CaptureAndThrow(new ElympicsException(ensureVirtualDepositResult.Error));
+
+            var signProofOfEntryResult = await VirtualDepositOperations.SignProofOfEntry(_jsCommunicator, room, ct);
+            if (!signProofOfEntryResult.IsSuccess)
+                throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
         [Header("Custom implementation of communicators. Works only in Unity Editor.")]
