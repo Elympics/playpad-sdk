@@ -4,7 +4,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
-using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
@@ -158,8 +157,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         private async UniTask BeforeSetReady(IRoom room, CancellationToken ct)
         {
-            //Only sign proof of entry if there is a bet and that bet is on EVM
-            if (room.State.MatchmakingData?.BetDetails?.Coin.Chain.Type != ChainType.EVM)
+            if (room.State.MatchmakingData?.BetDetails == null)
                 return;
 
             var result = await _proofOfEntrySigner.SignProofOfEntry(room, ct);
