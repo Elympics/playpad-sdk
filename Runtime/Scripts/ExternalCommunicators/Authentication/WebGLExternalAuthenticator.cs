@@ -59,10 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             _sessionManager.FinishSessionInfoUpdate -= OnSessionUpdated;
             return;
 
-            void OnSessionUpdated()
-            {
-                sessionUpdated = true;
-            }
+            void OnSessionUpdated() => sessionUpdated = true;
         }
 
         public async UniTask<HandshakeInfo> InitializationMessage(

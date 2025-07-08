@@ -67,7 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
         [SerializeField] private StandaloneExternalGameStatusConfig standaloneGameStatusConfig = null!;
 
-        private PlayPadCommunicatorInternal _communicatorInternal;
+        private PlayPadCommunicatorInternal _communicatorInternal = null!;
         private JsCommunicator _jsCommunicator = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
         private IElympicsLobbyWrapper _lobby = null!;

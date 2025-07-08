@@ -7,6 +7,7 @@ using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models.MyNamespace;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -107,11 +108,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 if (localPlayerMatchIndex < 0)
                     throw _logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
 
-                var coinInfo = _blockChainCurrencyCommunicator.ElympicsCoins[Guid.Parse(entry.tournament.coinId)];
-                var prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Currency.Decimals);
-                var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
+                CoinInfo? coinInfo = null;
+                decimal? prize = null;
+                decimal? entryFee = null;
 
-                return new RollingTournamentHistoryEntry(entry.state, prize, coinInfo, entryFee, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex);
+                // ReSharper disable once InvertIf
+                if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(Guid.Parse(entry.tournament.coinId), out var coin))
+                {
+                    coinInfo = coin;
+                    prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Value.Currency.Decimals);
+                    entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Value.Currency.Decimals);
+                }
+                return new RollingTournamentHistoryEntry(entry.state, prize, coinInfo, entryFee, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
 
             RollingTournamentMatch ParticipationToMatch(GetRollingTournamentHistoryResponse.Participation participation)
@@ -124,6 +132,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
                 return new RollingTournamentMatch(participation.avatar, participation.nickname, matchEnded, participation.score);
             }
+        }
+        public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
+        {
+            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, GetRollingTournamentUnreadSettlementsResponse>(RequestResponseMessageTypes.GetUnreadSettlements, null, ct);
+            return new RollingTournamentSettlementStatus
+            {
+                NewSettlements = result.unreadSettledCount,
+            };
         }
 
         public void OnWebMessage(WebMessage message)

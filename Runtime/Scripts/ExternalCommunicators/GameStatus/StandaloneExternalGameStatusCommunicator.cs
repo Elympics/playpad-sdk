@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67 //An event was declared but never used in the class in which it was declared.
 using System;
 using System.Collections.Generic;
 using System.Threading;

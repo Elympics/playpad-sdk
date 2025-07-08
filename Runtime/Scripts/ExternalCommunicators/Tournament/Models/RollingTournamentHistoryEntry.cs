@@ -19,23 +19,25 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentHistoryEntry
     {
         public readonly string State;
-        public readonly decimal Prize;
-        public readonly CoinInfo Coin;
-        public readonly decimal EntryFee;
+        public readonly decimal? Prize;
+        public readonly CoinInfo? Coin;
+        public readonly decimal? EntryFee;
         public readonly int NumberOfPlayers;
         /// <summary>All matches played in this tournament so far in the order of places on the leaderboard.</summary>
         public readonly ReadOnlyCollection<RollingTournamentMatch> AllMatches;
         /// <summary>Index of the local player's match in <see cref="AllMatches"/>.</summary>
         public readonly int LocalPlayerMatchIndex;
+        public readonly bool NewSettlement;
 
         public RollingTournamentHistoryEntry(
             string state,
-            decimal prize,
-            CoinInfo coin,
-            decimal entryFee,
+            decimal? prize,
+            CoinInfo? coin,
+            decimal? entryFee,
             int numberOfPlayers,
             ReadOnlyCollection<RollingTournamentMatch> allMatches,
-            int localPlayerMatchIndex)
+            int localPlayerMatchIndex,
+            bool newSettlement)
         {
             if (localPlayerMatchIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(localPlayerMatchIndex));
@@ -49,6 +51,7 @@ namespace ElympicsPlayPad.Tournament.Data
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
             LocalPlayerMatchIndex = localPlayerMatchIndex;
+            NewSettlement = newSettlement;
         }
     }
 
