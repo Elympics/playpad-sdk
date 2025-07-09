@@ -46,6 +46,7 @@ namespace ElympicsPlayPad.Protocol
         public const string Debug = "Debug";
         public const string NetworkStatusMessage = "NetworkStatusMessage";
         public const string OpenUrlMessage = "OpenUrlMessage";
+        public const string HeartbeatMessage = "HeartbeatMessage";
     }
 
     public static class DebugMessageTypes
