@@ -67,7 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
             return;
 
-            static bool BlockEventLog(string type) => type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage);
+            static bool BlockEventLog(string type) => type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage) || type.Equals(VoidMessageTypes.HeartbeatMessage);
         }
 
 
