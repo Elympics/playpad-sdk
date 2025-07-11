@@ -22,6 +22,7 @@ namespace ElympicsPlayPad.Protocol
         public const string GetWalletCurrencyBalance = "GetWalletCurrencyBalance";
         public const string GetRollingTournamentHistory = "GetRollingTournamentHistory";
         public const string GetUnreadSettlements = "GetUnreadSettlements";
+        public const string SignProofOfEntry = "SignProofOfEntry";
     }
 
     public static class WebMessageTypes

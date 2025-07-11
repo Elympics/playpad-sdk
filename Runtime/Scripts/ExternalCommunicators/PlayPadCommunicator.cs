@@ -1,6 +1,9 @@
 #nullable enable
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Communication.Mappers;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
@@ -147,11 +150,29 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
                 _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
                 LobbyRegister.PlayPadLobby = _communicatorInternal;
+                Room.BeforeMarkYourselfReady = BeforeSetReady;
 
                 Instance = this;
             }
             else
                 Destroy(gameObject);
+        }
+
+        private async UniTask BeforeSetReady(IRoom room, CancellationToken ct)
+        {
+            if (room.State.MatchmakingData?.BetDetails is not { } betDetails)
+                return;
+
+            var logger = loggerContext.WithMethodName();
+
+            var coinInfo = await betDetails.Coin.ToCoinInfo(logger);
+            var ensureVirtualDepositResult = await VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, betDetails.BetValue, coinInfo, ct);
+            if (!ensureVirtualDepositResult.Success)
+                throw logger.CaptureAndThrow(new ElympicsException(ensureVirtualDepositResult.Error));
+
+            var signProofOfEntryResult = await VirtualDepositOperations.SignProofOfEntry(_jsCommunicator, room, ct);
+            if (!signProofOfEntryResult.IsSuccess)
+                throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
         [Header("Custom implementation of communicators. Works only in Unity Editor.")]
