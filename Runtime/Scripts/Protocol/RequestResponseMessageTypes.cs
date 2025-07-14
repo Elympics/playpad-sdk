@@ -23,6 +23,7 @@ namespace ElympicsPlayPad.Protocol
         public const string GetRollingTournamentHistory = "GetRollingTournamentHistory";
         public const string GetUnreadSettlements = "GetUnreadSettlements";
         public const string SignProofOfEntry = "SignProofOfEntry";
+        public const string SetActiveTournament = "SetActiveTournament";
     }
 
     public static class WebMessageTypes

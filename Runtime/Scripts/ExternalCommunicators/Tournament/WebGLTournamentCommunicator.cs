@@ -142,6 +142,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             };
         }
 
+
+        public async UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default)
+        {
+            var payload = new SetActiveTournamentRequest { tournamentId = tournamentId };
+            var response = await _jsCommunicator.SendRequestMessage<SetActiveTournamentRequest, TournamentUpdatedMessage>(RequestResponseMessageTypes.SetActiveTournament, payload, ct);
+
+            if (string.IsNullOrEmpty(response.id))
+                throw new ArgumentException($"Tournament with ID {tournamentId} does not exist.", nameof(tournamentId));
+
+            CurrentTournament = response.ToTournamentInfo();
+            return CurrentTournament.Value;
+        }
+
         public void OnWebMessage(WebMessage message)
         {
             var logger = _logger.WithMethodName();
