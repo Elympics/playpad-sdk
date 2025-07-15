@@ -6,6 +6,7 @@ using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models.MyNamespace;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
@@ -23,7 +24,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         private readonly StandaloneExternalTournamentConfig _config;
         private readonly StandaloneExternalAuthenticatorConfig _authConfig;
-        private readonly JsCommunicator _jsCommunicator;
 
         internal StandaloneTournamentCommunicator(StandaloneExternalTournamentConfig config, StandaloneExternalAuthenticatorConfig authConfig, JsCommunicator jsCommunicator)
         {
@@ -51,7 +51,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return UniTask.FromResult<TournamentInfo?>(null);
         }
         public UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => UniTask.FromResult<TournamentFeeInfo?>(null);
-        public UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>()));
+        public UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) =>
+            UniTask.FromResult(new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>()));
+        public UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentSettlementStatus()
+        {
+            NewSettlements = 1,
+        });
+        public UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default) => UniTask.FromResult(new TournamentInfo());
 
         public void OnWebMessage(WebMessage message)
         {

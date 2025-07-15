@@ -3,6 +3,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models.MyNamespace;
 using ElympicsPlayPad.Tournament.Data;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament
@@ -22,5 +23,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// <param name="skip">Number of most recent history entries to skip.</param>
         /// <param name="ct"></param>
         UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
+        UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default);
+        UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default);
     }
 }

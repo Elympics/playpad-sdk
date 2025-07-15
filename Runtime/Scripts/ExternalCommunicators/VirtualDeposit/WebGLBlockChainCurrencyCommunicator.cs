@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Rooms.Models;
-using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -74,24 +73,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return _userDepositCollection;
         }
 
-        public async UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
-        {
-            if (amount <= 0)
-                throw new ArgumentException("Amount of virtual deposit has to be greater than 0", nameof(amount));
-
-            var weiAmount = RawCoinConverter.ToRaw(amount, coinInfo.Currency.Decimals);
-            var request = new EnsureVirtualDepositRequest
-            {
-                amount = weiAmount,
-                coinId = coinInfo.Id.ToString()
-            };
-            var result = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
-            return new EnsureDepositInfo
-            {
-                Success = result.success,
-                Error = result.error
-            };
-        }
         public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
@@ -116,6 +97,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
             return RetrieveBalanceInfo(walletAddress, coinId, ct);
         }
+
         public void OnWebMessage(WebMessage message)
         {
             switch (message.type)

@@ -14,6 +14,7 @@ namespace ElympicsPlayPad.Protocol.Responses
             public Tournament tournament;
             public Participation myScore;
             public Participation[] allScores;
+            public bool unreadSettled;
         }
 
         [Serializable]

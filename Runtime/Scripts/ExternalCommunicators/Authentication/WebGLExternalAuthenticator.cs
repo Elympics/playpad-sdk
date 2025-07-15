@@ -6,6 +6,7 @@ using Elympics.ElympicsSystems.Internal;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Utility;
+using ElympicsPlayPad.ExternalCommunicators.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.JWT.Extensions;
@@ -26,11 +27,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         private readonly JsCommunicator _jsCommunicator;
         private readonly SessionManager _sessionManager;
         private readonly ElympicsLoggerContext _logger;
+        private readonly IHeartbeatCommunicator _heartbeatCommunicator;
 
-        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, SessionManager sessionManager)
+        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
         {
             _jsCommunicator = jsCommunicator;
             _sessionManager = sessionManager;
+            _heartbeatCommunicator = heartbeatCommunicator;
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
             _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
             _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
@@ -59,10 +62,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             _sessionManager.FinishSessionInfoUpdate -= OnSessionUpdated;
             return;
 
-            void OnSessionUpdated()
-            {
-                sessionUpdated = true;
-            }
+            void OnSessionUpdated() => sessionUpdated = true;
         }
 
         public async UniTask<HandshakeInfo> InitializationMessage(
@@ -89,6 +89,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
                 var featureAccess = (FeatureAccess)result.featureAccess;
+                _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
                 return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess);
             }
             catch (ResponseException e)

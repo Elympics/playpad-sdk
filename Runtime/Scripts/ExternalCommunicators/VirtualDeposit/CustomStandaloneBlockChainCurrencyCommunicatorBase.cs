@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using UnityEngine;
-
+#pragma warning disable 67 //An event was declared but never used in the class in which it was declared.
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
     public abstract class CustomStandaloneBlockChainCurrencyCommunicatorBase : MonoBehaviour, IExternalBlockChainCurrencyCommunicator
@@ -17,7 +17,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
         public abstract UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
         public abstract UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default);
-        public abstract UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default);
         public abstract UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct);
         public abstract UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default);
         public abstract UniTask<WalletBalanceInfo> GetWalletCurrencyBalance(string walletAddress, Guid coinId, CancellationToken ct = default);
