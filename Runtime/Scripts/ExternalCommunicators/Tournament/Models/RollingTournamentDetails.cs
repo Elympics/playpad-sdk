@@ -11,12 +11,6 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentDetails
     {
         public readonly TournamentState State;
-        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
-        public readonly decimal? Prize;
-        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
-        public readonly CoinInfo? Coin;
-        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
-        public readonly decimal? EntryFee;
         /// <summary>The number of players that have to play a match in this tournament in order for the tournament to be finished.</summary>
         public readonly int NumberOfPlayers;
         /// <summary>
@@ -26,6 +20,8 @@ namespace ElympicsPlayPad.Tournament.Data
         public readonly ReadOnlyCollection<RollingTournamentMatchDetails> AllMatches;
         /// <summary>Index of the local player's match in <see cref="AllMatches"/> or -1 if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
         public readonly int LocalPlayerMatchIndex;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
+        public readonly RollingTournamentPrizeDetails? PrizeDetails;
 
         public enum TournamentState
         {
@@ -40,12 +36,10 @@ namespace ElympicsPlayPad.Tournament.Data
             YourResultsPending
         }
 
-        public RollingTournamentDetails(TournamentState state, decimal? prize, CoinInfo? coin, decimal? entryFee, int numberOfPlayers, ReadOnlyCollection<RollingTournamentMatchDetails> allMatches, int localPlayerMatchIndex)
+        public RollingTournamentDetails(TournamentState state, RollingTournamentPrizeDetails? prizeDetails, int numberOfPlayers, ReadOnlyCollection<RollingTournamentMatchDetails> allMatches, int localPlayerMatchIndex)
         {
             State = state;
-            Prize = prize;
-            Coin = coin;
-            EntryFee = entryFee;
+            PrizeDetails = prizeDetails;
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
             LocalPlayerMatchIndex = localPlayerMatchIndex;
@@ -87,6 +81,20 @@ namespace ElympicsPlayPad.Tournament.Data
             MatchEnded = matchEnded;
             Score = score;
             Position = position;
+        }
+    }
+
+    public readonly struct RollingTournamentPrizeDetails
+    {
+        public readonly decimal Prize;
+        public readonly CoinInfo Coin;
+        public readonly decimal EntryFee;
+
+        public RollingTournamentPrizeDetails(decimal prize, CoinInfo coin, decimal entryFee)
+        {
+            Prize = prize;
+            Coin = coin;
+            EntryFee = entryFee;
         }
     }
 }

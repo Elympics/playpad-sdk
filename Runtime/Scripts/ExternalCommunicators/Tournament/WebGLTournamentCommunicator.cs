@@ -168,14 +168,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 _ => throw new ArgumentOutOfRangeException(nameof(response.state), response.state, "Unexpected rolling tournament instance state.")
             };
 
-            CoinInfo? coinInfo = null;
-            decimal? prize = null;
-            decimal? entryFee = null;
+            RollingTournamentPrizeDetails? prizeDetails = null;
             if (_blockChainCurrencyCommunicator.ElympicsCoins!.TryGetValue(Guid.Parse(response.coinId), out var coin))
             {
-                coinInfo = coin;
-                prize = RawCoinConverter.FromRaw(response.prizes.First(), coinInfo.Value.Currency.Decimals);
-                entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Value.Currency.Decimals);
+                var coinInfo = coin;
+                var prize = RawCoinConverter.FromRaw(response.prizes.First(), coinInfo.Currency.Decimals);
+                var entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Currency.Decimals);
+                prizeDetails = new RollingTournamentPrizeDetails(prize, coin, entryFee);
             }
 
             var matches = new RollingTournamentMatchDetails[response.scores.Length];
@@ -203,7 +202,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     localPlayerMatchIndex = i;
             }
 
-            return new RollingTournamentDetails(tournamentState, prize, coinInfo, entryFee, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
+            return new RollingTournamentDetails(tournamentState, prizeDetails, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
         }
 
         public void OnWebMessage(WebMessage message)
