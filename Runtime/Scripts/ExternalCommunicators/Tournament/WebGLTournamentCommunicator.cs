@@ -197,7 +197,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 matches[i] = new RollingTournamentMatchDetails(matchState, match.avatar, match.nickname, matchEnded, match.score, position);
 
                 if (match.mine)
+                {
+                    if (localPlayerMatchIndex > -1)
+                        _logger.WithMethodName().Error($"Received multiple matches from a rolling tournament with {nameof(GetRollingTournamentDetailsResponse.RollTournamentScore.mine)} set to true.");
+
                     localPlayerMatchIndex = i;
+                }
             }
 
             return new RollingTournamentDetails(tournamentState, prizeDetails, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
