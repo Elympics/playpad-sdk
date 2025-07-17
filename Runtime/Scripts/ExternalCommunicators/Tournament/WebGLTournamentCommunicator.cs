@@ -155,6 +155,57 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return CurrentTournament.Value;
         }
 
+        public async UniTask<RollingTournamentDetails> GetRollingTournamentDetails(string matchId, CancellationToken ct = default)
+        {
+            var payload = new GetRollingTournamentDetailsRequest { matchId = matchId };
+            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails, payload, ct);
+
+            var tournamentState = response.state switch
+            {
+                "Live" => RollingTournamentDetails.TournamentState.Live,
+                "Finished" => RollingTournamentDetails.TournamentState.Finished,
+                "YourResultsPending" => RollingTournamentDetails.TournamentState.YourResultsPending,
+                _ => throw new ArgumentOutOfRangeException(nameof(response.state), response.state, "Unexpected rolling tournament instance state.")
+            };
+
+            CoinInfo? coinInfo = null;
+            decimal? prize = null;
+            decimal? entryFee = null;
+            if (_blockChainCurrencyCommunicator.ElympicsCoins!.TryGetValue(Guid.Parse(response.coinId), out var coin))
+            {
+                coinInfo = coin;
+                prize = RawCoinConverter.FromRaw(response.prizes.First(), coinInfo.Value.Currency.Decimals);
+                entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Value.Currency.Decimals);
+            }
+
+            var matches = new RollingTournamentMatchDetails[response.scores.Length];
+
+            //Order by position, but treat 0 as no position (failed or unfinished match)
+            var orderedResponseMatches = response.scores.OrderBy(x => x.position > 0 ? x.position : uint.MaxValue).ToList();
+
+            var localPlayerMatchIndex = -1;
+            for (var i = 0; i < matches.Length; i++)
+            {
+                var match = orderedResponseMatches[i];
+                var matchState = match.state switch
+                {
+                    "Failed" => RollingTournamentMatchDetails.MatchState.Failed,
+                    "Finished" => RollingTournamentMatchDetails.MatchState.Finished,
+                    "Playing" => RollingTournamentMatchDetails.MatchState.Playing,
+                    _ => throw new ArgumentOutOfRangeException(nameof(match.state), match.state, "Unexpected rolling tournament match state.")
+                };
+                DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
+                uint? position = match.position > 0 ? match.position : null;
+
+                matches[i] = new RollingTournamentMatchDetails(matchState, match.avatar, match.nickname, matchEnded, match.score, position);
+
+                if (match.mine)
+                    localPlayerMatchIndex = i;
+            }
+
+            return new RollingTournamentDetails(tournamentState, prize, coinInfo, entryFee, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
+        }
+
         public void OnWebMessage(WebMessage message)
         {
             var logger = _logger.WithMethodName();

@@ -19,8 +19,11 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentHistoryEntry
     {
         public readonly string State;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly decimal? Prize;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly CoinInfo? Coin;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly decimal? EntryFee;
         public readonly int NumberOfPlayers;
         /// <summary>All matches played in this tournament so far in the order of places on the leaderboard.</summary>
