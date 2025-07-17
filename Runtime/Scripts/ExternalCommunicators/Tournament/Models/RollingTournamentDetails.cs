@@ -20,7 +20,7 @@ namespace ElympicsPlayPad.Tournament.Data
         /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly RollingTournamentPrizeDetails? PrizeDetails;
         /// <summary>Local player's match or null if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
-        /// <remarks>If this propert is not null, this match is also included in <see cref="AllMatches"/>.</remarks>
+        /// <remarks>If this property is not null, this match is also included in <see cref="AllMatches"/>.</remarks>
         public RollingTournamentMatchDetails? LocalPlayerMatch => _localPlayerMatchIndex > -1 ? AllMatches[_localPlayerMatchIndex] : null;
 
         /// <summary>Index of the local player's match in <see cref="AllMatches"/> or -1 if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
@@ -28,9 +28,13 @@ namespace ElympicsPlayPad.Tournament.Data
 
         public enum TournamentState
         {
-            /// <summary>Tournament is live and if the local player participated in it, their result is included in <see cref="AllMatches"/>.</summary>
+            /// <summary>Tournament is live and local player's result is included in <see cref="AllMatches"/>.</summary>
             Live,
-            /// <summary>Tournament was finished because the expected number of players joined and finished their matches or a timeout occured.</summary>
+            /// <summary>
+            /// Tournament was finished because the expected number of players joined and finished their matches or
+            /// the matchmaking system was unable to find enough players to complete the tournament in reasonable time,
+            /// so the tournament was cancelled.
+            /// </summary>
             Finished,
             /// <summary>
             /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
