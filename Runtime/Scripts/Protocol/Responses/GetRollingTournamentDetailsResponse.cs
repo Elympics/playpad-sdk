@@ -16,7 +16,8 @@ namespace ElympicsPlayPad.Protocol.Responses
         public RollTournamentScore[] scores;
 
         [Serializable]
-        public struct RollTournamentScore {
+        public struct RollTournamentScore
+        {
             public string state;
             public string avatar;
             public string nickname;

@@ -29,13 +29,13 @@ namespace ElympicsPlayPad.Tournament.Data
 
         public enum TournamentState
         {
-            /// <summary>Tournament is live and if the local player participated in it, their result is included in <see cref="RollingTournamentDetails.AllMatches"/>.</summary>
+            /// <summary>Tournament is live and if the local player participated in it, their result is included in <see cref="AllMatches"/>.</summary>
             Live,
             /// <summary>Tournament was finished because the expected number of players joined and finished their matches or a timeout occured.</summary>
             Finished,
             /// <summary>
             /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
-            /// are still being processed, so they are not included in <see cref="RollingTournamentDetails.AllMatches"/> yet.
+            /// are still being processed, so they are not included in <see cref="AllMatches"/> yet.
             /// </summary>
             YourResultsPending
         }
