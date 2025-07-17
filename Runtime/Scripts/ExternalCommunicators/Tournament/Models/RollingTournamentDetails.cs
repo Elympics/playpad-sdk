@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.ObjectModel;
-using Elympics;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data
@@ -85,20 +84,6 @@ namespace ElympicsPlayPad.Tournament.Data
             MatchEnded = matchEnded;
             Score = score;
             Position = position;
-        }
-    }
-
-    public readonly struct RollingTournamentPrizeDetails
-    {
-        public readonly decimal Prize;
-        public readonly CoinInfo Coin;
-        public readonly decimal EntryFee;
-
-        public RollingTournamentPrizeDetails(decimal prize, CoinInfo coin, decimal entryFee)
-        {
-            Prize = prize;
-            Coin = coin;
-            EntryFee = entryFee;
         }
     }
 }

@@ -108,18 +108,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 if (localPlayerMatchIndex < 0)
                     throw _logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
 
-                CoinInfo? coinInfo = null;
-                decimal? prize = null;
-                decimal? entryFee = null;
-
+                RollingTournamentPrizeDetails? prizeDetails = null;
                 // ReSharper disable once InvertIf
                 if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(Guid.Parse(entry.tournament.coinId), out var coin))
                 {
-                    coinInfo = coin;
-                    prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Value.Currency.Decimals);
-                    entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Value.Currency.Decimals);
+                    var coinInfo = coin;
+                    var prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Currency.Decimals);
+                    var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
+                    prizeDetails = new RollingTournamentPrizeDetails(prize, coinInfo, entryFee);
                 }
-                return new RollingTournamentHistoryEntry(entry.state, prize, coinInfo, entryFee, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
+                return new RollingTournamentHistoryEntry(entry.state, prizeDetails, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
 
             RollingTournamentMatch ParticipationToMatch(GetRollingTournamentHistoryResponse.Participation participation)
