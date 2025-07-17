@@ -18,10 +18,14 @@ namespace ElympicsPlayPad.Tournament.Data
         /// Unfinished matches (ones that don't have a score yet, so they can't be assigned a place) appear in this collection after all finished matches.
         /// </summary>
         public readonly ReadOnlyCollection<RollingTournamentMatchDetails> AllMatches;
-        /// <summary>Index of the local player's match in <see cref="AllMatches"/> or -1 if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
-        public readonly int LocalPlayerMatchIndex;
         /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly RollingTournamentPrizeDetails? PrizeDetails;
+        /// <summary>Local player's match or null if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
+        /// <remarks>If this propert is not null, this match is also included in <see cref="AllMatches"/>.</remarks>
+        public RollingTournamentMatchDetails? LocalPlayerMatch => _localPlayerMatchIndex > -1 ? AllMatches[_localPlayerMatchIndex] : null;
+
+        /// <summary>Index of the local player's match in <see cref="AllMatches"/> or -1 if <see cref="State"/> is <see cref="TournamentState.YourResultsPending"/>.</summary>
+        private readonly int _localPlayerMatchIndex;
 
         public enum TournamentState
         {
@@ -42,7 +46,7 @@ namespace ElympicsPlayPad.Tournament.Data
             PrizeDetails = prizeDetails;
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
-            LocalPlayerMatchIndex = localPlayerMatchIndex;
+            _localPlayerMatchIndex = localPlayerMatchIndex;
         }
     }
 
