@@ -126,6 +126,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, loggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
                     ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
+                    Room.BeforeMarkYourselfReady = BeforeSetReady;
                 }
                 else
                 {
@@ -150,7 +151,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
                 _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
                 LobbyRegister.PlayPadLobby = _communicatorInternal;
-                Room.BeforeMarkYourselfReady = BeforeSetReady;
 
                 Instance = this;
             }
