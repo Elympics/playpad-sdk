@@ -19,21 +19,34 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentHistoryEntry
     {
         public readonly string State;
-        public readonly decimal? Prize;
-        public readonly CoinInfo? Coin;
-        public readonly decimal? EntryFee;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
+        public readonly RollingTournamentPrizeDetails? PrizeDetails;
         public readonly int NumberOfPlayers;
         /// <summary>All matches played in this tournament so far in the order of places on the leaderboard.</summary>
         public readonly ReadOnlyCollection<RollingTournamentMatch> AllMatches;
-        /// <summary>Index of the local player's match in <see cref="AllMatches"/>.</summary>
-        public readonly int LocalPlayerMatchIndex;
         public readonly bool NewSettlement;
+
+#pragma warning disable CS0618 // Type or member is obsolete. LocalPlayerMatchIndex will be made private in the future.
+        public RollingTournamentMatch LocalPlayerMatch => AllMatches[LocalPlayerMatchIndex];
+#pragma warning restore CS0618
+
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
+        [Obsolete("Use PrizeDetails instead.")]
+        public decimal? Prize => PrizeDetails?.Prize;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
+        [Obsolete("Use PrizeDetails instead.")]
+        public CoinInfo? Coin => PrizeDetails?.Coin;
+        /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
+        [Obsolete("Use PrizeDetails instead.")]
+        public decimal? EntryFee => PrizeDetails?.EntryFee;
+
+        /// <summary>Index of the local player's match in <see cref="AllMatches"/>.</summary>
+        [Obsolete("Use LocalPlayerMatch instead.")]
+        public readonly int LocalPlayerMatchIndex;
 
         public RollingTournamentHistoryEntry(
             string state,
-            decimal? prize,
-            CoinInfo? coin,
-            decimal? entryFee,
+            RollingTournamentPrizeDetails? prizeDetails,
             int numberOfPlayers,
             ReadOnlyCollection<RollingTournamentMatch> allMatches,
             int localPlayerMatchIndex,
@@ -45,12 +58,12 @@ namespace ElympicsPlayPad.Tournament.Data
                 throw new ArgumentException($"{nameof(localPlayerMatchIndex)} is not a valid index for {nameof(allMatches)}. {nameof(localPlayerMatchIndex)}: {localPlayerMatchIndex} {nameof(allMatches)}.Count: {allMatches.Count}.", nameof(localPlayerMatchIndex));
 
             State = state;
-            Prize = prize;
-            Coin = coin;
-            EntryFee = entryFee;
+            PrizeDetails = prizeDetails;
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
+#pragma warning disable CS0618 // Type or member is obsolete. This member will be made private in the future.
             LocalPlayerMatchIndex = localPlayerMatchIndex;
+#pragma warning restore CS0618
             NewSettlement = newSettlement;
         }
     }
