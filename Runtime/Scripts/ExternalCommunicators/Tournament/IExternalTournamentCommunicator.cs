@@ -23,6 +23,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// <param name="skip">Number of most recent history entries to skip.</param>
         UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
         UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default);
+        /// <summary>Sets <see cref="CurrentTournament"/> to the tournament with matching <paramref name="tournamentId"/>.</summary>
+        /// <returns>Details of the new current tournament.</returns>
+        /// <exception cref="ArgumentException">A tournament with the given <paramref name="tournamentId"/> does not exist.</exception>
+        /// <remarks>
+        /// PlayPad SDK does not provide a way to get an ID of a tournament that the local player has not joined.
+        /// Joined tournaments include the daily tournament, tournaments created by the local player and the ones where the player has completed at least one match.
+        /// To get an ID of any other tournament you can set up your own backend and fetch it from there.
+        /// You can read more about integrating your own backend with Elympics here - https://docs.elympics.ai/deploy/advanced/external-game-backend/
+        /// </remarks>
         UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default);
         /// <summary>Returns detailed information about a rolling tournament in which the local player participated.</summary>
         /// <param name="matchId">ID of a match that was played by the local player as part of a rolling tournament.</param>
