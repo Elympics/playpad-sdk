@@ -58,7 +58,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             NewSettlements = 1,
         });
         public UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default) => UniTask.FromResult(new TournamentInfo());
-        public UniTask<RollingTournamentDetails> GetRollingTournamentDetails(string matchId, CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentDetails());
+        public UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentDetails());
 
         public void OnWebMessage(WebMessage message)
         {
