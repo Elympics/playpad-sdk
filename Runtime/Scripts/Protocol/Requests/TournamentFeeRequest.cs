@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 namespace ElympicsPlayPad.Protocol.Requests
 {
@@ -13,5 +14,6 @@ namespace ElympicsPlayPad.Protocol.Requests
         public string coinId;
         public int playersCount;
         public string prize;
+        public float[]? prizeDistribution;
     }
 }

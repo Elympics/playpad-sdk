@@ -61,7 +61,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 {
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
-                    prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
+                    prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals),
+                    prizeDistribution = requestInfo.PrizeDistribution
                 };
 
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
