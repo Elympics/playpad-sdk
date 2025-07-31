@@ -65,6 +65,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
         public ITonNftExternalCommunicator? TonNftExternalCommunicator;
 
         [PublicAPI]
+        public IEvmExternalCommunicator? EvmExternalCommunicator;
+
+        [PublicAPI]
         public IExternalWebCommunicator? ExternalWebCommunicator;
 
         [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
@@ -125,6 +128,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
                     ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, loggerContext, _lobby);
                     TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
+                    EvmExternalCommunicator = new WebGLEvmExternalCommunicator(_jsCommunicator);
                     ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
                     Room.BeforeMarkYourselfReady = BeforeSetReady;
                 }
@@ -146,6 +150,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     LeaderboardCommunicator = customLeaderboardCommunicator ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
                     VirtualDepositCommunicator = customBlockChainCurrencyCommunicator ? customBlockChainCurrencyCommunicator : null;
                     TonNftExternalCommunicator = customTonNftExternalCommunicator ? customTonNftExternalCommunicator : new StandaloneTonNftExternalCommunicator();
+                    EvmExternalCommunicator = customEvmExternalCommunicator ? customEvmExternalCommunicator : new StandaloneEvmExternalCommunicator();
                     ExternalWebCommunicator = new StandaloneWebCommunicator();
                 }
 
@@ -191,6 +196,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [SerializeField] private CustomStandaloneBlockChainCurrencyCommunicatorBase? customBlockChainCurrencyCommunicator;
 
         [SerializeField] private CustomTonNftExternalCommunicator? customTonNftExternalCommunicator;
+
+        [SerializeField] private CustomEvmExternalCommunicator? customEvmExternalCommunicator;
 
         private void OnDestroy()
         {

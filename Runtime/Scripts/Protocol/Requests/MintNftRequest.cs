@@ -18,4 +18,11 @@ namespace ElympicsPlayPad.Protocol.Requests
     {
         public string payload;
     }
+
+    [Serializable]
+    public struct MintEvmNftPayload : IMintNftPayload
+    {
+        public string chainId;
+        public string data;
+    }
 }
