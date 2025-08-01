@@ -27,7 +27,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         /// <summary>Returns detailed information about a rolling tournament in which the local player participated.</summary>
         /// <param name="matchId">ID of a match that was played by the local player as part of a rolling tournament.</param>
-        /// <param name="ct"></param>
         /// <remarks>
         /// This method takes an ID of a match as a parameter, but returns detailed information about the current state of an entire rolling tournament instance.
         /// A typical use for this method is to fetch that information after a player finishes a match as part of a rolling tournament, so it can be displayed at a match summary screen.
