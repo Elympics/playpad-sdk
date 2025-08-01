@@ -153,9 +153,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return CurrentTournament.Value;
         }
 
-        public async UniTask<RollingTournamentDetails> GetRollingTournamentDetails(string matchId, CancellationToken ct = default)
+        public async UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default)
         {
-            var payload = new GetRollingTournamentDetailsRequest { matchId = matchId };
+            var payload = new GetRollingTournamentDetailsRequest { matchId = matchId.ToString() };
             var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails, payload, ct);
 
             var tournamentState = response.state switch

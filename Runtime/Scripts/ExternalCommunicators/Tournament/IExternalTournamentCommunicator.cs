@@ -34,6 +34,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// You can read more about integrating your own backend with Elympics here - https://docs.elympics.ai/deploy/advanced/external-game-backend/
         /// </remarks>
         UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default);
+
         /// <summary>Returns detailed information about a rolling tournament in which the local player participated.</summary>
         /// <param name="matchId">ID of a match that was played by the local player as part of a rolling tournament.</param>
         /// <remarks>
@@ -41,6 +42,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// A typical use for this method is to fetch that information after a player finishes a match as part of a rolling tournament, so it can be displayed at a match summary screen.
         /// When using this method in that way, keep in mind that <see cref="RollingTournamentDetails.State"/> may have a value of <see cref="RollingTournamentDetails.TournamentState.YourResultsPending"/>.
         /// </remarks>
-        UniTask<RollingTournamentDetails> GetRollingTournamentDetails(string matchId, CancellationToken ct = default);
+        UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default);
     }
 }

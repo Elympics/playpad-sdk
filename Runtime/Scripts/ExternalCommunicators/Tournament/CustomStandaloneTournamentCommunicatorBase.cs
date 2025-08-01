@@ -21,6 +21,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public abstract UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default);
         public abstract UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default);
         public abstract UniTask<TournamentInfo> SetActiveTournament(string tournamentId, CancellationToken ct = default);
-        public abstract UniTask<RollingTournamentDetails> GetRollingTournamentDetails(string matchId, CancellationToken ct = default);
+        public abstract UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default);
     }
 }
