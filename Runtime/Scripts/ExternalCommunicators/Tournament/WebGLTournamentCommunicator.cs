@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
                     prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals),
-                    prizeDistribution = requestInfo.PrizeDistribution
+                    prizeDistribution = requestInfo.PrizeDistribution?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray()
                 };
 
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
