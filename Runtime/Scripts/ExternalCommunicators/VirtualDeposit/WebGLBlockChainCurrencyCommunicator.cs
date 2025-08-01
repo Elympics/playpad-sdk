@@ -24,14 +24,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
     {
         public event Action<VirtualDepositInfo>? VirtualDepositUpdated;
         public event Action<CoinInfo>? VirtualDepositRemoved;
-        public IReadOnlyDictionary<Guid, CoinInfo>? ElympicsCoins => _elympicsCoins;
-        public IReadOnlyDictionary<Guid, VirtualDepositInfo>? UserDepositCollection => _userDepositCollection;
-        private Dictionary<Guid, VirtualDepositInfo>? _userDepositCollection;
+        public IReadOnlyDictionary<Guid, CoinInfo> ElympicsCoins => _elympicsCoins;
+        public IReadOnlyDictionary<Guid, VirtualDepositInfo> UserDepositCollection => _userDepositCollection;
+        private readonly Dictionary<Guid, VirtualDepositInfo> _userDepositCollection = new();
         private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
         private readonly List<KeyValuePair<Guid, VirtualDepositInfo>> _tempDeletedCoinsCache;
         private readonly JsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
-        private Dictionary<Guid, CoinInfo>? _elympicsCoins;
+        private readonly Dictionary<Guid, CoinInfo> _elympicsCoins = new();
+        private readonly Dictionary<Guid, VirtualDepositInfo> _removedDeposits = new();
 
         public WebGLBlockChainCurrencyCommunicator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger)
         {
@@ -56,36 +57,37 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 throw new Exception($"Opening deposit popup failed:\n{response.error}");
         }
 
-        public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>?> GetVirtualDeposit(CancellationToken ct = default)
+        public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
-
-            if (result.deposits == null || result.deposits.Length == 0)
-                return _userDepositCollection = null;
-
-            _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
             _userDepositCollection.Clear();
+
+            if (result.deposits == null)
+                return _userDepositCollection;
+
             foreach (var depositResponse in result.deposits)
             {
                 var depositInfo = await depositResponse.ToVirtualDepositInfo(_logger);
                 _userDepositCollection.Add(depositInfo.CoinInfo.Id, depositInfo);
             }
+
             return _userDepositCollection;
         }
 
-        public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>?> GetElympicsCoins(CancellationToken ct)
+        public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
-            if (result.currencies == null || result.currencies.Length == 0)
-                return _elympicsCoins = null;
-
-            _elympicsCoins ??= new Dictionary<Guid, CoinInfo>();
             _elympicsCoins.Clear();
+
+            if (result.currencies == null)
+                return _elympicsCoins;
+
             foreach (var currencyResponse in result.currencies)
             {
                 var coinInfo = await currencyResponse.ToCoinInfo(_logger);
                 _elympicsCoins[coinInfo.Id] = coinInfo;
             }
+
             return _elympicsCoins;
         }
         public UniTask<WalletBalanceInfo> GetConnectedWalletCurrencyBalance(Guid coinId, CancellationToken ct = default) => RetrieveBalanceInfo(string.Empty, coinId, ct);
@@ -134,13 +136,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         {
             if (message.deposits == null || message.deposits.Length == 0)
             {
-                if (_userDepositCollection == null)
+                if (_userDepositCollection.Count == 0)
                     return;
 
-                var removedDeposits = _userDepositCollection;
-                _userDepositCollection = null;
+                _removedDeposits.Clear();
+                _removedDeposits.AddRange(_userDepositCollection);
+                _userDepositCollection.Clear();
 
-                foreach (var deposit in removedDeposits)
+                foreach (var deposit in _removedDeposits)
                     VirtualDepositRemoved?.Invoke(deposit.Value.CoinInfo);
 
                 return;
@@ -148,19 +151,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             _tempUpdatedCoinsCache.Clear();
             foreach (var deposit in message.deposits)
             {
-                _userDepositCollection ??= new Dictionary<Guid, VirtualDepositInfo>();
                 var virtualDepositInfo = await deposit.ToVirtualDepositInfo(_logger);
                 _tempUpdatedCoinsCache.Add(virtualDepositInfo.CoinInfo.Id, virtualDepositInfo);
             }
 
             _tempDeletedCoinsCache.Clear();
             _tempDeletedCoinsCache.AddRange(_userDepositCollection!.Where(kvp => !_tempUpdatedCoinsCache.ContainsKey(kvp.Key)));
-            _userDepositCollection!.Clear();
+            _userDepositCollection.Clear();
             _userDepositCollection.AddRange(_tempUpdatedCoinsCache);
 
             foreach (var deletedCoin in _tempDeletedCoinsCache)
                 VirtualDepositRemoved?.Invoke(deletedCoin.Value.CoinInfo);
-            foreach (var updatedCoin in _userDepositCollection)
+            foreach (var updatedCoin in _tempUpdatedCoinsCache)
                 VirtualDepositUpdated?.Invoke(updatedCoin.Value);
         }
     }
