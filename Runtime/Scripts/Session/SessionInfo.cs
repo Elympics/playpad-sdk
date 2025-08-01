@@ -13,7 +13,7 @@ namespace ElympicsPlayPad.Session
         public readonly string? AccountWallet;
         /// <summary>
         /// If <see cref="AuthData"/>.<see cref="AuthData.AuthType"/> is <see cref="AuthType.EthAddress"/>,
-        /// this will field has the same value as <see cref="AccountWallet"/>, otherwise it is null.
+        /// this field has the same value as <see cref="AccountWallet"/>, otherwise it is null.
         /// </summary>
         public readonly string? SignWallet;
         /// <summary>TON wallet address or null if current user doesn't have a TON wallet connected.</summary>
