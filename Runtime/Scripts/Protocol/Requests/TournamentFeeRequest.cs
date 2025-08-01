@@ -14,6 +14,6 @@ namespace ElympicsPlayPad.Protocol.Requests
         public string coinId;
         public int playersCount;
         public string prize;
-        public string[]? prizeDistribution;
+        public string[] prizeDistribution;
     }
 }
