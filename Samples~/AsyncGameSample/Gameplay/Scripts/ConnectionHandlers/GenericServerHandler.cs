@@ -5,7 +5,7 @@ using UnityEngine;
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
     [RequireComponent(typeof(MatchEnder))]
-    public class GenericServerHandler : DefaultServerHandlerr, IUpdatable
+    public class GenericServerHandler : DefaultServerHandler, IUpdatable
     {
         [Tooltip("Viable only when " + nameof(autoTerminationOnLeft) + " is set to None.")]
         [SerializeField] private float rejoiningTimeoutInSeconds = 120f;

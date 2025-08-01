@@ -9,8 +9,14 @@ namespace ElympicsPlayPad.Session
     public readonly struct SessionInfo
     {
         public readonly AuthData AuthData;
+        /// <summary>EVM wallet address or null if current user doesn't have an EVM wallet connected.</summary>
         public readonly string? AccountWallet;
+        /// <summary>
+        /// If <see cref="AuthData"/>.<see cref="AuthData.AuthType"/> is <see cref="AuthType.EthAddress"/>,
+        /// this field has the same value as <see cref="AccountWallet"/>, otherwise it is null.
+        /// </summary>
         public readonly string? SignWallet;
+        /// <summary>TON wallet address or null if current user doesn't have a TON wallet connected.</summary>
         public readonly string? TonWalletAddress;
         public readonly Capabilities Capabilities;
         public readonly FeatureAccess Features;
