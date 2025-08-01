@@ -74,6 +74,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return _userDepositCollection;
         }
 
+        public UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) => VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, amount, coinInfo, ct);
+
         public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, ElympicsCoinsResponse>(RequestResponseMessageTypes.GetAvailableCoins, null, ct);
