@@ -27,6 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         /// <returns>Details of the new current tournament.</returns>
         /// <exception cref="ArgumentException">A tournament with the given <paramref name="tournamentId"/> does not exist.</exception>
         /// <remarks>
+        /// This method does not raise <see cref="TournamentUpdated"/> event.
         /// PlayPad SDK does not provide a way to get an ID of a tournament that the local player has not joined.
         /// Joined tournaments include the daily tournament, tournaments created by the local player and the ones where the player has completed at least one match.
         /// To get an ID of any other tournament you can set up your own backend and fetch it from there.
