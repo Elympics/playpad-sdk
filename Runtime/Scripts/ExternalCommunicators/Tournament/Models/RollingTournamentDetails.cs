@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data
@@ -65,20 +66,6 @@ namespace ElympicsPlayPad.Tournament.Data
         public readonly float Score;
         /// <summary>Current position on leaderboard. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
         public readonly uint? Position;
-
-        public enum MatchState
-        {
-            /// <summary>Match is currently being played.</summary>
-            Playing,
-            /// <summary>Match was successfully finished and is included in the tournament leaderboard.</summary>
-            Finished,
-            /// <summary>
-            /// Match was started, but failed to finish. This can happen when a player disconnects from a match before it ends.
-            /// A failed match counts towards the total number of matches in a tournament, but has no score.
-            /// If all matches in a tournament end with a failure the tournament ends with a tie and all players receive equal rewards from the reward pool.
-            /// </summary>
-            Failed
-        }
 
         public RollingTournamentMatchDetails(MatchState state, string avatarUrl, string nickname, DateTime? matchEnded, float score, uint? position)
         {
