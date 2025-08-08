@@ -31,6 +31,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         /// <param name="coinId">ID of the coin for which battle wallet should be used in the window.</param>
         [PublicAPI]
         UniTask DisplayDepositPopup(Guid coinId, CancellationToken ct = default);
+        /// <param name="coinId">ID of the coin for which the payment window will be displayed.</param>
+        [PublicAPI]
+        UniTask ShowOnRamp(Guid coinId, CancellationToken ct = default);
         /// <summary>Update <see cref="UserDepositCollection"/> with latest data.</summary>
         /// <returns>A reference to <see cref="UserDepositCollection"/>.</returns>
         UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default);
