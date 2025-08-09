@@ -57,6 +57,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
                 throw new Exception($"Opening deposit popup failed:\n{response.error}");
         }
 
+        public async UniTask ShowOnRamp(Guid coinId, CancellationToken ct = default)
+        {
+            var request = new ShowOnRampRequest
+            {
+                coinId = coinId.ToString(),
+            };
+            var response = await _jsCommunicator.SendRequestMessage<ShowOnRampRequest, ShowOnRampResponse>(RequestResponseMessageTypes.ShowOnRamp, request, ct);
+
+            if (!response.success)
+                throw new Exception($"Failed to show on ramp:\n{response.error}");
+        }
+
         public async UniTask<IReadOnlyDictionary<Guid, VirtualDepositInfo>> GetVirtualDeposit(CancellationToken ct = default)
         {
             var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, VirtualDepositResponse>(RequestResponseMessageTypes.GetVirtualDeposit, null, ct);
