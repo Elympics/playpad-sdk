@@ -55,7 +55,7 @@ namespace ElympicsPlayPad.Tournament.Data
         public readonly int LocalPlayerMatchIndex;
 
         public RollingTournamentHistoryEntry(
-            string state,
+            TournamentState state,
             RollingTournamentPrizeDetails? prizeDetails,
             int numberOfPlayers,
             ReadOnlyCollection<RollingTournamentMatch> allMatches,
@@ -69,13 +69,7 @@ namespace ElympicsPlayPad.Tournament.Data
                     $"{nameof(localPlayerMatchIndex)} is not a valid index for {nameof(allMatches)}. {nameof(localPlayerMatchIndex)}: {localPlayerMatchIndex} {nameof(allMatches)}.Count: {allMatches.Count}.",
                     nameof(localPlayerMatchIndex));
 
-            CurrentState = state switch
-            {
-                nameof(TournamentState.Live) => TournamentState.Live,
-                nameof(TournamentState.Finished) => TournamentState.Finished,
-                nameof(TournamentState.YourResultsPending) => TournamentState.YourResultsPending,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unexpected tournament state.")
-            };
+            CurrentState = state;
             PrizeDetails = prizeDetails;
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
@@ -99,7 +93,11 @@ namespace ElympicsPlayPad.Tournament.Data
             /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
             /// are still being processed, so they are not included in <see cref="AllMatches"/> yet.
             /// </summary>
-            YourResultsPending
+            YourResultsPending,
+            /// <summary>
+            /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
+            /// </summary>
+            Unknown
         }
     }
 

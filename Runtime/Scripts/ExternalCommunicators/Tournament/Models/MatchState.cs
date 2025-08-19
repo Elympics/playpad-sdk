@@ -11,6 +11,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Models
         /// A failed match counts towards the total number of matches in a tournament, but has no score.
         /// If all matches in a tournament end with a failure the tournament ends with a tie and all players receive equal rewards from the reward pool.
         /// </summary>
-        Failed
+        Failed,
+        /// <summary>
+        /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
+        /// </summary>
+        Unknown
     }
 }

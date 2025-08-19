@@ -124,7 +124,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 var prizes = entry.tournament.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
                 var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
                 prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
-                return new RollingTournamentHistoryEntry(entry.state, prizeDetails, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
+
+                var state = entry.state switch
+                {
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Live) => RollingTournamentHistoryEntry.TournamentState.Live,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Finished) => RollingTournamentHistoryEntry.TournamentState.Finished,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.YourResultsPending) => RollingTournamentHistoryEntry.TournamentState.YourResultsPending,
+                    _ => RollingTournamentHistoryEntry.TournamentState.Unknown
+                };
+
+                if (state == RollingTournamentHistoryEntry.TournamentState.Unknown)
+                    logger.Error($"Unexpected rolling tournament state '{entry.state}' received.");
+
+                return new RollingTournamentHistoryEntry(state, prizeDetails, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
 
             RollingTournamentMatch ParticipationToMatch(RollingTournamentScore rollingScore, CoinInfo coinInfo)
@@ -136,7 +148,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     logger.Error($"Received match end date and time is in invalid format: {rollingScore.matchEnded}. SDK will return {matchEnded} instead.");
                 }
 
-                var matchState = ConvertToMatchState(rollingScore.state);
+                var matchState = ConvertToMatchState(rollingScore.state, logger);
                 return new RollingTournamentMatch(rollingScore.avatar,
                     rollingScore.nickname,
                     matchEnded,
@@ -177,11 +189,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
             var tournamentState = response.state switch
             {
-                "Live" => RollingTournamentDetails.TournamentState.Live,
-                "Finished" => RollingTournamentDetails.TournamentState.Finished,
-                "YourResultsPending" => RollingTournamentDetails.TournamentState.YourResultsPending,
-                _ => throw new ArgumentOutOfRangeException(nameof(response.state), response.state, "Unexpected rolling tournament instance state.")
+                nameof(RollingTournamentDetails.TournamentState.Live) => RollingTournamentDetails.TournamentState.Live,
+                nameof(RollingTournamentDetails.TournamentState.Finished) => RollingTournamentDetails.TournamentState.Finished,
+                nameof(RollingTournamentDetails.TournamentState.YourResultsPending) => RollingTournamentDetails.TournamentState.YourResultsPending,
+                _ => RollingTournamentDetails.TournamentState.Unknown
             };
+
+            if (tournamentState == RollingTournamentDetails.TournamentState.Unknown)
+                _logger.Error($"Unexpected rolling tournament state '{response.state}' received.");
 
             RollingTournamentPrizeDetails? prizeDetails = null;
 
@@ -200,7 +215,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = orderedResponseMatches[i];
-                var matchState = ConvertToMatchState(match.state);
+                var matchState = ConvertToMatchState(match.state, _logger);
                 DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
                 uint? position = match.position > 0 ? match.position : null;
 
@@ -218,13 +233,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return new RollingTournamentDetails(tournamentState, prizeDetails, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
         }
 
-        private static MatchState ConvertToMatchState(string matchState) => matchState switch
+        private static MatchState ConvertToMatchState(string matchState, ElympicsLoggerContext logger)
         {
-            "Failed" => MatchState.Failed,
-            "Finished" => MatchState.Finished,
-            "Playing" => MatchState.Playing,
-            _ => throw new ArgumentOutOfRangeException(nameof(matchState), matchState, null)
-        };
+            switch (matchState)
+            {
+                case "Failed":
+                    return MatchState.Failed;
+                case "Finished":
+                    return MatchState.Finished;
+                case "Playing":
+                    return MatchState.Playing;
+                default:
+                    logger.Error($"Unexpected match state '{matchState}' received.");
+                    return MatchState.Unknown;
+            }
+        }
 
         public void OnWebMessage(WebMessage message)
         {

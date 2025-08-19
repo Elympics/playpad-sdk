@@ -41,7 +41,11 @@ namespace ElympicsPlayPad.Tournament.Data
             /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
             /// are still being processed, so they are not included in <see cref="AllMatches"/> yet.
             /// </summary>
-            YourResultsPending
+            YourResultsPending,
+            /// <summary>
+            /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
+            /// </summary>
+            Unknown
         }
 
         public RollingTournamentDetails(TournamentState state, RollingTournamentPrizeDetails? prizeDetails, int numberOfPlayers, ReadOnlyCollection<RollingTournamentMatchDetails> allMatches, int localPlayerMatchIndex)
