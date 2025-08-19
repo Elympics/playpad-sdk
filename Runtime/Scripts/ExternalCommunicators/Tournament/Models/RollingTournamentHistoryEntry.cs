@@ -19,7 +19,10 @@ namespace ElympicsPlayPad.Tournament.Data
     [PublicAPI]
     public readonly struct RollingTournamentHistoryEntry
     {
-        public readonly string State;
+        [Obsolete("Use CurrentState instead.")]
+        public string State => CurrentState.ToString();
+
+        public readonly TournamentState CurrentState;
 
         /// <remarks>Can be null if coin used in this tournament is currently not available due to updated game configuration or platform on which the game client is currently launched.</remarks>
         public readonly RollingTournamentPrizeDetails? PrizeDetails;
@@ -66,7 +69,13 @@ namespace ElympicsPlayPad.Tournament.Data
                     $"{nameof(localPlayerMatchIndex)} is not a valid index for {nameof(allMatches)}. {nameof(localPlayerMatchIndex)}: {localPlayerMatchIndex} {nameof(allMatches)}.Count: {allMatches.Count}.",
                     nameof(localPlayerMatchIndex));
 
-            State = state;
+            CurrentState = state switch
+            {
+                nameof(TournamentState.Live) => TournamentState.Live,
+                nameof(TournamentState.Finished) => TournamentState.Finished,
+                nameof(TournamentState.YourResultsPending) => TournamentState.YourResultsPending,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unexpected tournament state.")
+            };
             PrizeDetails = prizeDetails;
             NumberOfPlayers = numberOfPlayers;
             AllMatches = allMatches;
@@ -74,6 +83,23 @@ namespace ElympicsPlayPad.Tournament.Data
             LocalPlayerMatchIndex = localPlayerMatchIndex;
 #pragma warning restore CS0618
             NewSettlement = newSettlement;
+        }
+
+        public enum TournamentState
+        {
+            /// <summary>Tournament is live and local player's result is included in <see cref="AllMatches"/>.</summary>
+            Live,
+            /// <summary>
+            /// Tournament was finished because the expected number of players joined and finished their matches or
+            /// the matchmaking system was unable to find enough players to complete the tournament in reasonable time,
+            /// so the tournament was cancelled.
+            /// </summary>
+            Finished,
+            /// <summary>
+            /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
+            /// are still being processed, so they are not included in <see cref="AllMatches"/> yet.
+            /// </summary>
+            YourResultsPending
         }
     }
 
