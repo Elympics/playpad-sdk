@@ -26,6 +26,7 @@ namespace ElympicsPlayPad.Protocol
         public const string SetActiveTournament = "SetActiveTournament";
         public const string GetRollingTournamentDetails = "GetRollingTournamentDetails";
         public const string ShowOnRamp = "ShowOnRamp";
+        public const string SendRawTransaction = "SendRawTransaction";
     }
 
     public static class WebMessageTypes
