@@ -104,7 +104,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             for (var i = 0; i < response.entries.Length; i++)
             {
                 var entry = response.entries[i];
-                var tournamentCoin = await FetchCoinForHistoryMatch(Guid.Parse(entry.tournament.coinId));
+                var tournamentCoin = await FetchCoinForHistoryMatch(Guid.Parse(entry.coinId));
                 entries[i] = ToPublicModel(entry, tournamentCoin);
             }
             return new RollingTournamentHistory(entries);
@@ -112,17 +112,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             RollingTournamentHistoryEntry ToPublicModel(GetRollingTournamentHistoryResponse.HistoryEntry entry, CoinInfo coinInfo)
             {
                 var logger = _logger.WithMethodName();
-                var allMatches = entry.allScores.OrderBy(participation => participation.position).Select(x => ParticipationToMatch(x, coinInfo)).ToList().AsReadOnly();
+                var allMatches = entry.scores.OrderBy(participation => participation.position).Select(x => ParticipationToMatch(x, coinInfo)).ToList().AsReadOnly();
 
-                var localPlayerMatch = ParticipationToMatch(entry.myScore, coinInfo);
+                var localPlayerMatch = ParticipationToMatch(entry.scores.First(score => score.mine), coinInfo);
                 var localPlayerMatchIndex = allMatches.IndexOf(localPlayerMatch);
                 if (localPlayerMatchIndex < 0)
                     throw logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
 
                 RollingTournamentPrizeDetails? prizeDetails = null;
                 // ReSharper disable once InvertIf
-                var prizes = entry.tournament.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
-                var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
+                var prizes = entry.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
+                var entryFee = RawCoinConverter.FromRaw(entry.entryFee, coinInfo.Currency.Decimals);
                 prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
 
                 var state = entry.state switch
@@ -136,7 +136,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 if (state == RollingTournamentHistoryEntry.TournamentState.Unknown)
                     logger.Error($"Unexpected rolling tournament state '{entry.state}' received.");
 
-                return new RollingTournamentHistoryEntry(state, prizeDetails, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
+                return new RollingTournamentHistoryEntry(state, prizeDetails, entry.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
 
             RollingTournamentMatch ParticipationToMatch(RollingTournamentScore rollingScore, CoinInfo coinInfo)
