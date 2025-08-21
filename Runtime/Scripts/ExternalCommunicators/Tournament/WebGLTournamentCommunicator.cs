@@ -130,6 +130,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     nameof(RollingTournamentHistoryEntry.TournamentState.Live) => RollingTournamentHistoryEntry.TournamentState.Live,
                     nameof(RollingTournamentHistoryEntry.TournamentState.Finished) => RollingTournamentHistoryEntry.TournamentState.Finished,
                     nameof(RollingTournamentHistoryEntry.TournamentState.YourResultsPending) => RollingTournamentHistoryEntry.TournamentState.YourResultsPending,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Cancelled) => RollingTournamentHistoryEntry.TournamentState.Cancelled,
                     _ => RollingTournamentHistoryEntry.TournamentState.Unknown
                 };
 
@@ -192,6 +193,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 nameof(RollingTournamentDetails.TournamentState.Live) => RollingTournamentDetails.TournamentState.Live,
                 nameof(RollingTournamentDetails.TournamentState.Finished) => RollingTournamentDetails.TournamentState.Finished,
                 nameof(RollingTournamentDetails.TournamentState.YourResultsPending) => RollingTournamentDetails.TournamentState.YourResultsPending,
+                nameof(RollingTournamentDetails.TournamentState.Cancelled) => RollingTournamentDetails.TournamentState.Cancelled,
                 _ => RollingTournamentDetails.TournamentState.Unknown
             };
 

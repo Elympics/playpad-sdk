@@ -95,6 +95,10 @@ namespace ElympicsPlayPad.Tournament.Data
             /// </summary>
             YourResultsPending,
             /// <summary>
+            /// The tournament was cancelled, because the matchmaking system was unable to find enough players in 24h since the tournament's creation.
+            /// </summary>
+            Cancelled,
+            /// <summary>
             /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
             /// </summary>
             Unknown
