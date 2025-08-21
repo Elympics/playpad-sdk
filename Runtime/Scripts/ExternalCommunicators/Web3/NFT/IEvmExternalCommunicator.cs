@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Numerics;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -15,5 +16,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
         /// <param name="data">A contract hashed method call with encoded args. E.g. '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'.</param>
         /// <returns>True if minting was successful.</returns>
         UniTask<bool> MintNft(string collectionAddress, string price, BigInteger chainId, string data, CancellationToken ct = default);
+
+        [Obsolete("This API is experimental and subject to change without notice in future releases.")]
+        UniTask<string> SendRawTransaction(string address, string amount, string chainId, string? data, CancellationToken ct = default);
     }
 }
