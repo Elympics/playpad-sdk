@@ -1,6 +1,6 @@
 {
   "name": "com.daftmobile.elympics-playpad",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Elympics PlayPad SDK is meant for integration with PlayPad, which is a tool for hosting your games and handling Web3 communication",
   "displayName": "Elympics PlayPad",
   "unity": "2021.3",
@@ -9,7 +9,7 @@
     "email": "hello@elympics.cc",
     "url": "https://www.elympics.ai/"
   },
-  "documentationUrl": "https://docs.elympics.cc/",
+  "documentationUrl": "https://docs.elympics.ai/",
   "license": "See LICENSE.md file",
   "keywords": [
     "multiplayer",
@@ -23,6 +23,6 @@
     }
   ],
   "dependencies": {
-    "com.daftmobile.elympics": "0.18.0"
+    "com.daftmobile.elympics": "0.18.1"
   }
 }
