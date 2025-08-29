@@ -182,7 +182,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
-        [Header("Custom implementation of communicators. Works only in Unity Editor.")]
+        [Header("Custom implementations of communicators (works only in Editor)")]
         [SerializeField] private CustomStandaloneAuthenticationCommunicatorBase? customAuthenticatorCommunicator;
 
         [SerializeField] private CustomStandaloneLeaderboardCommunicatorBase? customLeaderboardCommunicator;
