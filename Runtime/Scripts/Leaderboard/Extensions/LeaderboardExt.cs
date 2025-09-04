@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Elympics.Communication.Authentication.Models;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 
@@ -9,53 +10,51 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
 {
     internal static class LeaderboardExt
     {
-        public static LeaderboardStatusInfo MapToLeaderboardStatus(this LeaderboardResponse response) => new()
+        public static LeaderboardStatusInfo MapToLeaderboardStatus(this LeaderboardResponse response)
         {
-            Placements = response.entries?.Select(x => new Placement
+            var userEntry = response.userEntry;
+            return new LeaderboardStatusInfo
             {
-                UserId = x.userId,
-                Nickname = x.nickname,
-                Position = x.position,
-                Score = x.score,
-                ScoredAt = x.scoredAt,
-                MatchId = x.matchId,
-                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
-            }).ToArray(),
-            UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
-            {
-                UserId = response.userEntry.userId,
-                Nickname = response.userEntry.nickname,
-                Position = response.userEntry.position,
-                Score = response.userEntry.score,
-                ScoredAt = response.userEntry.scoredAt,
-                MatchId = response.userEntry.matchId,
-                TournamentId = response.userEntry.tournamentId,
-            },
-            Participants = response.participants,
-        };
+                Placements = response.entries?.Select(x => new Placement(
+                    x.position,
+                    x.score,
+                    x.scoredAt,
+                    x.matchId,
+                    string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
+                    new ElympicsUser(Guid.Parse(x.userId), x.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                )).ToArray(),
+                UserPlacement = string.IsNullOrEmpty(userEntry.userId) ? null : new Placement(
+                    userEntry.position,
+                    userEntry.score,
+                    userEntry.scoredAt,
+                    userEntry.matchId,
+                    userEntry.tournamentId,
+                    new ElympicsUser(Guid.Parse(userEntry.userId), userEntry.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                ),
+                Participants = response.participants,
+            };
+        }
 
         public static LeaderboardStatusInfo MapToLeaderboardStatus(this LeaderboardUpdatedMessage response) => new()
         {
             Placements = response.entries?.Select(x => new Placement
-            {
-                UserId = x.userId,
-                Nickname = x.nickname,
-                Position = x.position,
-                Score = x.score,
-                ScoredAt = x.scoredAt,
-                MatchId = x.matchId,
-                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
-            }).ToArray(),
+            (
+                x.position,
+                x.score,
+                x.scoredAt,
+                x.matchId,
+                string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
+                new ElympicsUser(Guid.Parse(x.userId), x.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+            )).ToArray(),
             UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
-            {
-                UserId = response.userEntry.userId,
-                Nickname = response.userEntry.nickname,
-                Position = response.userEntry.position,
-                Score = response.userEntry.score,
-                ScoredAt = response.userEntry.scoredAt,
-                MatchId = response.userEntry.matchId,
-                TournamentId = response.userEntry.tournamentId,
-            },
+            (
+                response.userEntry.position,
+                response.userEntry.score,
+                response.userEntry.scoredAt,
+                response.userEntry.matchId,
+                response.userEntry.tournamentId,
+                new ElympicsUser(Guid.Parse(response.userEntry.userId),response.userEntry.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+            ),
             Participants = response.participants,
         };
 

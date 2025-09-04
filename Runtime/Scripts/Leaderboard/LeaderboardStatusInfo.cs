@@ -1,4 +1,7 @@
 #nullable enable
+using System;
+using Elympics.Communication.Authentication.Models;
+
 namespace ElympicsPlayPad.Leaderboard
 {
     public readonly struct LeaderboardStatusInfo
@@ -11,12 +14,26 @@ namespace ElympicsPlayPad.Leaderboard
 
     public readonly struct Placement
     {
-        public string UserId { get; init; }
-        public string Nickname { get; init; }
-        public int Position { get; init; }
-        public float Score { get; init; }
-        public string ScoredAt { get; init; }
-        public string MatchId { get; init; }
-        public string? TournamentId { get; init; }
+        public readonly int Position;
+        public readonly float Score;
+        public readonly string ScoredAt;
+        public readonly string MatchId;
+        public readonly string? TournamentId;
+        public readonly ElympicsUser User;
+
+        public Placement(int position, float score, string scoredAt, string matchId, string? tournamentId, ElympicsUser user)
+        {
+            Position = position;
+            Score = score;
+            ScoredAt = scoredAt;
+            MatchId = matchId;
+            TournamentId = tournamentId;
+            User = user;
+        }
+
+        [Obsolete("Use" + nameof(User) + "." + nameof(ElympicsUser.UserId) + "instead.")]
+        public string UserId => User.UserId.ToString();
+        [Obsolete("Use" + nameof(User) + "." + nameof(ElympicsUser.Nickname) + "instead.")]
+        public string Nickname => User.Nickname;
     }
 }
