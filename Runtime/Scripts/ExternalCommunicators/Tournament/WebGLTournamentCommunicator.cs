@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Communication.Authentication.Models;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
@@ -152,13 +153,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 }
 
                 var matchState = ConvertToMatchState(rollingScore.state, logger);
-                return new RollingTournamentMatch(rollingScore.avatar,
-                    rollingScore.nickname,
+                return new RollingTournamentMatch(
                     matchEnded,
                     rollingScore.score,
                     matchState,
                     RawCoinConverter.FromRaw(rollingScore.prize, coinInfo.Currency.Decimals),
-                    rollingScore.position);
+                    rollingScore.position,
+                    new ElympicsUser(Guid.Empty, rollingScore.nickname, NicknameStatus.Unknown, rollingScore.avatar));
             }
         }
         public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
