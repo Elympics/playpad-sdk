@@ -221,7 +221,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
                 uint? position = match.position > 0 ? match.position : null;
 
-                matches[i] = new RollingTournamentMatchDetails(matchState, match.avatar, match.nickname, matchEnded, match.score, position);
+                matches[i] = new RollingTournamentMatchDetails(matchState, matchEnded, match.score, position, new ElympicsUser(Guid.Empty, match.nickname, NicknameStatus.Unknown, match.avatar));
 
                 if (match.mine)
                 {
