@@ -44,16 +44,16 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                 x.scoredAt,
                 x.matchId,
                 string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
-                new ElympicsUser(Guid.Parse(x.userId), x.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                x.user.ToPublicModel()
             )).ToArray(),
-            UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
+            UserPlacement = string.IsNullOrEmpty(response.userEntry.user.userId) ? null : new Placement
             (
                 response.userEntry.position,
                 response.userEntry.score,
                 response.userEntry.scoredAt,
                 response.userEntry.matchId,
                 response.userEntry.tournamentId,
-                new ElympicsUser(Guid.Parse(response.userEntry.userId),response.userEntry.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                response.userEntry.user.ToPublicModel()
             ),
             Participants = response.participants,
         };
