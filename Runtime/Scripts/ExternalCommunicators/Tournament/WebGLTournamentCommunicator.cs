@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.Communication.Authentication.Models;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
@@ -159,7 +158,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     matchState,
                     RawCoinConverter.FromRaw(rollingScore.prize, coinInfo.Currency.Decimals),
                     rollingScore.position,
-                    new ElympicsUser(Guid.Empty, rollingScore.nickname, NicknameStatus.Unknown, rollingScore.avatar));
+                    rollingScore.user.ToPublicModel());
             }
         }
         public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
@@ -222,7 +221,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
                 uint? position = match.position > 0 ? match.position : null;
 
-                matches[i] = new RollingTournamentMatchDetails(matchState, matchEnded, match.score, position, new ElympicsUser(Guid.Empty, match.nickname, NicknameStatus.Unknown, match.avatar));
+                matches[i] = new RollingTournamentMatchDetails(matchState, matchEnded, match.score, position, match.user.ToPublicModel());
 
                 if (match.mine)
                 {
