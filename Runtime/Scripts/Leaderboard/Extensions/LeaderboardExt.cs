@@ -2,7 +2,6 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using Elympics.Communication.Authentication.Models;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 
@@ -21,15 +20,15 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                     x.scoredAt,
                     x.matchId,
                     string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
-                    new ElympicsUser(Guid.Parse(x.userId), x.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                    x.user.ToPublicModel()
                 )).ToArray(),
-                UserPlacement = string.IsNullOrEmpty(userEntry.userId) ? null : new Placement(
+                UserPlacement = string.IsNullOrEmpty(userEntry.user.userId) ? null : new Placement(
                     userEntry.position,
                     userEntry.score,
                     userEntry.scoredAt,
                     userEntry.matchId,
                     userEntry.tournamentId,
-                    new ElympicsUser(Guid.Parse(userEntry.userId), userEntry.nickname, NicknameStatus.Unknown, "todo: add avatar URL")
+                    userEntry.user.ToPublicModel()
                 ),
                 Participants = response.participants,
             };
