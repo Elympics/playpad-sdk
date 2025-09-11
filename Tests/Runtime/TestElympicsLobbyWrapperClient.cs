@@ -5,7 +5,7 @@ using Elympics.Models.Authentication;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {

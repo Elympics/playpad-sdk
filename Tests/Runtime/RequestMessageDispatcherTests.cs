@@ -3,16 +3,16 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics.Tests;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
-using ElympicsPlayPad.Tests.PlayMode.Mocks;
+using ElympicsPlayPad.Tests.Mocks;
+using ElympicsPlayPad.Tests.Runtime.Mocks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     public class RequestMessageDispatcherTests : ElympicsMonoBaseTest
     {
@@ -24,7 +24,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
         public override bool RequiresElympicsConfig => false;
 
         [OneTimeSetUp]
-        public void Setup()
+        public new void Setup()
         {
             _jsMock = new JsCommunicatorRetrieverMock();
             _sut = new RequestMessageDispatcher(_jsMock, default);
@@ -60,7 +60,6 @@ namespace ElympicsPlayPad.Tests.PlayMode
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
             _jsMock.SendHandshakeResponse(ticket, 0);
-            var exceptionThrown = false;
             LogAssert.Expect(LogType.Error, new Regex("Status map already contains response"));
             _jsMock.SendHandshakeResponse(ticket, 0);
         });

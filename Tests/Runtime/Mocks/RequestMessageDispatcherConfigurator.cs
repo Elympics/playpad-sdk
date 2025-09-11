@@ -4,7 +4,7 @@ using System.Reflection;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using NUnit.Framework;
 
-namespace ElympicsPlayPad.Tests.PlayMode.Mocks
+namespace ElympicsPlayPad.Tests.Mocks
 {
     internal static class RequestMessageDispatcherConfigurator
     {

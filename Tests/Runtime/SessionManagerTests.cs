@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
-using Elympics.Tests;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
@@ -15,6 +14,7 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -24,7 +24,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     public class SessionManagerTests : ElympicsMonoBaseTest, IPrebuildSetup
     {

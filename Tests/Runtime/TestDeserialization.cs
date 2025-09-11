@@ -7,7 +7,7 @@ using ElympicsPlayPad.Utility;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     [Category("Deserialization")]
     public class TestDeserialization

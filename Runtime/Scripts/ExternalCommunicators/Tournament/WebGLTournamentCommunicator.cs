@@ -28,10 +28,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public TournamentInfo? CurrentTournament { get; private set; }
 
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly IJsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
 
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, JsCommunicator jsCommunicator)
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IJsCommunicator jsCommunicator)
         {
             _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
             _jsCommunicator = jsCommunicator;
@@ -100,10 +100,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 },
                 ct);
 
+            if (response.entries is null)
+                return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
+
             var entries = new RollingTournamentHistoryEntry[response.entries.Length];
             for (var i = 0; i < response.entries.Length; i++)
             {
                 var entry = response.entries[i];
+                entry.scores ??= Array.Empty<RollingTournamentScore>();
+                entry.prizes ??= Array.Empty<string>();
                 var tournamentCoin = await FetchCoinForHistoryMatch(Guid.Parse(entry.coinId));
                 entries[i] = ToPublicModel(entry, tournamentCoin);
             }
@@ -113,17 +118,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             {
                 var logger = _logger.WithMethodName();
                 var allMatches = entry.scores.OrderBy(participation => participation.position).Select(x => ParticipationToMatch(x, coinInfo)).ToList().AsReadOnly();
-
+                if (!entry.scores.Any(score => score.mine))
+                    throw logger.CaptureAndThrow(new ElympicsException("Received list of all matches in a rolling tournament does not contain local player's match."));
                 var localPlayerMatch = ParticipationToMatch(entry.scores.First(score => score.mine), coinInfo);
                 var localPlayerMatchIndex = allMatches.IndexOf(localPlayerMatch);
-                if (localPlayerMatchIndex < 0)
-                    throw logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
 
-                RollingTournamentPrizeDetails? prizeDetails = null;
-                // ReSharper disable once InvertIf
                 var prizes = entry.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
                 var entryFee = RawCoinConverter.FromRaw(entry.entryFee, coinInfo.Currency.Decimals);
-                prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
+                RollingTournamentPrizeDetails? prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
 
                 var state = entry.state switch
                 {
@@ -200,13 +202,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             if (tournamentState == RollingTournamentDetails.TournamentState.Unknown)
                 _logger.Error($"Unexpected rolling tournament state '{response.state}' received.");
 
-            RollingTournamentPrizeDetails? prizeDetails = null;
-
             var coinInfo = await FetchCoinForHistoryMatch(Guid.Parse(response.coinId));
 
             var prizes = response.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
             var entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Currency.Decimals);
-            prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
+            RollingTournamentPrizeDetails? prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
 
             var matches = new RollingTournamentMatchDetails[response.scores.Length];
 

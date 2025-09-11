@@ -2,7 +2,7 @@ using ElympicsPlayPad.Wrappers;
 using SCS;
 using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     public class TestSmartContractServiceWrapper : MonoBehaviour, ISmartContractServiceWrapper
     {

@@ -5,7 +5,7 @@ using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode.Mocks
+namespace ElympicsPlayPad.Tests.Mocks
 {
     public class JsCommunicatorRetrieverMock : IJsCommunicatorRetriever
     {

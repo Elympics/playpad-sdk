@@ -15,7 +15,7 @@ using UnityEngine;
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.JsCommunicator)]
-    internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
+    internal class JsCommunicator : MonoBehaviour, IJsCommunicator
     {
         public event Action<string>? ResponseObjectReceived;
         public event Action<WebMessage>? WebObjectReceived;
