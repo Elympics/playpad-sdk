@@ -55,7 +55,7 @@ namespace ElympicsPlayPad.Tests.Runtime.Mocks
                     AssetDatabase.CreateAsset(gameConfig, ElympicsConfig.ElympicsResourcesPath + "/ElympicsGameConfig.asset");
                     config.availableGames = new()
                     {
-                        gameConfig
+                        gameConfig,
                     };
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();

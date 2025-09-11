@@ -144,10 +144,10 @@ namespace ElympicsPlayPad.Tests
         [UnityTest]
         public IEnumerator Test_Request_Timeout() => UniTask.ToCoroutine(async () =>
         {
-            _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
+            _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
-            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
+            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, CancellationToken.None);
             await UniTask.Delay(TimeSpan.FromMilliseconds(20));
             var exceptionThrown = false;
             try
@@ -168,7 +168,7 @@ namespace ElympicsPlayPad.Tests
         public IEnumerator Test_Request_LinkedCancellation_Timeout() => UniTask.ToCoroutine(async () =>
         {
             var cts = new CancellationTokenSource();
-            _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
+            _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
@@ -194,7 +194,7 @@ namespace ElympicsPlayPad.Tests
         public void Cleanup()
         {
             _ticketCounter = 0;
-            _sut.SetTimeoutLenght(TimeSpan.FromSeconds(10 * 60));
+            _ = _sut.SetTimeoutLenght(TimeSpan.FromSeconds(10 * 60));
             _sut.Reset();
         }
     }

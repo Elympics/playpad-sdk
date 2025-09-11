@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             var request = new EnsureVirtualDepositRequest
             {
                 amount = "0",
-                coinId = coinId.ToString()
+                coinId = coinId.ToString(),
             };
             var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
 
@@ -138,7 +138,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             if (!_elympicsCoins.TryGetValue(coinId, out var cachedCoin))
                 throw new ElympicsException($"Coin with {coinId} is not recognized.");
 
-            var request = new WalletCurrencyBalanceRequest()
+            var request = new WalletCurrencyBalanceRequest
             {
                 coinId = coinId.ToString(),
                 walletAddress = walletAddress,

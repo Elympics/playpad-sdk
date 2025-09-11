@@ -28,7 +28,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
 
         public async UniTask<string> SendTransaction(string to, string from, string data, CancellationToken ct = default)
         {
-            var transaction = new TransactionToSignRequest()
+            var transaction = new TransactionToSignRequest
             {
                 to = to,
                 from = from,

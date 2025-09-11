@@ -30,7 +30,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             {
                 device = "desktop",
                 capabilities = (int)_authConfig.Capabilities,
-                closestRegion = _authConfig.ClosestRegion
+                closestRegion = _authConfig.ClosestRegion,
             });
             return new HandshakeInfo(result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, _authConfig.FeatureAccess);
         }

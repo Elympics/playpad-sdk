@@ -55,7 +55,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
             var message = new TournamentFeeRequest
             {
-                rollings = new RollingDetail[requestData.Length]
+                rollings = new RollingDetail[requestData.Length],
             };
 
             foreach (var (requestInfo, index) in requestData.Select((value, i) => (value, i)))
@@ -64,7 +64,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
                     prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals),
-                    prizeDistribution = requestInfo.PrizeDistribution?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray() ?? Array.Empty<string>()
+                    prizeDistribution = requestInfo.PrizeDistribution?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray() ?? Array.Empty<string>(),
                 };
 
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
@@ -96,7 +96,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 new GetRollingTournamentHistoryRequest
                 {
                     skip = skip,
-                    take = maxCount
+                    take = maxCount,
                 },
                 ct);
 
@@ -133,7 +133,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                     nameof(RollingTournamentHistoryEntry.TournamentState.Finished) => RollingTournamentHistoryEntry.TournamentState.Finished,
                     nameof(RollingTournamentHistoryEntry.TournamentState.YourResultsPending) => RollingTournamentHistoryEntry.TournamentState.YourResultsPending,
                     nameof(RollingTournamentHistoryEntry.TournamentState.Cancelled) => RollingTournamentHistoryEntry.TournamentState.Cancelled,
-                    _ => RollingTournamentHistoryEntry.TournamentState.Unknown
+                    _ => RollingTournamentHistoryEntry.TournamentState.Unknown,
                 };
 
                 if (state == RollingTournamentHistoryEntry.TournamentState.Unknown)
@@ -196,7 +196,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 nameof(RollingTournamentDetails.TournamentState.Finished) => RollingTournamentDetails.TournamentState.Finished,
                 nameof(RollingTournamentDetails.TournamentState.YourResultsPending) => RollingTournamentDetails.TournamentState.YourResultsPending,
                 nameof(RollingTournamentDetails.TournamentState.Cancelled) => RollingTournamentDetails.TournamentState.Cancelled,
-                _ => RollingTournamentDetails.TournamentState.Unknown
+                _ => RollingTournamentDetails.TournamentState.Unknown,
             };
 
             if (tournamentState == RollingTournamentDetails.TournamentState.Unknown)

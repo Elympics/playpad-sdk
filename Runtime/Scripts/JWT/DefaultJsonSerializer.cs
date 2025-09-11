@@ -12,10 +12,7 @@ namespace ElympicsPlayPad.JWT
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>JSON string</returns>
-        public string Serialize(object obj)
-        {
-            return JsonUtility.ToJson(obj);
-        }
+        public string Serialize(object obj) => JsonUtility.ToJson(obj);
 
         /// <summary>
         /// Deserialize a JSON string to typed object.
@@ -23,9 +20,6 @@ namespace ElympicsPlayPad.JWT
         /// <typeparam name="T">type of object</typeparam>
         /// <param name="json">JSON string</param>
         /// <returns>typed object</returns>
-        public T Deserialize<T>(string json)
-        {
-            return JsonUtility.FromJson<T>(json);
-        }
+        public T Deserialize<T>(string json) => JsonUtility.FromJson<T>(json);
     }
 }

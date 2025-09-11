@@ -19,7 +19,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Utility
             ClientSecret => AuthType.ClientSecret,
             EthAddress => AuthType.EthAddress,
             TelegramAuth => AuthType.Telegram,
-            _ => throw new ArgumentOutOfRangeException(nameof(authTypeRaw), authTypeRaw, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(authTypeRaw), authTypeRaw, null),
         };
 
         public static string ToUnityNaming(string jsonObject) => jsonObject.Replace($"\"{EthAddressJwtClaim}\":", $"\"{JwtPayload.EthAddressKey}\":").Replace(AuthTypeClaim, JwtPayload.AuthTypeKey).Replace($"\"{TonAddressJwtClaim}\":", $"\"{JwtPayload.TonAddressKey}\":").Replace($"\"{TonNoBounceAddressJwtClaim}\":", $"\"{JwtPayload.TonNoBounceAddressKey}\":");

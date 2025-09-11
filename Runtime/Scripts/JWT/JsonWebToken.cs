@@ -9,7 +9,7 @@ namespace ElympicsPlayPad.JWT
     {
         HS256,
         HS384,
-        HS512
+        HS512,
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ namespace ElympicsPlayPad.JWT
             {
                 { JwtHashAlgorithm.HS256, (key, value) => { using var sha = new HMACSHA256(key); return sha.ComputeHash(value); } },
                 { JwtHashAlgorithm.HS384, (key, value) => { using var sha = new HMACSHA384(key); return sha.ComputeHash(value); } },
-                { JwtHashAlgorithm.HS512, (key, value) => { using var sha = new HMACSHA512(key); return sha.ComputeHash(value); } }
+                { JwtHashAlgorithm.HS512, (key, value) => { using var sha = new HMACSHA512(key); return sha.ComputeHash(value); } },
             };
         }
 
@@ -50,7 +50,7 @@ namespace ElympicsPlayPad.JWT
             var header = new Dictionary<string, object>(extraHeaders)
             {
                 { "typ", "JWT" },
-                { "alg", algorithm.ToString() }
+                { "alg", algorithm.ToString() },
             };
 
             var headerBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(header));
@@ -76,10 +76,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="key">The key used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
-        public static string Encode(object payload, byte[] key, JwtHashAlgorithm algorithm)
-        {
-            return Encode(new Dictionary<string, object>(), payload, key, algorithm);
-        }
+        public static string Encode(object payload, byte[] key, JwtHashAlgorithm algorithm) =>
+            Encode(new Dictionary<string, object>(), payload, key, algorithm);
 
         /// <summary>
         /// Creates a JWT given a set of arbitrary extra headers, a payload, the signing key, and the algorithm to use.
@@ -89,10 +87,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="key">The key bytes used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
-        public static string Encode(IDictionary<string, object> extraHeaders, object payload, string key, JwtHashAlgorithm algorithm)
-        {
-            return Encode(extraHeaders, payload, Encoding.UTF8.GetBytes(key), algorithm);
-        }
+        public static string Encode(IDictionary<string, object> extraHeaders, object payload, string key, JwtHashAlgorithm algorithm) =>
+            Encode(extraHeaders, payload, Encoding.UTF8.GetBytes(key), algorithm);
 
         /// <summary>
         /// Creates a JWT given a payload, the signing key, and the algorithm to use.
@@ -101,10 +97,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="key">The key used to sign the token.</param>
         /// <param name="algorithm">The hash algorithm to use.</param>
         /// <returns>The generated JWT.</returns>
-        public static string Encode(object payload, string key, JwtHashAlgorithm algorithm)
-        {
-            return Encode(new Dictionary<string, object>(), payload, Encoding.UTF8.GetBytes(key), algorithm);
-        }
+        public static string Encode(object payload, string key, JwtHashAlgorithm algorithm) =>
+            Encode(new Dictionary<string, object>(), payload, Encoding.UTF8.GetBytes(key), algorithm);
 
         /// <summary>
         /// Given a JWT, decode it and return the JSON payload.
@@ -183,10 +177,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="verify">Whether to verify the signature (default is true).</param>
         /// <returns>A string containing the JSON payload.</returns>
         /// <exception cref="SignatureVerificationException">Thrown if the verify parameter was true and the signature was NOT valid or if the JWT was signed with an unsupported algorithm.</exception>
-        public static string Decode(string token, string key, bool verify = true)
-        {
-            return Decode(token, Encoding.UTF8.GetBytes(key), verify);
-        }
+        public static string Decode(string token, string key, bool verify = true) =>
+            Decode(token, Encoding.UTF8.GetBytes(key), verify);
 
         /// <summary>
         /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
@@ -211,10 +203,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="verify">Whether to verify the signature (default is true).</param>
         /// <returns>An object representing the payload.</returns>
         /// <exception cref="SignatureVerificationException">Thrown if the verify parameter was true and the signature was NOT valid or if the JWT was signed with an unsupported algorithm.</exception>
-        public static object DecodeToObject(string token, string key, bool verify = true)
-        {
-            return DecodeToObject(token, Encoding.UTF8.GetBytes(key), verify);
-        }
+        public static object DecodeToObject(string token, string key, bool verify = true) =>
+            DecodeToObject(token, Encoding.UTF8.GetBytes(key), verify);
 
         /// <summary>
         /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="Web.Script.Serialization.JavaScriptSerializer"/>).
@@ -241,10 +231,8 @@ namespace ElympicsPlayPad.JWT
         /// <param name="verify">Whether to verify the signature (default is true).</param>
         /// <returns>An object representing the payload.</returns>
         /// <exception cref="SignatureVerificationException">Thrown if the verify parameter was true and the signature was NOT valid or if the JWT was signed with an unsupported algorithm.</exception>
-        public static T DecodeToObject<T>(string token, string key, bool verify = true)
-        {
-            return DecodeToObject<T>(token, Encoding.UTF8.GetBytes(key), verify);
-        }
+        public static T DecodeToObject<T>(string token, string key, bool verify = true) =>
+            DecodeToObject<T>(token, Encoding.UTF8.GetBytes(key), verify);
 
         private static JwtHashAlgorithm GetHashAlgorithm(string algorithm)
         {

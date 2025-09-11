@@ -10,9 +10,11 @@ namespace ElympicsPlayPad.Tests.Mocks
     {
         public static RequestMessageDispatcher SetTimeoutLenght(this RequestMessageDispatcher sut, TimeSpan newLenght)
         {
-            var timeOutInSec = sut.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(x => x.Name == RequestMessageDispatcher.RequestTimeOutSecFieldName);
+            var timeOutInSec = sut.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                .FirstOrDefault(x => x.Name == RequestMessageDispatcher.RequestTimeOutSecFieldName);
             Assert.NotNull(timeOutInSec);
-            timeOutInSec.SetValue(sut,newLenght);
+            timeOutInSec.SetValue(sut, newLenght);
             return sut;
         }
     }

@@ -11,7 +11,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public string GetVoidMessageJson<T>(string voidMessageType, T? payload)
             where T : struct
         {
-            var voidMessage = new VoidMessage<T>()
+            var voidMessage = new VoidMessage<T>
             {
                 type = voidMessageType,
                 payload = payload ?? default,
@@ -22,11 +22,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public string GenerateRequestMessageJson<TInput>(int requestNumber, string type, TInput? payload)
             where TInput : struct
         {
-            var toSerialize = new RequestMessage<TInput>()
+            var toSerialize = new RequestMessage<TInput>
             {
                 ticket = requestNumber,
                 type = type,
-                payload = payload ?? default
+                payload = payload ?? default,
             };
             return JsonUtility.ToJson(toSerialize);
         }

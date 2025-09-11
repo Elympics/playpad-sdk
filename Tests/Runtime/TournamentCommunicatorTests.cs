@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.ElympicsSystems.Internal;
@@ -22,7 +23,7 @@ namespace ElympicsPlayPad.Tests.Runtime
         {
             var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
             var jsCommunicator = Substitute.For<IJsCommunicator>();
-            jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(default, default, default)
+            _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = null,
@@ -39,7 +40,7 @@ namespace ElympicsPlayPad.Tests.Runtime
         {
             var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
             var jsCommunicator = Substitute.For<IJsCommunicator>();
-            jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(default, default, default)
+            _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = Array.Empty<GetRollingTournamentHistoryResponse.HistoryEntry>(),
@@ -55,12 +56,12 @@ namespace ElympicsPlayPad.Tests.Runtime
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_TestResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
             var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
-            blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
+            _ = blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
             {
                 { Guid.Parse("6b3676f7-6de2-4c43-bd23-581a9444445a"), new CoinInfo() },
             });
             var jsCommunicator = Substitute.For<IJsCommunicator>();
-            jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(default, default, default)
+            _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = new[]
@@ -102,12 +103,12 @@ namespace ElympicsPlayPad.Tests.Runtime
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_ModeratelyEmptyResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
             var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
-            blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
+            _ = blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
             {
                 { Guid.Empty, new CoinInfo() },
             });
             var jsCommunicator = Substitute.For<IJsCommunicator>();
-            jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(default, default, default)
+            _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = new[]

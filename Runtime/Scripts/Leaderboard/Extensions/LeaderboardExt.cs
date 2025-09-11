@@ -19,7 +19,7 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                 Score = x.score,
                 ScoredAt = x.scoredAt,
                 MatchId = x.matchId,
-                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId
+                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
             }).ToArray(),
             UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
             {
@@ -29,7 +29,7 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                 Score = response.userEntry.score,
                 ScoredAt = response.userEntry.scoredAt,
                 MatchId = response.userEntry.matchId,
-                TournamentId = response.userEntry.tournamentId
+                TournamentId = response.userEntry.tournamentId,
             },
             Participants = response.participants,
         };
@@ -44,7 +44,7 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                 Score = x.score,
                 ScoredAt = x.scoredAt,
                 MatchId = x.matchId,
-                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId
+                TournamentId = string.IsNullOrEmpty(x.tournamentId) ? null : x.tournamentId,
             }).ToArray(),
             UserPlacement = string.IsNullOrEmpty(response.userEntry.userId) ? null : new Placement
             {
@@ -54,7 +54,7 @@ namespace ElympicsPlayPad.Leaderboard.Extensions
                 Score = response.userEntry.score,
                 ScoredAt = response.userEntry.scoredAt,
                 MatchId = response.userEntry.matchId,
-                TournamentId = response.userEntry.tournamentId
+                TournamentId = response.userEntry.tournamentId,
             },
             Participants = response.participants,
         };

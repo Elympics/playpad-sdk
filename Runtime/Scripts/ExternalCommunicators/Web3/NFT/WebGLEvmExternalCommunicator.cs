@@ -25,8 +25,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                 payload = new MintEvmNftPayload
                 {
                     chainId = chainId.ToString(),
-                    data = data
-                }
+                    data = data,
+                },
             };
             var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintEvmNftPayload>, BoolPayloadResponse>(RequestResponseMessageTypes.MintNft, payload, ct);
 
@@ -42,8 +42,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                 payload = new EvmPayload
                 {
                     chainId = chainId,
-                    data = data
-                }
+                    data = data,
+                },
             };
 
             var response = await _jsCommunicator.SendRequestMessage<SendRawTransactionRequest<EvmPayload>, SendRawTransactionResponse>(RequestResponseMessageTypes.SendRawTransaction, request, ct);

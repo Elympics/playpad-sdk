@@ -18,7 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Wallet
             { "5", "https://ethereum-goerli.publicnode.com" },
             { "11155111", "https://ethereum-sepolia-rpc.publicnode.com" },
             { "8453", "https://base-rpc.publicnode.com" },
-            { "84532", "https://base-sepolia-rpc.publicnode.com" }
+            { "84532", "https://base-sepolia-rpc.publicnode.com" },
         };
 
         private readonly Dictionary<string, Contract> _contracts = new();

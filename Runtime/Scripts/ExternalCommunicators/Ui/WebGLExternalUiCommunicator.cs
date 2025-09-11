@@ -17,7 +17,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
         {
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal started");
 
-            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
+            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal,
+                new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
 
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal ended");
         }
