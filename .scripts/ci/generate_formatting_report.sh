@@ -2,7 +2,7 @@
 
 PACKAGE_FOLDER=${PACKAGE_DIR}/
 
-mv -f ./.editorconfig $PACKAGE_FOLDER
+mv -f ./.editorconfig "$PACKAGE_FOLDER"
 
 dotnet restore "./${TESTING_PROJECT_NAME}/${TESTING_PROJECT_NAME}.sln"
 dotnet format --no-restore --verify-no-changes --verbosity diagnostic --severity info --report . "./${TESTING_PROJECT_NAME}/${TESTING_PROJECT_NAME}.sln" || true
@@ -26,9 +26,9 @@ sed -i 's@'"$PACKAGE_FOLDER"'@@i' ./format-report.codequality.json
 GREEN='\033[0;92m'
 CLEAR='\033[0m'
 SECTION='\e[0K'
-echo -e "${SECTION}section_start:`date +%s`:formatting_check_summary\r${SECTION}${GREEN}Formatting check summary${CLEAR}"
+echo -e "${SECTION}section_start:$(date +%s):formatting_check_summary[collapsed=true]\r${SECTION}${GREEN}Formatting check summary${CLEAR}"
 jq -r '.[] | "[" + .severity  + "] " + .location.path + ":" + (.location.lines.begin | tostring) + ":" + (.location.lines.begin_char | tostring) + "; " + .description' ./format-report.codequality.json
-echo -e "${SECTION}section_end:`date +%s`:formatting_check_summary\r${SECTION}"
+echo -e "${SECTION}section_end:$(date +%s):formatting_check_summary\r${SECTION}"
 
 # Fail on any warning
 dotnet format --no-restore --verify-no-changes --verbosity diagnostic --severity warn "./${TESTING_PROJECT_NAME}/${TESTING_PROJECT_NAME}.sln" > /dev/null 2> /dev/null
