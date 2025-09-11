@@ -26,7 +26,7 @@ using UnityEngine.TestTools;
 
 namespace ElympicsPlayPad.Tests
 {
-    public class SessionManagerTests : ElympicsMonoBaseTest, IPrebuildSetup
+    public class SessionManagerTests : ElympicsMonoBaseTest
     {
         public SessionManager _sut;
         private PlayPadCommunicator _communicator;
