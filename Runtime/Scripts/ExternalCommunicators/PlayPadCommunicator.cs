@@ -35,7 +35,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
     public class PlayPadCommunicator : MonoBehaviour
     {
         /// <summary>Singleton instance of this component.</summary>
-        /// <remarks>This field is set in the Awake method, so before that method executes value of this field is null.</remarks>
+        /// <remarks>This field is set in the <see cref="Awake"/> method, so before that method executes value of this field is null.</remarks>
         [PublicAPI] public static PlayPadCommunicator? Instance;
 
         /// <summary>Gives direct access to methods and events related to authentication and regions.</summary>
