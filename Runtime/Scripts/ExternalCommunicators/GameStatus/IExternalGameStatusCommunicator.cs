@@ -17,7 +17,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
         /// <summary>Starts a quick match in the current tournament.</summary>
         /// <param name="config">Matchmaking configuration.</param>
-        /// <returns>An awaitable task which returns a reference to the newly created room once a match is found by the matchmaking system.</returns>
+        /// <returns>A reference to the newly created room once a match is found by the matchmaking system.</returns>
         /// <remarks>
         /// This method only works with tournaments. If you want to start a match outside of a tournament or
         /// use a different type of competitiveness, such as duels or rolling tournaments, consider using

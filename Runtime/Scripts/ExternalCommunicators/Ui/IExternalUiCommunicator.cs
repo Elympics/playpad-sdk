@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
     /// <summary>Allows opening PlayPad modal windows that are displayed over the game.</summary>
-    /// <remarks>All methods of this interface return a <see cref="UniTask"/> which is completed when the modal window opened by the method is closed.</remarks>
+    /// <remarks>All methods of this interface return a <see cref="UniTask"/> which completes when the modal window opened by the method is closed.</remarks>
     public interface IExternalUiCommunicator
     {
         /// <summary>Opens a PlayPad modal window displayed over the game.</summary>
@@ -17,7 +17,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
         /// and the returned task no longer waits for the modal window to be closed.
         /// </param>
         /// <returns>An awaitable task which is completed when the modal window opened by this method is closed.</returns>
-        /// <remarks>Most of the time using another method from this interface is simpler than calling this method directly.</remarks>
+        /// <remarks>Most of the time using other methods from this interface is simpler than calling this method directly.</remarks>
         UniTask Display(string name, CancellationToken ct = default);
 
         #region helpers
