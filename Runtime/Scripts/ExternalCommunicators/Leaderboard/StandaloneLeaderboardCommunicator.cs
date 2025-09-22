@@ -31,7 +31,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                         scoredAt = DateTime.UtcNow.ToString("o"),
                         matchId = "00000000-0000-0000-0001-000000000000",
                         tournamentId = "abcdef",
-                        user = new ElympicsUserDTO("00000000-0000-0000-0000-000000000001", "TestNickName", (int)NicknameStatus.NotVerified, "testAvatarURL")
+                        user = new ElympicsUserDTO("00000000-0000-0000-0000-000000000001", "TestNickName", (int)NicknameType.Common, "testAvatarURL")
                     }
                 },
                 participants = 10,
