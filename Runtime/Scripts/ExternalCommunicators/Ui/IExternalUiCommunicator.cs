@@ -1,11 +1,22 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
+    /// <summary>Allows opening PlayPad modal windows that are displayed over the game.</summary>
+    /// <remarks>All methods of this interface return a <see cref="UniTask"/> which completes when the modal window opened by the method is closed.</remarks>
     public interface IExternalUiCommunicator
     {
-        UniTask Display(string name, CancellationToken ct = default);
+        /// <inheritdoc cref="Display(string)"/>
+        [Obsolete("Cancellation of the task returned by this method is no longer supported. Use the " + nameof(Display) + "(string) overload instead and implement cancellation separately if necessary.")]
+        UniTask Display(string name, CancellationToken ct) => Display(name);
+
+        /// <summary>Opens a PlayPad modal window displayed over the game.</summary>
+        /// <param name="name">Name of the modal window to open.</param>
+        /// <returns>An awaitable task which is completed when the modal window opened by this method is closed.</returns>
+        /// <remarks>Most of the time using other methods from this interface is simpler than calling this method directly.</remarks>
+        UniTask Display(string name);
 
         #region helpers
 
