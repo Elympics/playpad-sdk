@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             {
                 Amount = RawCoinConverter.FromRaw(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
-                CoinInfo = coinInfo
+                CoinInfo = coinInfo,
             };
             return depositInfo;
         }
@@ -34,21 +34,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
                 Ticker = currencyResponse.ticker,
                 Address = currencyResponse.address,
                 Decimals = currencyResponse.decimals,
-                Icon = await CoinIcons.GetIconOrNull(Guid.Parse(currencyResponse.coinId), currencyResponse.iconUrl, logger)
+                Icon = await CoinIcons.GetIconOrNull(Guid.Parse(currencyResponse.coinId), currencyResponse.iconUrl, logger),
             };
 
             var chainInfo = new ChainInfo
             {
                 Type = currencyResponse.chainType,
                 Name = currencyResponse.chainName,
-                ExternalId = currencyResponse.chainExternalId
+                ExternalId = currencyResponse.chainExternalId,
             };
 
             var coinInfo = new CoinInfo
             {
                 Id = Guid.Parse(currencyResponse.coinId),
                 Currency = currencyInfo,
-                Chain = chainInfo
+                Chain = chainInfo,
             };
             return coinInfo;
         }
@@ -61,7 +61,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             {
                 Amount = RawCoinConverter.FromRaw(response.amount, coinInfo.Currency.Decimals),
                 Wei = response.amount,
-                CoinInfo = coinInfo
+                CoinInfo = coinInfo,
             };
             return depositInfo;
         }
@@ -72,7 +72,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             {
                 AmountRaw = string.IsNullOrEmpty(response.error) ? response.amount : string.Empty,
                 Amount = string.IsNullOrEmpty(response.error) ? RawCoinConverter.FromRaw(response.amount, decimals) : 0,
-                Error = response.error
+                Error = response.error,
             };
         }
 
@@ -83,21 +83,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
                 Ticker = currencyResponse.ticker,
                 Address = currencyResponse.address,
                 Decimals = currencyResponse.decimals,
-                Icon = await CoinIcons.GetIconOrNull(Guid.Parse(currencyResponse.coinId), currencyResponse.iconUrl, logger)
+                Icon = await CoinIcons.GetIconOrNull(Guid.Parse(currencyResponse.coinId), currencyResponse.iconUrl, logger),
             };
 
             var chainInfo = new ChainInfo
             {
                 Type = currencyResponse.chainType,
                 Name = currencyResponse.chainName,
-                ExternalId = currencyResponse.chainExternalId
+                ExternalId = currencyResponse.chainExternalId,
             };
 
             var coinInfo = new CoinInfo
             {
                 Id = Guid.Parse(currencyResponse.coinId),
                 Currency = currencyInfo,
-                Chain = chainInfo
+                Chain = chainInfo,
             };
             return coinInfo;
         }

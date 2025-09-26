@@ -1,7 +1,7 @@
 using Elympics.Util;
 using NUnit.Framework;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     [Category("Wei")]
     public class WeiTests

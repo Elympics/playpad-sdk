@@ -9,7 +9,7 @@ namespace ElympicsPlayPad.Web3.Extensions
         {
             ChainId = chainId,
             Address = elympicsSmartContract.Address,
-            ABI = elympicsSmartContract.ABI
+            ABI = elympicsSmartContract.ABI,
         };
     }
 }

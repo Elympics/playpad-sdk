@@ -81,7 +81,8 @@ get-activation-file:
 check-commits:
   extends:
     - .bash_image
-  stage: prepare-project
+  stage: check
+  needs: []
   variables:
     GIT_DEPTH: 0
   script:
@@ -113,7 +114,6 @@ create-testing-project:
   stage: test
   needs:
     - job: create-testing-project
-      artifacts: true
   before_script:
     - *unity_default_before_script
     - apt-get update && apt-get install -y --no-install-recommends xsltproc
@@ -147,12 +147,7 @@ verify-formatting:
     - .cond.license
   stage: check
   needs:
-    - job: test:playmode
-      artifacts: false
-    - job: test:editmode
-      artifacts: false
     - job: create-testing-project
-      artifacts: true
   variables:
     GIT_DEPTH: 1
   before_script:

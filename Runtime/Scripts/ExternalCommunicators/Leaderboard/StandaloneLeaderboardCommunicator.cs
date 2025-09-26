@@ -18,7 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 
         public UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
         {
-            Leaderboard = new LeaderboardResponse()
+            Leaderboard = new LeaderboardResponse
             {
                 entries = new[]
                 {
@@ -30,8 +30,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                         score = 10,
                         scoredAt = DateTime.UtcNow.ToString("o"),
                         matchId = "00000000-0000-0000-0001-000000000000",
-                        tournamentId = "abcdef"
-                    }
+                        tournamentId = "abcdef",
+                    },
                 },
                 participants = 10,
             }.MapToLeaderboardStatus();
@@ -39,10 +39,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
         }
         public UniTask<UserHighScoreInfo?> FetchUserHighScore(CancellationToken ct = default)
         {
-            UserHighScore = new UserHighScoreInfo()
+            UserHighScore = new UserHighScoreInfo
             {
                 Points = 99,
-                ScoredAt = DateTime.Now - TimeSpan.FromDays(1)
+                ScoredAt = DateTime.Now - TimeSpan.FromDays(1),
             };
             return UniTask.FromResult(UserHighScore);
         }

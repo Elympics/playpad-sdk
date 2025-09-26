@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
-using Elympics.Tests;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
@@ -15,6 +14,7 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -23,12 +23,13 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
-    public class SessionManagerTests : ElympicsMonoBaseTest, IPrebuildSetup
+    public class SessionManagerTests : ElympicsMonoBaseTest
     {
-        public SessionManager _sut;
+        private SessionManager _sut;
         private PlayPadCommunicator _communicator;
         private static readonly IExternalAuthenticator AuthMock = Substitute.For<IExternalAuthenticator>();
         private static readonly IExternalGameStatusCommunicator GameMock = Substitute.For<IExternalGameStatusCommunicator>();
@@ -38,16 +39,8 @@ namespace ElympicsPlayPad.Tests.PlayMode
 
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         private const string Nickname = "nickname";
-        private string _defaultEnvironment = "Dev";
-        private string _defaultClosestRegion = "warsaw";
-
-        #region TournamentDefaults
-
-        private const string TournamentId = "abcdef";
-        private const string TournamentName = "testname";
-        private const int TournamentCapacity = 4;
-
-        #endregion
+        private const string DefaultEnvironment = "Dev";
+        private const string DefaultClosestRegion = "warsaw";
 
         #region PlayStatusDefaults
 
@@ -71,21 +64,17 @@ namespace ElympicsPlayPad.Tests.PlayMode
    ""signature"": ""rX85CHYGCpo2V1J6hXRj0rRySi-n7qxjiuwS98P9zS6W-hfKHKsApWJQeLUZ4_0DCUr8AE-YdkbYESKwv6Jl5OuyHDH4QCIVuTkCVrbT4duCiopitcVqwNubQARpTc7lApDAxihAtmdVUuUwz26po2ntlgv-p_JdHqN1g5Uk3vr9miKDdBzvSwSWwN1NP2cGEvzqlAs3wHtw4GYZChX_RugjM-vppuovQMOkwxJ7IvQXV7kb00ucpj71u9EmTmQFN9RMnB8b4c5K7-kXCM-_L2PNAC6MZX2-OExNWklQtqTUD3oF-dJFRH4Hew_ZEgt_SBw37NWN1NSfT2q1wnXh0TDpFPPnZSqYUGNYl7mhOlLrPWNi5e4dpiawy-23760qDmj4kriyqOPcVCzWTbmcvcEe-ktwBIo9MNwYZvQCFJ7yZfsdVTlw7WdBO9_Kf6JZNVZ7Rc6jjCN3OPmCJShTLg7GbiHOp9Bl8637mXXV7GwTzqZxoyAvU9ysRyRXC3kMkUEew0oyAr8eCXU1k-8DIiK_AYdzAUIqSfgV74MwONqQtmrxbGx8kw_l4D15ha7vOMI0QoN9Tu62ElFBgwk2j-1ysH7_7D_sx-9wYD-gUUaOIgL2e71cLzxzzQ0RJYh984BE6RawW4-mzjiR3J8g9NYPRhT-911w-F_HGRTXCZ4""
  }";
 
-        private string JwtEncoded;
+        private string _jwtEncoded;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
-        {
-            JwtEncoded = EncodeJwtFromJson(FakeJwt);
-
-        }
+        public void OneTimeSetup() => _jwtEncoded = EncodeJwtFromJson(FakeJwt);
 
         [UnitySetUp]
         public IEnumerator SetUp()
         {
             SceneManager.LoadScene(SceneName);
-            yield return new WaitUntil(() => MonoBehaviour.FindObjectOfType<SessionManager>() != null);
-            _sut = MonoBehaviour.FindObjectOfType<SessionManager>();
+            yield return new WaitUntil(() => Object.FindObjectOfType<SessionManager>() != null);
+            _sut = Object.FindObjectOfType<SessionManager>();
             _communicator = PlayPadCommunicator.Instance;
             MockExternalCommunicator(_communicator, PlayPadCommunicator.ExternalAuthenticatorFieldName, AuthMock);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.GameStatusCommunicatorFieldName, GameMock);
@@ -98,17 +87,19 @@ namespace ElympicsPlayPad.Tests.PlayMode
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, JwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
-            var currentPlayStatus = new PlayStatusInfo()
+            var currentPlayStatus = new PlayStatusInfo
             {
                 PlayStatus = PlayStatus.Play,
                 LabelInfo = Label,
             };
-            _ = GameMock.CanPlayGame(Arg.Any<bool>()).Returns(x => UniTask.FromResult(currentPlayStatus));
-            GameMock.CurrentPlayStatus.Returns(currentPlayStatus);
+            _ = GameMock.CanPlayGame(Arg.Any<bool>())
+                .Returns(UniTask.FromResult(currentPlayStatus));
+            _ = GameMock.CurrentPlayStatus
+                .Returns(currentPlayStatus);
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
@@ -119,12 +110,12 @@ namespace ElympicsPlayPad.Tests.PlayMode
             Assert.IsNotNull(currSess.AuthData);
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
-            Assert.AreEqual(_defaultEnvironment, currSess.Environment);
+            Assert.AreEqual(DefaultEnvironment, currSess.Environment);
             Assert.IsNull(currSess.AccountWallet);
             Assert.IsNull(currSess.SignWallet);
-            Assert.AreEqual(_defaultClosestRegion, currSess.ClosestRegion);
+            Assert.AreEqual(DefaultClosestRegion, currSess.ClosestRegion);
             Assert.True(currSess.Features.HasOnlyAuthentication());
-            Assert.AreEqual((int)Status, (int)PlayPadCommunicator.Instance.GameStatusCommunicator.CurrentPlayStatus.PlayStatus);
+            Assert.AreEqual((int)Status, (int)PlayPadCommunicator.Instance!.GameStatusCommunicator!.CurrentPlayStatus.PlayStatus);
         });
 
         [UnityTest]
@@ -132,22 +123,16 @@ namespace ElympicsPlayPad.Tests.PlayMode
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, JwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
             var sessionInfoUpdated = false;
             var sessionInfoFinished = false;
-            _sut.StartSessionInfoUpdate += () =>
-            {
-                sessionInfoUpdated = true;
-            };
-            _sut.FinishSessionInfoUpdate += () =>
-            {
-                sessionInfoFinished = true;
-            };
+            _sut.StartSessionInfoUpdate += () => sessionInfoUpdated = true;
+            _sut.FinishSessionInfoUpdate += () => sessionInfoFinished = true;
             const string newRegion = "tokio";
             AuthMock.RegionUpdated += Raise.Event<Action<string>>(newRegion);
             await UniTask.WaitUntil(() => sessionInfoFinished);
@@ -163,17 +148,14 @@ namespace ElympicsPlayPad.Tests.PlayMode
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, JwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
             var sessionInfoFinishedCount = 0;
-            _sut.FinishSessionInfoUpdate += () =>
-            {
-                sessionInfoFinishedCount++;
-            };
+            _sut.FinishSessionInfoUpdate += () => sessionInfoFinishedCount++;
             const string newRegion = "tokio";
             const string newRegion2 = "warsaw";
             const string newRegion3 = "dallas";
@@ -187,68 +169,6 @@ namespace ElympicsPlayPad.Tests.PlayMode
             // Assert
             Assert.AreSame(newRegion3, _sut.CurrentSession?.ClosestRegion);
         });
-
-        // [UnityTest]
-        // public IEnumerator AuthenticateAndReactOnAuthUpdated() => UniTask.ToCoroutine(async () =>
-        // {
-        //     _communicator.MockInitializationMessage(Capabilities.Ethereum, FeatureAccess.Authentication, _defaultEnvironment, _defaultClosestRegion)
-        //         .MockAuthentication(UserId, JwtEncoded, Nickname, AuthType.ClientSecret, out _).MockPlayState(Status, Label);
-        //
-        //     await _sut.AuthenticateFromExternalAndConnect();
-        //     Assert.IsNotNull(_sut.CurrentSession);
-        //     var currSess = _sut.CurrentSession.Value;
-        //     Assert.IsNotNull(currSess.AuthData);
-        //     Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
-        //     Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
-        //     Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-        //     Assert.IsNull(currSess.AccountWallet);
-        //     Assert.IsNull(currSess.SignWallet);
-        //     Assert.AreEqual(_defaultClosestRegion, currSess.ClosestRegion);
-        //     Assert.True(currSess.Features.HasOnlyAuthentication());
-        //     Assert.AreEqual((int)Status, (int)PlayPadCommunicator.Instance.GameStatusCommunicator.CurrentPlayStatus.PlayStatus);
-        // });
-        //
-        //
-        // [UnityTest]
-        // public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret_AuthChanged() => UniTask.ToCoroutine(async () =>
-        // {
-        //     var nickNameUpdate = "NewNickName";
-        //     _communicator.MockInitializationMessage(Capabilities.Ethereum, FeatureAccess.Authentication, _defaultEnvironment, _defaultClosestRegion)
-        //         .MockAuthentication(UserId, JwtEncoded, Nickname, AuthType.ClientSecret, out var authMock).MockPlayState(Status, Label);
-        //     await _sut.AuthenticateFromExternalAndConnect();
-        //     Assert.IsNotNull(_sut.CurrentSession);
-        //     var startSessionUpdateWasCalled = false;
-        //     var finishSessionUpdateWasCalled = false;
-        //     _sut.StartSessionInfoUpdate += () => startSessionUpdateWasCalled = true;
-        //     _sut.FinishSessionInfoUpdate += () => finishSessionUpdateWasCalled = true;
-        //     var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-        //     authMock.AuthenticationUpdated += Raise.Event<Action<AuthData>>(new AuthData(UserId, JwtEncoded, nickNameUpdate, AuthType.ClientSecret));
-        //     await UniTask.WaitUntil(() => finishSessionUpdateWasCalled, PlayerLoopTiming.Update, cts.Token);
-        //     Assert.IsNotNull(_sut.CurrentSession);
-        //     Assert.AreEqual(nickNameUpdate, _sut.CurrentSession.Value.AuthData.Nickname);
-        //     Assert.True(startSessionUpdateWasCalled);
-        //     Assert.True(finishSessionUpdateWasCalled);
-        // });
-        //
-        // [UnityTest]
-        // public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret_WithTournaments() => UniTask.ToCoroutine(async () =>
-        // {
-        //     _communicator.MockInitializationMessage(Capabilities.Ethereum, FeatureAccess.Authentication | FeatureAccess.Tournament, _defaultEnvironment, _defaultClosestRegion)
-        //         .MockAuthentication(UserId, JwtEncoded, Nickname, AuthType.ClientSecret, out _)
-        //         .MockTournament(TournamentId, TournamentCapacity, TournamentName, DateTimeOffset.Now, DateTimeOffset.Now + TimeSpan.FromDays(1));
-        //     await _sut.AuthenticateFromExternalAndConnect();
-        //     Assert.IsNotNull(_sut.CurrentSession);
-        //     var currSess = _sut.CurrentSession.Value;
-        //     Assert.IsNotNull(currSess.AuthData);
-        //     Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
-        //     Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
-        //     Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-        //     Assert.IsNull(currSess.AccountWallet);
-        //     Assert.IsNull(currSess.SignWallet);
-        //     Assert.AreEqual(_defaultClosestRegion, currSess.ClosestRegion);
-        //     Assert.True(currSess.Features.HasAuthentication());
-        //     Assert.True(currSess.Features.HasTournament());
-        // });
 
         private static string EncodeJwtFromJson(string json)
         {

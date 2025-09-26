@@ -16,7 +16,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web
             if (!uri.IsAbsoluteUri)
                 throw new ArgumentException("The provided url must be absolute.", nameof(uri));
 
-            var message = new OpenUrlMessage()
+            var message = new OpenUrlMessage
             {
                 url = uri.AbsoluteUri,
             };

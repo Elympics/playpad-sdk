@@ -101,7 +101,7 @@ namespace ElympicsPlayPad.Tournament.Data
             /// <summary>
             /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
             /// </summary>
-            Unknown
+            Unknown,
         }
     }
 

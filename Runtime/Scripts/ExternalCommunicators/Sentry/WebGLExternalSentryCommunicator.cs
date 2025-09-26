@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             LogLevel.Warning => true,
             LogLevel.Error => false,
             LogLevel.Exception => false,
-            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
         };
 
         private static bool BlockLogLevelStrategy(ElympicsLoggerContext log)

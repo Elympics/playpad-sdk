@@ -5,7 +5,7 @@ using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode.Mocks
+namespace ElympicsPlayPad.Tests.Mocks
 {
     public class JsCommunicatorRetrieverMock : IJsCommunicatorRetriever
     {
@@ -21,7 +21,7 @@ namespace ElympicsPlayPad.Tests.PlayMode.Mocks
                 ticket = ticket,
                 type = RequestResponseMessageTypes.Handshake,
                 status = status,
-                response = JsonUtility.ToJson(handshakeResponse)
+                response = JsonUtility.ToJson(handshakeResponse),
             };
 
             var json = JsonUtility.ToJson(response);
@@ -29,15 +29,14 @@ namespace ElympicsPlayPad.Tests.PlayMode.Mocks
             ResponseObjectReceived?.Invoke(json);
         }
 
-
-        private HandshakeResponse GetHandshakeResponse() => new HandshakeResponse
+        private static HandshakeResponse GetHandshakeResponse() => new()
         {
             error = null,
             device = "mobile",
             environment = "PROD",
             capabilities = 3,
             featureAccess = 5,
-            closestRegion = "mumbai"
+            closestRegion = "mumbai",
         };
     }
 }

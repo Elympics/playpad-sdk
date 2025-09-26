@@ -24,7 +24,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             {
                 amount = betDetails.BetValueRaw,
                 coinId = betDetails.Coin.CoinId.ToString(),
-                roomId = room.RoomId.ToString()
+                roomId = room.RoomId.ToString(),
             };
             var response = await jsCommunicator.SendRequestMessage<SignProofOfEntryRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SignProofOfEntry, request, ct);
             return new SignProofOfEntryResult(response.success, response.error);
@@ -39,13 +39,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             var request = new EnsureVirtualDepositRequest
             {
                 amount = weiAmount,
-                coinId = coinInfo.Id.ToString()
+                coinId = coinInfo.Id.ToString(),
             };
             var result = await jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
             return new EnsureDepositInfo
             {
                 Success = result.success,
-                Error = result.error
+                Error = result.error,
             };
         }
     }
