@@ -8,17 +8,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
     /// <remarks>All methods of this interface return a <see cref="UniTask"/> which completes when the modal window opened by the method is closed.</remarks>
     public interface IExternalUiCommunicator
     {
-        /// <summary>Opens a PlayPad modal window displayed over the game.</summary>
-        /// <param name="name">Name of the modal window to open.</param>
+        /// <inheritdoc cref="Display(string)"/>
         /// <param name="ct">
         /// Token that can be used to stop waiting for the modal window to be closed and throw <see cref="OperationCanceledException"/>.
         /// Requesting the cancellation won't prevent the window from being opened and won't cause it to be closed.
         /// The only result of requesting the cancellation is that <see cref="OperationCanceledException"/> is thrown
         /// and the returned task no longer waits for the modal window to be closed.
         /// </param>
+        [Obsolete("Cancellation of the task returned by this method is no longer supported. Use the " + nameof(Display) + "(string) overload instead and implement cancellation separately if necessary.")]
+        UniTask Display(string name, CancellationToken ct) => Display(name);
+
+        /// <summary>Opens a PlayPad modal window displayed over the game.</summary>
+        /// <param name="name">Name of the modal window to open.</param>
         /// <returns>An awaitable task which is completed when the modal window opened by this method is closed.</returns>
         /// <remarks>Most of the time using other methods from this interface is simpler than calling this method directly.</remarks>
-        UniTask Display(string name, CancellationToken ct = default);
+        UniTask Display(string name);
 
         #region helpers
 
