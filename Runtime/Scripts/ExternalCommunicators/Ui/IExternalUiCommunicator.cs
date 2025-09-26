@@ -9,12 +9,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
     public interface IExternalUiCommunicator
     {
         /// <inheritdoc cref="Display(string)"/>
-        /// <param name="ct">
-        /// Token that can be used to stop waiting for the modal window to be closed and throw <see cref="OperationCanceledException"/>.
-        /// Requesting the cancellation won't prevent the window from being opened and won't cause it to be closed.
-        /// The only result of requesting the cancellation is that <see cref="OperationCanceledException"/> is thrown
-        /// and the returned task no longer waits for the modal window to be closed.
-        /// </param>
         [Obsolete("Cancellation of the task returned by this method is no longer supported. Use the " + nameof(Display) + "(string) overload instead and implement cancellation separately if necessary.")]
         UniTask Display(string name, CancellationToken ct) => Display(name);
 
