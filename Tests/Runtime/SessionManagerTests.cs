@@ -35,7 +35,7 @@ namespace ElympicsPlayPad.Tests
         private static readonly IExternalGameStatusCommunicator GameMock = Substitute.For<IExternalGameStatusCommunicator>();
         private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
         public override string SceneName => "ElympicsSessionManagerTestScene";
-        public override bool RequiresElympicsConfig => false;
+        public override bool RequiresElympicsConfig => true;
 
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         private const string Nickname = "nickname";
