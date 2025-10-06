@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.Tests.Runtime.Mocks
             {
                 ElympicsLogger.Log("Setup configs");
                 var config = ElympicsConfig.Load();
-                if (config == null)
+                if (!config)
                 {
                     if (!Directory.Exists(ElympicsConfig.ElympicsResourcesPath))
                     {
