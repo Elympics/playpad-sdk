@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using Elympics.Communication.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
 using JetBrains.Annotations;
 
@@ -66,23 +67,27 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentMatchDetails
     {
         public readonly MatchState State;
-        public readonly string AvatarUrl;
-        public readonly string Nickname;
-        /// <summary>Date and time when a match was finished. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
+        /// <summary>Date and time when the match was finished. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
         public readonly DateTime? MatchEnded;
-        /// <summary>Final score of a match if <see cref="State"/> is <see cref="MatchState.Finished"/>, otherwise 0.</summary>
+        /// <summary>Final score of the match if <see cref="State"/> is <see cref="MatchState.Finished"/>, otherwise 0.</summary>
         public readonly float Score;
         /// <summary>Current position on leaderboard. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
         public readonly uint? Position;
+        /// <summary>The user who played in the match.</summary>
+        public readonly ElympicsUser User;
 
-        public RollingTournamentMatchDetails(MatchState state, string avatarUrl, string nickname, DateTime? matchEnded, float score, uint? position)
+        [Obsolete("Use " + nameof(User) + "." + nameof(ElympicsUser.AvatarUrl) + " instead.")]
+        public string AvatarUrl => User.AvatarUrl;
+        [Obsolete("Use " + nameof(User) + "." + nameof(ElympicsUser.Nickname) + " instead.")]
+        public string Nickname => User.Nickname;
+
+        public RollingTournamentMatchDetails(MatchState state, DateTime? matchEnded, float score, uint? position, ElympicsUser user)
         {
             State = state;
-            AvatarUrl = avatarUrl;
-            Nickname = nickname;
             MatchEnded = matchEnded;
             Score = score;
             Position = position;
+            User = user;
         }
     }
 }

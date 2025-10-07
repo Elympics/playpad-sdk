@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using Elympics;
+using Elympics.Communication.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
 using JetBrains.Annotations;
 
@@ -109,36 +110,32 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentMatch : IEquatable<RollingTournamentMatch>
     {
         public readonly MatchState State;
-        public readonly string AvatarUrl;
-        public readonly string Nickname;
         public readonly DateTime MatchEnded;
         public readonly uint Position;
         public readonly decimal Prize;
         public readonly float Score;
+        public readonly ElympicsUser User;
 
-        public RollingTournamentMatch(
-            string avatarUrl,
-            string nickname,
-            DateTime matchEnded,
-            float score,
-            MatchState state,
-            decimal prize,
-            uint position)
+        [Obsolete("Use" + nameof(User) + "." + nameof(ElympicsUser.AvatarUrl) + "instead.")]
+        public string AvatarUrl => User.AvatarUrl;
+        [Obsolete("Use" + nameof(User) + "." + nameof(ElympicsUser.Nickname) + "instead.")]
+        public string Nickname => User.Nickname;
+
+        public RollingTournamentMatch(DateTime matchEnded, float score, MatchState state, decimal prize, uint position, ElympicsUser user)
         {
-            AvatarUrl = avatarUrl;
-            Nickname = nickname;
             MatchEnded = matchEnded;
             Score = score;
             State = state;
             Prize = prize;
             Position = position;
+            User = user;
         }
 
-        public bool Equals(RollingTournamentMatch other) => AvatarUrl == other.AvatarUrl && Nickname == other.Nickname && MatchEnded.Equals(other.MatchEnded) && Score.Equals(other.Score) && Position.Equals(other.Position) && Prize.Equals(other.Prize) && State == other.State;
+        public bool Equals(RollingTournamentMatch other) => User == other.User && MatchEnded.Equals(other.MatchEnded) && Score.Equals(other.Score) && Position.Equals(other.Position) && Prize.Equals(other.Prize) && State == other.State;
 
         public override bool Equals(object? obj) => obj is RollingTournamentMatch other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(AvatarUrl, Nickname, MatchEnded, Score);
+        public override int GetHashCode() => HashCode.Combine(User, MatchEnded, Score);
 
         public static bool operator ==(RollingTournamentMatch left, RollingTournamentMatch right) => left.Equals(right);
 

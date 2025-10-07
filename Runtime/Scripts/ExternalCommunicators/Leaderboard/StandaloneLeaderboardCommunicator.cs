@@ -3,6 +3,8 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics.Communication.Authentication.Models;
+using Elympics.Communication.Authentication.Models.Internal;
 using ElympicsPlayPad.Leaderboard;
 using ElympicsPlayPad.Leaderboard.Extensions;
 using ElympicsPlayPad.Protocol.Responses;
@@ -24,14 +26,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                 {
                     new Entry
                     {
-                        userId = "00000000-0000-0000-0000-000000000001",
-                        nickname = "TestNickName",
                         position = 1,
                         score = 10,
                         scoredAt = DateTime.UtcNow.ToString("o"),
                         matchId = "00000000-0000-0000-0001-000000000000",
                         tournamentId = "abcdef",
-                    },
+                        user = new ElympicsUserDTO(Guid.Empty.ToString(), "TestNickName", nameof(NicknameType.Common), "testAvatarURL")
+                    }
                 },
                 participants = 10,
             }.MapToLeaderboardStatus();

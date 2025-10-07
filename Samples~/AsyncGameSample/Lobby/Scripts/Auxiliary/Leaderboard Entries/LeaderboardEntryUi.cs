@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using TMPro;
 using ElympicsPlayPad.Leaderboard;
@@ -32,9 +33,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             gameObject.SetActive(true);
 
             position.text = $"{leaderboardPlacement.Position}.";
-            nickname.text = leaderboardPlacement.Nickname;
+            nickname.text = leaderboardPlacement.User.Nickname;
             // If user id is empty then it is an empty cell and score should be displayed as empty.
-            score.text = string.IsNullOrEmpty(leaderboardPlacement.UserId) ? string.Empty : leaderboardPlacement.Score.ToString();
+            score.text = leaderboardPlacement.User.UserId == Guid.Empty ? string.Empty : leaderboardPlacement.Score.ToString();
 
             HighlightCurrentPlayer(leaderboardPlacement);
             UpdateBadgeImage(leaderboardPlacement.Position);
@@ -42,7 +43,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void HighlightCurrentPlayer(Placement leaderboardPlacement)
         {
-            bool isCurrentPlayer = leaderboardPlacement.UserId.Equals(ElympicsLobbyClient.Instance.UserGuid.ToString());
+            bool isCurrentPlayer = leaderboardPlacement.User.UserId.Equals(ElympicsLobbyClient.Instance.UserGuid.ToString());
 
             if (isCurrentPlayer)
                 playerHighlighter.Highlight();

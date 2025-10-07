@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Communication.Authentication.Models;
+using Elympics.Communication.Authentication.Models.Internal;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
@@ -79,13 +81,12 @@ namespace ElympicsPlayPad.Tests.Runtime
                                 new RollingTournamentScore
                                 {
                                     state = "Finished",
-                                    avatar = "https://hosting-meta.elympics.ai/avatars/FEDABEA4-FB2C-48A4-97DB-3DBCE9892A1D.png",
-                                    nickname = "Agile Shark",
                                     matchEnded = "2025-09-11T09:52:19.921149Z",
                                     mine = true,
                                     score = 1348,
                                     position = 1,
                                     prize = "2000000000000000000",
+                                    user = new ElympicsUserDTO(Guid.Empty.ToString(), string.Empty, nameof(NicknameType.Common), string.Empty)
                                 },
                             },
                             unreadSettled = false,
@@ -124,6 +125,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                                     mine = true,
                                     state = "Finished",
                                     matchEnded = "2025-04-03T02:01:00.000000Z",
+                                    user = new ElympicsUserDTO(Guid.Empty.ToString(), string.Empty, nameof(NicknameType.Common), string.Empty)
                                 },
                             },
                         },

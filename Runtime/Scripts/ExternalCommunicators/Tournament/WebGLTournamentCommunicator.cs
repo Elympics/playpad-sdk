@@ -152,13 +152,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 }
 
                 var matchState = ConvertToMatchState(rollingScore.state, logger);
-                return new RollingTournamentMatch(rollingScore.avatar,
-                    rollingScore.nickname,
+                return new RollingTournamentMatch(
                     matchEnded,
                     rollingScore.score,
                     matchState,
                     RawCoinConverter.FromRaw(rollingScore.prize, coinInfo.Currency.Decimals),
-                    rollingScore.position);
+                    rollingScore.position,
+                    rollingScore.user.ToPublicModel());
             }
         }
         public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
@@ -221,7 +221,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
                 uint? position = match.position > 0 ? match.position : null;
 
-                matches[i] = new RollingTournamentMatchDetails(matchState, match.avatar, match.nickname, matchEnded, match.score, position);
+                matches[i] = new RollingTournamentMatchDetails(matchState, matchEnded, match.score, position, match.user.ToPublicModel());
 
                 if (match.mine)
                 {
