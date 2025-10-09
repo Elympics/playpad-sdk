@@ -15,7 +15,7 @@ namespace ElympicsPlayPad.Utility
             graphicsDeviceVendorID = SystemInfo.graphicsDeviceVendorID,
             graphicsDeviceVendor = SystemInfo.graphicsDeviceVendor,
             graphicsDeviceName = SystemInfo.graphicsDeviceName,
-            graphicsDeviceID = SystemInfo.graphicsDeviceID
+            graphicsDeviceID = SystemInfo.graphicsDeviceID,
         };
     }
 }

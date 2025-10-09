@@ -14,7 +14,7 @@ namespace ElympicsPlayPad.Wrappers
             if (ElympicsLobbyClient.Instance != null)
                 _matchLauncher = ElympicsLobbyClient.Instance;
         }
-        public IGameplaySceneMonitor GameplaySceneMonitor => ElympicsLobbyClient.Instance!.GameplaySceneMonitor;
+        public IGameplaySceneMonitor GameplaySceneMonitor => ElympicsLobbyClient.Instance!.GameplaySceneMonitor!;
         public IRoomsManager RoomsManager => ElympicsLobbyClient.Instance!.RoomsManager;
         public AuthData? AuthData => ElympicsLobbyClient.Instance!.AuthData;
         public bool IsAuthenticated => ElympicsLobbyClient.Instance!.IsAuthenticated;
@@ -23,10 +23,10 @@ namespace ElympicsPlayPad.Wrappers
         public void WatchReplay() => _matchLauncher.WatchReplay();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
-            var connectionData = new ConnectionData()
+            var connectionData = new ConnectionData
             {
                 AuthType = AuthType.ClientSecret,
-                Region = new RegionData(region)
+                Region = new RegionData(region),
             };
             return ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(connectionData);
         }

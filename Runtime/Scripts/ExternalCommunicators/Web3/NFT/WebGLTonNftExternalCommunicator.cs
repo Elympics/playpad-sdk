@@ -24,7 +24,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                     collectionAddress = collectionAddress,
                     price = price,
                     type = ChainTypes.Ton,
-                    payload = new MintTonNftPayload { payload = payload }
+                    payload = new MintTonNftPayload { payload = payload },
                 },
                 ct);
 
@@ -40,8 +40,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                 payload = new TonPayload
                 {
                     stateInit = stateInit,
-                    payload = payload
-                }
+                    payload = payload,
+                },
             };
 
             var response = await _jsCommunicator.SendRequestMessage<SendRawTransactionRequest<TonPayload>, SendRawTransactionResponse>(RequestResponseMessageTypes.SendRawTransaction, request, ct);

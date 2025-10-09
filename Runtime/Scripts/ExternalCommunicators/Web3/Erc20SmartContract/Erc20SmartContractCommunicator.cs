@@ -30,17 +30,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract
 
         async UniTask<string> IExternalERC20SmartContractOperations.Approve(SmartContract tokenContract, string owner, string spender, BigInteger value, CancellationToken ct)
         {
-            var parameters = new[]
+            var parameters = new object[]
             {
                 spender,
-                value.ToString()
+                value.ToString(),
             };
 
-            var data = await _externalContractOperations.GetFunctionCallData(tokenContract, EncodeFunctionDataCallsERC20.Approve, ct, parameters).SuppressCancellationThrow();
-            if (data.IsCanceled)
+            var (isCanceled, result) = await _externalContractOperations.GetFunctionCallData(tokenContract, EncodeFunctionDataCallsERC20.Approve, ct, parameters)
+                .SuppressCancellationThrow();
+            if (isCanceled)
                 return string.Empty;
 
-            return await _externalWalletOperator.SendTransaction(tokenContract.Address, owner, data.Result, ct);
+            return await _externalWalletOperator.SendTransaction(tokenContract.Address, owner, result, ct);
         }
     }
 }

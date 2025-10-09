@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -7,6 +8,7 @@ using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models.MyNamespace;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -26,10 +28,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public TournamentInfo? CurrentTournament { get; private set; }
 
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly IJsCommunicator _jsCommunicator;
         private readonly ElympicsLoggerContext _logger;
 
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, JsCommunicator jsCommunicator)
+        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IJsCommunicator jsCommunicator)
         {
             _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
             _jsCommunicator = jsCommunicator;
@@ -53,7 +55,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
             var message = new TournamentFeeRequest
             {
-                rollings = new RollingDetail[requestData.Length]
+                rollings = new RollingDetail[requestData.Length],
             };
 
             foreach (var (requestInfo, index) in requestData.Select((value, i) => (value, i)))
@@ -61,7 +63,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 {
                     coinId = requestInfo.CoinInfo.Id.ToString(),
                     playersCount = requestInfo.PlayersCount,
-                    prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals)
+                    prize = RawCoinConverter.ToRaw(requestInfo.Prize, requestInfo.CoinInfo.Currency.Decimals),
+                    prizeDistribution = requestInfo.PrizeDistribution?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray() ?? Array.Empty<string>(),
                 };
 
             var response = await _jsCommunicator.SendRequestMessage<TournamentFeeRequest, TournamentFeeResponse>(RequestResponseMessageTypes.GetRollTournamentFees, message, ct);
@@ -93,42 +96,69 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 new GetRollingTournamentHistoryRequest
                 {
                     skip = skip,
-                    take = maxCount
+                    take = maxCount,
                 },
                 ct);
 
-            return new RollingTournamentHistory(response.entries.Select(ToPublicModel).ToArray());
+            if (response.entries is null)
+                return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
 
-            RollingTournamentHistoryEntry ToPublicModel(GetRollingTournamentHistoryResponse.HistoryEntry entry)
+            var entries = new RollingTournamentHistoryEntry[response.entries.Length];
+            for (var i = 0; i < response.entries.Length; i++)
             {
-                var allMatches = entry.allScores.OrderBy(participation => participation.position).Select(ParticipationToMatch).ToList().AsReadOnly();
-                var localPlayerMatch = ParticipationToMatch(entry.myScore);
+                var entry = response.entries[i];
+                entry.scores ??= Array.Empty<RollingTournamentScore>();
+                entry.prizes ??= Array.Empty<string>();
+                var tournamentCoin = await FetchCoinForHistoryMatch(Guid.Parse(entry.coinId));
+                entries[i] = ToPublicModel(entry, tournamentCoin);
+            }
+            return new RollingTournamentHistory(entries);
+
+            RollingTournamentHistoryEntry ToPublicModel(GetRollingTournamentHistoryResponse.HistoryEntry entry, CoinInfo coinInfo)
+            {
+                var logger = _logger.WithMethodName();
+                var allMatches = entry.scores.OrderBy(participation => participation.position).Select(x => ParticipationToMatch(x, coinInfo)).ToList().AsReadOnly();
+                if (!entry.scores.Any(score => score.mine))
+                    throw logger.CaptureAndThrow(new ElympicsException("Received list of all matches in a rolling tournament does not contain local player's match."));
+                var localPlayerMatch = ParticipationToMatch(entry.scores.First(score => score.mine), coinInfo);
                 var localPlayerMatchIndex = allMatches.IndexOf(localPlayerMatch);
 
-                if (localPlayerMatchIndex < 0)
-                    throw _logger.CaptureAndThrow(new ElympicsException($"Received list of all matches in a rolling tournament does not contain local player's match."));
+                var prizes = entry.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
+                var entryFee = RawCoinConverter.FromRaw(entry.entryFee, coinInfo.Currency.Decimals);
+                RollingTournamentPrizeDetails? prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
 
-                RollingTournamentPrizeDetails? prizeDetails = null;
-                // ReSharper disable once InvertIf
-                if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(Guid.Parse(entry.tournament.coinId), out var coin))
+                var state = entry.state switch
                 {
-                    var coinInfo = coin;
-                    var prize = RawCoinConverter.FromRaw(entry.tournament.prize, coinInfo.Currency.Decimals);
-                    var entryFee = RawCoinConverter.FromRaw(entry.tournament.entryFee, coinInfo.Currency.Decimals);
-                    prizeDetails = new RollingTournamentPrizeDetails(prize, coinInfo, entryFee);
-                }
-                return new RollingTournamentHistoryEntry(entry.state, prizeDetails, entry.tournament.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Live) => RollingTournamentHistoryEntry.TournamentState.Live,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Finished) => RollingTournamentHistoryEntry.TournamentState.Finished,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.YourResultsPending) => RollingTournamentHistoryEntry.TournamentState.YourResultsPending,
+                    nameof(RollingTournamentHistoryEntry.TournamentState.Cancelled) => RollingTournamentHistoryEntry.TournamentState.Cancelled,
+                    _ => RollingTournamentHistoryEntry.TournamentState.Unknown,
+                };
+
+                if (state == RollingTournamentHistoryEntry.TournamentState.Unknown)
+                    logger.Error($"Unexpected rolling tournament state '{entry.state}' received.");
+
+                return new RollingTournamentHistoryEntry(state, prizeDetails, entry.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
 
-            RollingTournamentMatch ParticipationToMatch(GetRollingTournamentHistoryResponse.Participation participation)
+            RollingTournamentMatch ParticipationToMatch(RollingTournamentScore rollingScore, CoinInfo coinInfo)
             {
-                if (!DateTime.TryParse(participation.matchEnded, out var matchEnded))
+                var logger = _logger.WithMethodName();
+                if (!DateTime.TryParse(rollingScore.matchEnded, out var matchEnded))
                 {
                     matchEnded = DateTime.MinValue;
-                    _logger.Error($"Received match end date and time is in invalid format: {participation.matchEnded}. SDK will return {matchEnded} instead.");
+                    logger.Error($"Received match end date and time is in invalid format: {rollingScore.matchEnded}. SDK will return {matchEnded} instead.");
                 }
 
-                return new RollingTournamentMatch(participation.avatar, participation.nickname, matchEnded, participation.score);
+                var matchState = ConvertToMatchState(rollingScore.state, logger);
+                return new RollingTournamentMatch(
+                    matchEnded,
+                    rollingScore.score,
+                    matchState,
+                    RawCoinConverter.FromRaw(rollingScore.prize, coinInfo.Currency.Decimals),
+                    rollingScore.position,
+                    rollingScore.user.ToPublicModel());
             }
         }
         public async UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default)
@@ -156,24 +186,27 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public async UniTask<RollingTournamentDetails> GetRollingTournamentDetails(Guid matchId, CancellationToken ct = default)
         {
             var payload = new GetRollingTournamentDetailsRequest { matchId = matchId.ToString() };
-            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails, payload, ct);
+            var response = await _jsCommunicator.SendRequestMessage<GetRollingTournamentDetailsRequest, GetRollingTournamentDetailsResponse>(RequestResponseMessageTypes.GetRollingTournamentDetails,
+                payload,
+                ct);
 
             var tournamentState = response.state switch
             {
-                "Live" => RollingTournamentDetails.TournamentState.Live,
-                "Finished" => RollingTournamentDetails.TournamentState.Finished,
-                "YourResultsPending" => RollingTournamentDetails.TournamentState.YourResultsPending,
-                _ => throw new ArgumentOutOfRangeException(nameof(response.state), response.state, "Unexpected rolling tournament instance state.")
+                nameof(RollingTournamentDetails.TournamentState.Live) => RollingTournamentDetails.TournamentState.Live,
+                nameof(RollingTournamentDetails.TournamentState.Finished) => RollingTournamentDetails.TournamentState.Finished,
+                nameof(RollingTournamentDetails.TournamentState.YourResultsPending) => RollingTournamentDetails.TournamentState.YourResultsPending,
+                nameof(RollingTournamentDetails.TournamentState.Cancelled) => RollingTournamentDetails.TournamentState.Cancelled,
+                _ => RollingTournamentDetails.TournamentState.Unknown,
             };
 
-            RollingTournamentPrizeDetails? prizeDetails = null;
-            if (_blockChainCurrencyCommunicator.ElympicsCoins!.TryGetValue(Guid.Parse(response.coinId), out var coin))
-            {
-                var coinInfo = coin;
-                var prize = RawCoinConverter.FromRaw(response.prizes.First(), coinInfo.Currency.Decimals);
-                var entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Currency.Decimals);
-                prizeDetails = new RollingTournamentPrizeDetails(prize, coin, entryFee);
-            }
+            if (tournamentState == RollingTournamentDetails.TournamentState.Unknown)
+                _logger.Error($"Unexpected rolling tournament state '{response.state}' received.");
+
+            var coinInfo = await FetchCoinForHistoryMatch(Guid.Parse(response.coinId));
+
+            var prizes = response.prizes.Select(x => RawCoinConverter.FromRaw(x, coinInfo.Currency.Decimals)).ToArray();
+            var entryFee = RawCoinConverter.FromRaw(response.entryFee, coinInfo.Currency.Decimals);
+            RollingTournamentPrizeDetails? prizeDetails = new RollingTournamentPrizeDetails(coinInfo, entryFee, prizes);
 
             var matches = new RollingTournamentMatchDetails[response.scores.Length];
 
@@ -184,28 +217,38 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = orderedResponseMatches[i];
-                var matchState = match.state switch
-                {
-                    "Failed" => RollingTournamentMatchDetails.MatchState.Failed,
-                    "Finished" => RollingTournamentMatchDetails.MatchState.Finished,
-                    "Playing" => RollingTournamentMatchDetails.MatchState.Playing,
-                    _ => throw new ArgumentOutOfRangeException(nameof(match.state), match.state, "Unexpected rolling tournament match state.")
-                };
+                var matchState = ConvertToMatchState(match.state, _logger);
                 DateTime? matchEnded = string.IsNullOrEmpty(match.matchEnded) ? null : DateTime.Parse(match.matchEnded);
                 uint? position = match.position > 0 ? match.position : null;
 
-                matches[i] = new RollingTournamentMatchDetails(matchState, match.avatar, match.nickname, matchEnded, match.score, position);
+                matches[i] = new RollingTournamentMatchDetails(matchState, matchEnded, match.score, position, match.user.ToPublicModel());
 
                 if (match.mine)
                 {
                     if (localPlayerMatchIndex > -1)
-                        _logger.WithMethodName().Error($"Received multiple matches from a rolling tournament with {nameof(GetRollingTournamentDetailsResponse.RollTournamentScore.mine)} set to true.");
+                        _logger.WithMethodName().Error($"Received multiple matches from a rolling tournament with {nameof(RollingTournamentScore.mine)} set to true.");
 
                     localPlayerMatchIndex = i;
                 }
             }
 
             return new RollingTournamentDetails(tournamentState, prizeDetails, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
+        }
+
+        private static MatchState ConvertToMatchState(string matchState, ElympicsLoggerContext logger)
+        {
+            switch (matchState)
+            {
+                case "Failed":
+                    return MatchState.Failed;
+                case "Finished":
+                    return MatchState.Finished;
+                case "Playing":
+                    return MatchState.Playing;
+                default:
+                    logger.Error($"Unexpected match state '{matchState}' received.");
+                    return MatchState.Unknown;
+            }
         }
 
         public void OnWebMessage(WebMessage message)
@@ -232,6 +275,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             {
                 throw logger.CaptureAndThrow(e);
             }
+        }
+
+        private async UniTask<CoinInfo> FetchCoinForHistoryMatch(Guid coinId)
+        {
+            if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coin))
+                return coin;
+
+            return await _blockChainCurrencyCommunicator.GetCoinInfo(coinId, CancellationToken.None);
         }
     }
 }

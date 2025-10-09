@@ -15,10 +15,7 @@ namespace ElympicsPlayPad.Web3.Data.Providers
         public string Address => TokenConfig.address;
         public int ChainId => TokenConfig.chainId;
 
-        private void Awake()
-        {
-            _tokenAddressProvider = GetComponent<ITokenAddressProvider>();
-        }
+        private void Awake() => _tokenAddressProvider = GetComponent<ITokenAddressProvider>();
 
         private TokenConfig TokenConfig
         {

@@ -53,7 +53,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => UniTask.FromResult<TournamentFeeInfo?>(null);
         public UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default) =>
             UniTask.FromResult(new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>()));
-        public UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentSettlementStatus()
+        public UniTask<RollingTournamentSettlementStatus> GetTournamentSettlementStatus(CancellationToken ct = default) => UniTask.FromResult(new RollingTournamentSettlementStatus
         {
             NewSettlements = 1,
         });

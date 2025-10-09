@@ -67,7 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
                 DisplayName = response.displayName,
                 Description = response.description,
                 Type = response.type,
-                Image = sprite
+                Image = sprite,
             };
         }
 
@@ -85,7 +85,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
                 DisplayName = response.displayName,
                 Description = response.description,
                 Type = response.type,
-                Image = sprite
+                Image = sprite,
             };
         }
 
@@ -96,7 +96,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions
             {
                 EntryFeeRaw = string.IsNullOrEmpty(feeResponse.error) ? feeResponse.entryFee : null,
                 EntryFee = string.IsNullOrEmpty(feeResponse.error) ? RawCoinConverter.FromRaw(feeResponse.entryFee, decimals) : null,
-                Error = feeResponse.error
+                Error = feeResponse.error,
             };
         }
     }

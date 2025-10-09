@@ -52,7 +52,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
                 new ChangeRegionRequest
                 {
-                    newRegion = newRegion
+                    newRegion = newRegion,
                 },
                 ct);
             var sessionUpdated = false;

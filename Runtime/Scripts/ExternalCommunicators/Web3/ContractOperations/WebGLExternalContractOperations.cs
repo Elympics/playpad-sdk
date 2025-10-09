@@ -18,7 +18,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
 
         public async UniTask<string> GetValue<TReturn>(SmartContract tokenInfo, string valueName, CancellationToken ct = default, params string[] parameters)
         {
-            var message = new EncodeFunctionDataRequest()
+            var message = new EncodeFunctionDataRequest
             {
                 chainId = tokenInfo.ChainId,
                 contractAddress = tokenInfo.Address,
@@ -35,7 +35,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
             foreach (var param in parameters)
                 _cache.Add(param.ToString());
 
-            var message = new EncodeFunctionDataRequest()
+            var message = new EncodeFunctionDataRequest
             {
                 contractAddress = contract.Address,
                 ABI = contract.ABI,

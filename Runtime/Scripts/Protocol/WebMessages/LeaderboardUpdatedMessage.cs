@@ -1,4 +1,6 @@
 using System;
+using Elympics.Communication.Authentication.Models.Internal;
+
 namespace ElympicsPlayPad.Protocol.WebMessages
 {
     [Serializable]
@@ -12,12 +14,11 @@ namespace ElympicsPlayPad.Protocol.WebMessages
     [Serializable]
     public struct Entry
     {
-        public string userId;
-        public string nickname;
         public int position;
         public float score;
         public string scoredAt;
         public string matchId;
         public string tournamentId;
+        public ElympicsUserDTO user;
     }
 }

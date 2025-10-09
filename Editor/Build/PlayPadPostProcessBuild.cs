@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.Editor.Build
                 {
                     sdkVersion = version,
                     protocolVersion = JsCommunicator.ProtocolVersion,
-                    gameVersion = config.GameVersion
+                    gameVersion = config.GameVersion,
                 };
 
                 var content = JsonUtility.ToJson(metaData);

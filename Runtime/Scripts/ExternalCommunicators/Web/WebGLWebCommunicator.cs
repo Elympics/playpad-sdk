@@ -15,12 +15,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web
                 throw new ArgumentNullException(nameof(uri));
             if (!uri.IsAbsoluteUri)
                 throw new ArgumentException("The provided url must be absolute.", nameof(uri));
-            if (!uri.IsWellFormedOriginalString())
-                throw new ArgumentException("The uri is not well-formed.", nameof(uri));
 
-            var message = new OpenUrlMessage()
+            var message = new OpenUrlMessage
             {
-                url = uri.ToString(),
+                url = uri.AbsoluteUri,
             };
 
             _jsCommunicator.SendVoidMessage<OpenUrlMessage>(VoidMessageTypes.OpenUrlMessage, message);

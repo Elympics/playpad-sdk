@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using ElympicsPlayPad.Utility;
+using Elympics.Util;
 using NUnit.Framework;
-using UnityEngine;
 
-namespace ElympicsPlayPad.Tests.PlayMode
+namespace ElympicsPlayPad.Tests
 {
     [Category("Wei")]
     public class WeiTests
@@ -16,7 +13,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
         [TestCase("0", 18, 0d)]
         public void TestFromWei(string wei, int decimalUnit, decimal expected)
         {
-            var result = WeiConverter.FromWei(wei, decimalUnit);
+            var result = RawCoinConverter.FromRaw(wei, decimalUnit);
             Assert.AreEqual(expected, result);
         }
 
@@ -27,7 +24,7 @@ namespace ElympicsPlayPad.Tests.PlayMode
         [TestCase(0d, 18, "0")]
         public void ToWei(decimal amount, int decimalUnit, string expected)
         {
-            var result = WeiConverter.ToWei(amount, decimalUnit);
+            var result = RawCoinConverter.ToRaw(amount, decimalUnit);
             Assert.AreEqual(expected, result);
         }
     }

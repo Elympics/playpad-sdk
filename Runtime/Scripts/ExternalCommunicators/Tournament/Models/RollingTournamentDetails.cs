@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.ObjectModel;
+using Elympics.Communication.Authentication.Models;
+using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data
@@ -40,7 +42,15 @@ namespace ElympicsPlayPad.Tournament.Data
             /// Same as <see cref="Live"/>, but the local player participated in the tournament recently and their results
             /// are still being processed, so they are not included in <see cref="AllMatches"/> yet.
             /// </summary>
-            YourResultsPending
+            YourResultsPending,
+            /// <summary>
+            /// The tournament was cancelled, because the matchmaking system was unable to find enough players in 24h since the tournament's creation.
+            /// </summary>
+            Cancelled,
+            /// <summary>
+            /// Unexpected state was received from PlayPad. Try updating PlayPad SDK to resolve this issue.
+            /// </summary>
+            Unknown,
         }
 
         public RollingTournamentDetails(TournamentState state, RollingTournamentPrizeDetails? prizeDetails, int numberOfPlayers, ReadOnlyCollection<RollingTournamentMatchDetails> allMatches, int localPlayerMatchIndex)
@@ -57,37 +67,27 @@ namespace ElympicsPlayPad.Tournament.Data
     public readonly struct RollingTournamentMatchDetails
     {
         public readonly MatchState State;
-        public readonly string AvatarUrl;
-        public readonly string Nickname;
-        /// <summary>Date and time when a match was finished. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
+        /// <summary>Date and time when the match was finished. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
         public readonly DateTime? MatchEnded;
-        /// <summary>Final score of a match if <see cref="State"/> is <see cref="MatchState.Finished"/>, otherwise 0.</summary>
+        /// <summary>Final score of the match if <see cref="State"/> is <see cref="MatchState.Finished"/>, otherwise 0.</summary>
         public readonly float Score;
         /// <summary>Current position on leaderboard. Null when <see cref="State"/> is <see cref="MatchState.Playing"/>.</summary>
         public readonly uint? Position;
+        /// <summary>The user who played in the match.</summary>
+        public readonly ElympicsUser User;
 
-        public enum MatchState
-        {
-            /// <summary>Match is currently being played.</summary>
-            Playing,
-            /// <summary>Match was successfully finished and is included in the tournament leaderboard.</summary>
-            Finished,
-            /// <summary>
-            /// Match was started, but failed to finish. This can happen when a player disconnects from a match before it ends.
-            /// A failed match counts towards the total number of matches in a tournament, but has no score.
-            /// If all matches in a tournament end with a failure the tournament ends with a tie and all players receive equal rewards from the reward pool.
-            /// </summary>
-            Failed
-        }
+        [Obsolete("Use " + nameof(User) + "." + nameof(ElympicsUser.AvatarUrl) + " instead.")]
+        public string AvatarUrl => User.AvatarUrl;
+        [Obsolete("Use " + nameof(User) + "." + nameof(ElympicsUser.Nickname) + " instead.")]
+        public string Nickname => User.Nickname;
 
-        public RollingTournamentMatchDetails(MatchState state, string avatarUrl, string nickname, DateTime? matchEnded, float score, uint? position)
+        public RollingTournamentMatchDetails(MatchState state, DateTime? matchEnded, float score, uint? position, ElympicsUser user)
         {
             State = state;
-            AvatarUrl = avatarUrl;
-            Nickname = nickname;
             MatchEnded = matchEnded;
             Score = score;
             Position = position;
+            User = user;
         }
     }
 }

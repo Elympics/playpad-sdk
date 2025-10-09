@@ -29,7 +29,7 @@ namespace ElympicsPlayPad
                 "Play" => PlayStatus.Play,
                 "UserActionRequired" => PlayStatus.UserActionRequired,
                 "Blocked" => PlayStatus.Blocked,
-                _ => throw new NotSupportedException($"{message} is not supported PlayStatus type")
+                _ => throw new NotSupportedException($"{message} is not supported PlayStatus type"),
             };
             return userActionRequired;
         }

@@ -15,7 +15,7 @@ using UnityEngine;
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.JsCommunicator)]
-    internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
+    internal class JsCommunicator : MonoBehaviour, IJsCommunicator
     {
         public event Action<string>? ResponseObjectReceived;
         public event Action<WebMessage>? WebObjectReceived;
@@ -23,10 +23,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
         private int _requestCounter;
-        internal const string ProtocolVersion = "0.2.1";
+        internal const string ProtocolVersion = "0.3.0";
         private const string GameObjectName = "JsReceiver";
 
-        private static JsCommunicator instance = null!;
         private JsCommunicationFactory _messageFactory = null!;
         private RequestMessageDispatcher _dispatcher = null!;
 
@@ -34,7 +33,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
         public void Init(ElympicsLoggerContext loggerContext)
         {
-            instance = this;
             DontDestroyOnLoad(gameObject);
             _loggerContext = loggerContext.WithContext(nameof(JsCommunicator));
             gameObject.name = GameObjectName;
@@ -85,9 +83,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 list.Add(receiver);
             else
                 _webMessageReceivers.Add(messageType,
-                    new List<IWebMessageReceiver>()
+                    new List<IWebMessageReceiver>
                     {
-                        receiver
+                        receiver,
                     });
         }
 
@@ -126,25 +124,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         [DllImport("__Internal")]
         public static extern void DispatchMessage(string eventName, string json);
 
-        private static void DispatchHandleMessage(string json)
-        {
+        private static void DispatchHandleMessage(string json) =>
 #if UNITY_EDITOR || !UNITY_WEBGL
             Debug.Log($"[{nameof(JsCommunicator)}]: Handle Message {json}");
 #else
 			DispatchMessage(PlayPadHandlers.HandleMessage, json);
 #endif
 
-        }
-
-        private static void DispatchVoidMessage(string json)
-        {
+        private static void DispatchVoidMessage(string json) =>
 #if UNITY_EDITOR || !UNITY_WEBGL
             // ReSharper disable once Unity.PerformanceCriticalCodeInvocation
             Debug.Log($"[{nameof(JsCommunicator)}]: Void Message {json}");
 #else
 			DispatchMessage(PlayPadHandlers.VoidMessage, json);
 #endif
-
-        }
     }
 }

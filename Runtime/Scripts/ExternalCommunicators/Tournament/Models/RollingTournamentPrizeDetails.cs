@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Elympics;
 using JetBrains.Annotations;
 
@@ -7,15 +8,18 @@ namespace ElympicsPlayPad.Tournament.Data
     [PublicAPI]
     public readonly struct RollingTournamentPrizeDetails
     {
-        public readonly decimal Prize;
+        [Obsolete("Will return prize for first place. Use " + nameof(Prizes) + " for prize distribution.")]
+        public decimal Prize => Prizes[0];
+
+        public readonly decimal[] Prizes;
         public readonly CoinInfo Coin;
         public readonly decimal EntryFee;
 
-        public RollingTournamentPrizeDetails(decimal prize, CoinInfo coin, decimal entryFee)
+        public RollingTournamentPrizeDetails(CoinInfo coin, decimal entryFee, decimal[] prizes)
         {
-            Prize = prize;
             Coin = coin;
             EntryFee = entryFee;
+            Prizes = prizes;
         }
     }
 }

@@ -55,7 +55,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         {
             var request = new CanPlayGameRequest
             {
-                autoResolve = autoResolve
+                autoResolve = autoResolve,
             };
             var response = await _communicator.SendRequestMessage<CanPlayGameRequest, CanPlayGameResponse>(RequestResponseMessageTypes.GetPlayStatus, request, ct);
             CurrentPlayStatus = response.ToPlayStateInfo();
@@ -111,7 +111,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             {
                 userId = _lobby.AuthData!.UserId.ToString(),
                 matchId = joinedRoom?.State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty,
-                systemInfoData = SystemInfoDataFactory.GetSystemInfoData()
+                systemInfoData = SystemInfoDataFactory.GetSystemInfoData(),
             };
 
             _communicator.SendVoidMessage<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
@@ -123,7 +123,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             var message = new ElympicsStateUpdatedMessage
             {
                 previousState = (int)argument.PreviousState,
-                newState = (int)argument.NewState
+                newState = (int)argument.NewState,
             };
 
             _communicator.SendVoidMessage<ElympicsStateUpdatedMessage>(VoidMessageTypes.ElympicsStateUpdated, message);

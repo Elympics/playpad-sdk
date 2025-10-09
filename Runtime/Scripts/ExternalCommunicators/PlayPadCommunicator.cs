@@ -34,17 +34,19 @@ namespace ElympicsPlayPad.ExternalCommunicators
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.ExternalCommunicator)]
     public class PlayPadCommunicator : MonoBehaviour
     {
-        [PublicAPI]
-        public static PlayPadCommunicator? Instance;
+        /// <summary>Singleton instance of this component.</summary>
+        /// <remarks>This field is set in the <see cref="Awake"/> method, so before that method executes value of this field is null.</remarks>
+        [PublicAPI] public static PlayPadCommunicator? Instance;
 
-        [PublicAPI]
-        public IExternalAuthenticator? ExternalAuthenticator;
+        /// <summary>Gives direct access to methods and events related to authentication and regions.</summary>
+        /// <remarks>Most of the time it's better to use <see cref="SessionManager"/> instead of directly accessing this field.</remarks>
+        [PublicAPI] public IExternalAuthenticator? ExternalAuthenticator;
 
-        [PublicAPI]
-        public IExternalGameStatusCommunicator? GameStatusCommunicator;
+        /// <summary>Allows for easy fetching of playability status and starting matches in tournaments.</summary>
+        [PublicAPI] public IExternalGameStatusCommunicator? GameStatusCommunicator;
 
-        [PublicAPI]
-        public IExternalUiCommunicator? ExternalUiCommunicator;
+        /// <summary>Contains methods for opening PlayPad modal windows over the game.</summary>
+        [PublicAPI] public IExternalUiCommunicator? ExternalUiCommunicator;
 
         [PublicAPI]
         public IExternalERC20SmartContractOperations? TokenCommunicator;
@@ -180,7 +182,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
-        [Header("Custom implementation of communicators. Works only in Unity Editor.")]
+        [Header("Custom implementations of communicators (works only in Editor)")]
         [SerializeField] private CustomStandaloneAuthenticationCommunicatorBase? customAuthenticatorCommunicator;
 
         [SerializeField] private CustomStandaloneLeaderboardCommunicatorBase? customLeaderboardCommunicator;

@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             var request = new EnsureVirtualDepositRequest
             {
                 amount = "0",
-                coinId = coinId.ToString()
+                coinId = coinId.ToString(),
             };
             var response = await _jsCommunicator.SendRequestMessage<EnsureVirtualDepositRequest, EnsureVirtualDepositResponse>(RequestResponseMessageTypes.EnsureVirtualDeposit, request, ct);
 
@@ -86,7 +86,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return _userDepositCollection;
         }
 
-        public UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) => VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, amount, coinInfo, ct);
+        public UniTask<EnsureDepositInfo> EnsureVirtualDeposit(decimal amount, CoinInfo coinInfo, CancellationToken ct = default) =>
+            VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, amount, coinInfo, ct);
 
         public async UniTask<IReadOnlyDictionary<Guid, CoinInfo>> GetElympicsCoins(CancellationToken ct)
         {
@@ -113,6 +114,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 
             return RetrieveBalanceInfo(walletAddress, coinId, ct);
         }
+        async UniTask<CoinInfo> IExternalBlockChainCurrencyCommunicator.GetCoinInfo(Guid coinId, CancellationToken ct) => await UniTask.FromResult(CoinInfo.CreateNullCoinInfo());
 
         public void OnWebMessage(WebMessage message)
         {
@@ -136,7 +138,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             if (!_elympicsCoins.TryGetValue(coinId, out var cachedCoin))
                 throw new ElympicsException($"Coin with {coinId} is not recognized.");
 
-            var request = new WalletCurrencyBalanceRequest()
+            var request = new WalletCurrencyBalanceRequest
             {
                 coinId = coinId.ToString(),
                 walletAddress = walletAddress,

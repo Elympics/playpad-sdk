@@ -129,7 +129,7 @@ namespace ElympicsPlayPad.Session
         {
             var sdkVersion = ElympicsConfig.SdkVersion;
             var lobbyPackageVersion = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
-            var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
+            var config = ElympicsConfig.LoadCurrentElympicsGameConfig()!;
             var gameName = config.GameName;
             var gameId = config.GameId;
             var versionName = config.GameVersion;
@@ -214,8 +214,7 @@ namespace ElympicsPlayPad.Session
                 var closestRegion = string.Empty;
                 try
                 {
-                    var result = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
-                    closestRegion = result.Region;
+                    (closestRegion, _) = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
                 }
                 catch (Exception e)
                 {
@@ -238,10 +237,10 @@ namespace ElympicsPlayPad.Session
                     _lobbyWrapper.SignOut();
 
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
-                await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData()
+                await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData
                 {
                     Region = new RegionData(region),
-                    AuthFromCacheData = new CachedAuthData(cachedData, autoRetry)
+                    AuthFromCacheData = new CachedAuthData(cachedData, autoRetry),
                 });
             }
             catch (Exception e)

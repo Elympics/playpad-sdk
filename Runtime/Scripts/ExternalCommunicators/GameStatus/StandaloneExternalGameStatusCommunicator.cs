@@ -28,11 +28,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         }
         public UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
-            CurrentPlayStatus = new PlayStatusInfo()
+            CurrentPlayStatus = new PlayStatusInfo
             {
                 PlayStatus = _config.PlayStatus,
                 LabelInfo = _config.LabelMessage,
-                IsHintAvailable = _config.IsHingAvailable
+                IsHintAvailable = _config.IsHingAvailable,
             };
             return UniTask.FromResult(CurrentPlayStatus);
         }

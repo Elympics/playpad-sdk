@@ -11,16 +11,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
     {
         private readonly JsCommunicator _communicator;
 
-        public WebGLExternalUiCommunicator(JsCommunicator communicator)
-        {
-            _communicator = communicator;
-        }
+        public WebGLExternalUiCommunicator(JsCommunicator communicator) => _communicator = communicator;
 
-        public async UniTask Display(string name, CancellationToken ct = default)
+        public async UniTask Display(string name)
         {
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal started");
 
-            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, ct);
+            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal,
+                new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
 
             Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal ended");
         }

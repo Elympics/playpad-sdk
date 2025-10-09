@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Elympics.Communication.Authentication.Models;
 using UnityEngine;
 using ElympicsPlayPad.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators;
@@ -44,7 +45,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             var placementsCount = placements?.Length;
 
-            // Needed in case there are less than 6 positions sent by server, but the user is last place. 
+            // Needed in case there are less than 6 positions sent by server, but the user is last place.
             int lastPlacementPosition = 0;
 
             for (int i = 0; i < displayedEntries.Count; i++)
@@ -68,11 +69,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 {
                     lastPlacementPosition++;
 
-                    Placement emptyCell = new()
-                    {
-                        UserId = string.Empty,
-                        Position = lastPlacementPosition,
-                    };
+                    var emptyCell = new Placement(lastPlacementPosition, 0, "","", null, new ElympicsUser());
                     displayedEntries[i].SetValues(emptyCell);
                 }
             }

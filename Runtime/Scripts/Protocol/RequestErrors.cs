@@ -26,7 +26,7 @@ namespace ElympicsPlayPad.Protocol
             ExternalAuthFailed => "External authentication failed.",
             FeatureUnavailable => "Feature not available.",
             ModalUnavailable => "Cannot find the specified modal.",
-            _ => $"Undefined error: {responseType}."
+            _ => $"Undefined error: {responseType}.",
         };
     }
 }

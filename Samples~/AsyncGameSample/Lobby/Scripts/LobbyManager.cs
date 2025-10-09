@@ -60,11 +60,11 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not
         private void RejoinIfHasOngoingMatch()
         {
-            var joinedRooms = ElympicsLobbyClient.Instance.RoomsManager.ListJoinedRooms();
+            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
 
-            if (joinedRooms.Count > 0 && joinedRooms[0].State.MatchmakingData.MatchData.State == Elympics.Rooms.Models.MatchState.Running)
+            if (currentRoom != null && currentRoom.State.MatchmakingData!.MatchData!.State == Elympics.Rooms.Models.MatchState.Running)
             {
-                var matchmakingData = joinedRooms[0].State.MatchmakingData;
+                var matchmakingData = currentRoom.State.MatchmakingData;
                 _matchLauncher.PlayMatch(new Elympics.Models.Matchmaking.MatchmakingFinishedData(matchmakingData.MatchData.MatchId, matchmakingData.MatchData.MatchDetails, matchmakingData.QueueName, ElympicsLobbyClient.Instance.CurrentRegion));
             }
         }
