@@ -90,7 +90,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 var closestRegion = result.closestRegion;
                 var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
-                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, (LaunchMode)result.launchMode);
+                var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
+                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
             }
             catch (ResponseException e)
             {

@@ -107,6 +107,7 @@ namespace ElympicsPlayPad.Tests
                     DefaultEnvironment,
                     DefaultClosestRegion,
                     FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
@@ -148,6 +149,7 @@ namespace ElympicsPlayPad.Tests
                     DefaultEnvironment,
                     DefaultClosestRegion,
                     FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
@@ -178,6 +180,7 @@ namespace ElympicsPlayPad.Tests
                     DefaultEnvironment,
                     DefaultClosestRegion,
                     FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
