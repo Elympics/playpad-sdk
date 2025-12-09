@@ -26,43 +26,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private CurrentAuthenticationProcess? _currentAuthenticationProcess;
         private readonly Queue<ExtensionRequest> _requestQueue = new();
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private UniTaskCompletionSource _authenticationCompletionSource;
 
         public ExtensionPlayPadCommunicator()
         {
             _supportedExtensionVersion = new Version(MinSupportedExtensionVersion);
             _cancellationTokenSource = new CancellationTokenSource();
             PlayPadExtensionConnection.MessageReceived += OnMessageReceived;
-            if (PlayPadExtensionConnection.IsConnected is false)
-                try
-                {
-                    PlayPadExtensionConnection.ConnectToExtension();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    StartDroppingMessages(_cancellationTokenSource.Token).Forget();
-                    return;
-                }
-
-            var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
-            if (!config)
-                throw new ElympicsException("Couldn't load game config");
-            var jwt = ElympicsConfig.AuthToken;
-            if (string.IsNullOrEmpty(jwt))
-                throw new ElympicsException("Please login to your Elympics account before connecting to PlayPad extension.");
-            var gameId = config.GameId;
-            var gameVersion = config.GameVersion;
-            var gameName = config.GameName;
-            if (PlayPadExtensionAuthentication.IsAuthenticated(gameId, gameVersion, jwt))
-            {
-                Debug.Log("Already authenticated with PlayPad extension using cached data.");
-                StartRequestDispatcher(_cancellationTokenSource.Token).Forget();
-                return;
-            }
-            Authenticate(gameId, gameVersion, gameName, jwt, PlayPadMessagingSystem.ProtocolVersion, ExtensionProtocolVersion);
         }
 
-        private void Authenticate(
+        private async UniTask Authenticate(
             string gameId,
             string gameVersion,
             string gameName,
@@ -71,6 +44,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             string extensionProtocolVersion)
         {
             Debug.Log("Starting PlayPad extension authentication...");
+
+            if (_authenticationCompletionSource != null)
+                throw new ElympicsException("Authentication is already in progress.");
 
             var handshake = new ExtensionHandshakeRequest
             {
@@ -95,7 +71,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 GameVersion = gameVersion,
                 Jwt = jwt
             };
+            _authenticationCompletionSource = new UniTaskCompletionSource();
             PlayPadExtensionConnection.SendProtocolMessage(message);
+            await _authenticationCompletionSource.Task;
         }
 
         private async UniTask StartRequestDispatcher(CancellationToken cts)
@@ -128,7 +106,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 if (PlayPadExtensionConnection.IsConnected is false)
                     if (_requestQueue.Count > 0)
                     {
-                        Debug.LogWarning($"Dropping {_requestQueue.Count} queued extension messages due to extension connection failure. Use mocking in the editor to test PlayPad integration without the extension.");
+                        Debug.LogWarning(
+                            $"Dropping {_requestQueue.Count} queued extension messages due to extension connection failure. Use mocking in the editor to test PlayPad integration without the extension.");
                         _requestQueue.Clear();
                     }
                 await UniTask.Yield();
@@ -143,6 +122,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             {
                 Debug.LogError($"Extension protocol Error({deserialized.errorCode}) : {ErrorMessageMapper(deserialized.errorCode, deserialized.errorMessage)}");
                 StartDroppingMessages(_cancellationTokenSource.Token).Forget();
+                _ = _authenticationCompletionSource?.TrySetResult();
                 return;
             }
             switch (deserialized.type)
@@ -159,6 +139,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                                 $"Unsupported PlayPad Extension version detected: {extensionVersion}. Supported version: {_supportedExtensionVersion}. Please update the PlayPad SDK or PlayPad Extension.");
                             _currentAuthenticationProcess = null;
                             StartDroppingMessages(_cancellationTokenSource.Token).Forget();
+                            _ = _authenticationCompletionSource?.TrySetResult();
                             return;
                         }
 
@@ -167,6 +148,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                             _currentAuthenticationProcess.Value.Jwt);
                         _currentAuthenticationProcess = null;
                         StartRequestDispatcher(_cancellationTokenSource.Token).Forget();
+                        _ = _authenticationCompletionSource?.TrySetResult();
                         Debug.Log("PlayPad Extension authentication completed.");
                     }
                     else
@@ -208,6 +190,37 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 message = jsonMessage
             };
             _requestQueue.Enqueue(extensionMessage);
+        }
+        public async UniTask Connect()
+        {
+            if (PlayPadExtensionConnection.IsConnected is false)
+                try
+                {
+                    PlayPadExtensionConnection.ConnectToExtension();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    StartDroppingMessages(_cancellationTokenSource.Token).Forget();
+                    return;
+                }
+
+            var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
+            if (!config)
+                throw new ElympicsException("Couldn't load game config");
+            var jwt = ElympicsConfig.AuthToken;
+            if (string.IsNullOrEmpty(jwt))
+                throw new ElympicsException("Please login to your Elympics account before connecting to PlayPad extension.");
+            var gameId = config.GameId;
+            var gameVersion = config.GameVersion;
+            var gameName = config.GameName;
+            if (PlayPadExtensionAuthentication.IsAuthenticated(gameId, gameVersion, jwt))
+            {
+                Debug.Log("Already authenticated with PlayPad extension using cached data.");
+                StartRequestDispatcher(_cancellationTokenSource.Token).Forget();
+                return;
+            }
+            await Authenticate(gameId, gameVersion, gameName, jwt, PlayPadMessagingSystem.ProtocolVersion, ExtensionProtocolVersion);
         }
         public void Dispose()
         {

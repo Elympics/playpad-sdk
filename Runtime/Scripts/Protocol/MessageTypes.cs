@@ -27,6 +27,7 @@ namespace ElympicsPlayPad.Protocol
         public const string GetRollingTournamentDetails = "GetRollingTournamentDetails";
         public const string ShowOnRamp = "ShowOnRamp";
         public const string SendRawTransaction = "SendRawTransaction";
+        public const string GetLobbyStatus = "GetLobbyStatus";
     }
 
     public static class WebMessageTypes
@@ -40,6 +41,7 @@ namespace ElympicsPlayPad.Protocol
         public const string RegionUpdated = "RegionUpdated";
         public const string SnapshotReplay = "SnapshotReplay";
         public const string VirtualDepositUpdated = "VirtualDepositUpdated";
+        public const string LobbyStatusUpdated = "LobbyStatusUpdated";
     }
 
     public static class VoidMessageTypes
@@ -52,6 +54,7 @@ namespace ElympicsPlayPad.Protocol
         public const string NetworkStatusMessage = "NetworkStatusMessage";
         public const string OpenUrlMessage = "OpenUrlMessage";
         public const string HeartbeatMessage = "HeartbeatMessage";
+        public const string Quit = "Quit";
     }
 
     public static class DebugMessageTypes

@@ -36,7 +36,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
         private readonly ElympicsLoggerContext _logger;
 
-        public WebGLGameStatusCommunicator(PlayPadMessagingSystem playPadMessagingSystem, IElympicsLobbyWrapper lobby, IExternalTournamentCommunicator tournamentCommunicator, ElympicsLoggerContext logger)
+        public WebGLGameStatusCommunicator(
+            PlayPadMessagingSystem playPadMessagingSystem,
+            IElympicsLobbyWrapper lobby,
+            IExternalTournamentCommunicator tournamentCommunicator,
+            ElympicsLoggerContext logger)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
@@ -77,7 +81,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (_tournamentCommunicator.CurrentTournament.HasValue)
                 tournamentDetails = CompetitivenessConfig.GlobalTournament(_tournamentCommunicator.CurrentTournament.Value.Id);
 
-            return await _roomsManager.StartQuickMatch(config.QueueName, config.GameEngineData, config.MatchmakerData, config.CustomRoomData, _joinedCustomMatchmakingData, competitivenessConfig: tournamentDetails, ct: ct);
+            return await _roomsManager.StartQuickMatch(config.QueueName,
+                config.GameEngineData,
+                config.MatchmakerData,
+                config.CustomRoomData,
+                _joinedCustomMatchmakingData,
+                competitivenessConfig: tournamentDetails,
+                ct: ct);
         }
 
         public void OnWebMessage(WebMessage message)
@@ -117,7 +127,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _playPadMessagingSystem.SendVoidMessage<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
         }
 
-        public void Dispose() => _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
+        public void Dispose()
+        {
+            _playPadMessagingSystem.UnregisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
+            _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
+        }
         public void OnEvent(ElympicsStateChanged argument)
         {
             var message = new ElympicsStateUpdatedMessage

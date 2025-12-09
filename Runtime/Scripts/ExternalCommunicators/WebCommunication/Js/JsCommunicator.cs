@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Runtime.InteropServices;
+using Cysharp.Threading.Tasks;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
@@ -21,12 +22,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
 
         [UsedImplicitly]
-        public void HandleResponse(string responseObject) => ResponseMessageReceived?.Invoke(responseObject);
+        public void HandleResponse(string responseObject)
+        {
+            Debug.Log($"From JS: handle response {responseObject}");
+            ResponseMessageReceived?.Invoke(responseObject);
+        }
 
         [UsedImplicitly]
-        public void HandleWebEvent(string messageObject) => WebMessageReceived?.Invoke(messageObject);
+        public void HandleWebEvent(string messageObject)
+        {
+            Debug.Log($"From JS: handle web event {messageObject}");
+            WebMessageReceived?.Invoke(messageObject);
+        }
 
         public void SendRequestMessage(string messageType, string jsonMessage) => DispatchMessage(messageType, jsonMessage);
+        public UniTask Connect() => UniTask.CompletedTask;
 
         [UsedImplicitly]
         [DllImport("__Internal")]

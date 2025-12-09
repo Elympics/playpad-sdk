@@ -13,5 +13,6 @@ namespace ElympicsPlayPad.Protocol.Responses
         public int featureAccess;
         public string closestRegion;
         public ushort heartbeatIntervalMs;
+        public int launchMode;
     }
 }
