@@ -33,6 +33,13 @@ namespace ElympicsPlayPad.Tests
 
         private MockWebSocket _mockWebSocket;
 
+        public async UniTask Authenticate(AuthData cachedData, string region, bool autoRetry)
+        {
+            AuthData = cachedData;
+            _mockWebSocket = new MockWebSocket();
+            await UniTask.Delay(TimeSpan.FromSeconds(1));
+            _mockWebSocket.ToggleConnection(true);
+        }
         public void SignOut()
         {
             AuthData = null;
@@ -45,21 +52,6 @@ namespace ElympicsPlayPad.Tests
             _mockWebSocket = new MockWebSocket();
             _mockWebSocket.ToggleConnection(true);
             return UniTask.CompletedTask;
-        }
-        public async UniTask ConnectToElympicsAsync(ConnectionData data)
-        {
-            if (data.AuthType is not null)
-                AuthData = new AuthData(Guid.Empty, "", "nickName", data.AuthType.Value);
-            else
-            {
-                if (data.AuthFromCacheData is not null)
-                {
-                    AuthData = data.AuthFromCacheData.Value.CachedData;
-                }
-            }
-            _mockWebSocket = new MockWebSocket();
-            await UniTask.Delay(TimeSpan.FromSeconds(1));
-            _mockWebSocket.ToggleConnection(true);
         }
     }
 

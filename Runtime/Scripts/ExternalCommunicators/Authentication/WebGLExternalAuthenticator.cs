@@ -24,24 +24,24 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
     {
         public event Action<string>? RegionUpdated;
         public event Action<AuthData>? AuthenticationUpdated;
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly SessionManager _sessionManager;
         private readonly ElympicsLoggerContext _logger;
         private readonly IHeartbeatCommunicator _heartbeatCommunicator;
 
-        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
+        public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
         {
-            _jsCommunicator = jsCommunicator;
+            _playPadMessagingSystem = playPadMessagingSystem;
             _sessionManager = sessionManager;
             _heartbeatCommunicator = heartbeatCommunicator;
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
-            _jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
             _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
         }
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
         {
-            var result = await _jsCommunicator.SendRequestMessage<EmptyPayload, AuthenticationResponse>(RequestResponseMessageTypes.GetAuthentication, null, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, AuthenticationResponse>(RequestResponseMessageTypes.GetAuthentication, null, ct);
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
-            _ = await _jsCommunicator.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
+            _ = await _playPadMessagingSystem.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
                 new ChangeRegionRequest
                 {
                     newRegion = newRegion,
@@ -84,13 +84,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var logger = _logger.WithMethodName();
             try
             {
-                var result = await _jsCommunicator.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
+                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
                 var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
-                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess);
+                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, (LaunchMode)result.launchMode);
             }
             catch (ResponseException e)
             {

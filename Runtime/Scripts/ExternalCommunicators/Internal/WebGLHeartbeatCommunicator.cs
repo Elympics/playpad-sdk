@@ -8,12 +8,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Internal
     internal class WebGLHeartbeatCommunicator : IHeartbeatCommunicator
     {
         private readonly CancellationTokenSource _cts;
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playpadMessagingSystem;
         private TimeSpan _heartbeatInterval;
-        public WebGLHeartbeatCommunicator(JsCommunicator jsCommunicator)
+        public WebGLHeartbeatCommunicator(PlayPadMessagingSystem playpadMessagingSystem)
         {
             _cts = new CancellationTokenSource();
-            _jsCommunicator = jsCommunicator;
+            _playpadMessagingSystem = playpadMessagingSystem;
         }
         public void Dispose() => _cts?.Cancel();
 
@@ -32,7 +32,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Internal
                 await UniTask.Delay(_heartbeatInterval, DelayType.Realtime, PlayerLoopTiming.Update, _cts.Token);
                 if (_cts.IsCancellationRequested)
                     break;
-                _jsCommunicator.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HeartbeatMessage);
+                _playpadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HeartbeatMessage);
             }
         }
     }

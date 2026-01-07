@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:Label text="PlayPad extension does not support current OS." display-tooltip-when-elided="true" name="unsupported_platform_label" style="-unity-text-align: upper-center; top: 5%;" />
+    <ui:GroupBox name="control_panel" style="position: relative; top: 10%;">
+        <ui:Button text="Install" display-tooltip-when-elided="true" name="install_button" />
+        <ui:Button text="Connect" display-tooltip-when-elided="true" name="connect_button" />
+        <ui:Button text="Disconnect" display-tooltip-when-elided="true" name="disconnect_button" />
+    </ui:GroupBox>
+</ui:UXML>

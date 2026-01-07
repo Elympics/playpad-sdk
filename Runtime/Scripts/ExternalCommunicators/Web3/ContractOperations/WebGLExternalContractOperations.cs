@@ -11,10 +11,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
 {
     internal class WebGLExternalContractOperations : IExternalContractOperations
     {
-        private readonly JsCommunicator _communicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private List<string> _cache;
 
-        public WebGLExternalContractOperations(JsCommunicator communicator) => _communicator = communicator;
+        public WebGLExternalContractOperations(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
         public async UniTask<string> GetValue<TReturn>(SmartContract tokenInfo, string valueName, CancellationToken ct = default, params string[] parameters)
         {
@@ -26,7 +26,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
                 function = valueName,
                 parameters = parameters,
             };
-            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.GetValue, message, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.GetValue, message, ct);
             return result.message;
         }
         public async UniTask<string> GetFunctionCallData(SmartContract contract, string functionName, CancellationToken ct = default, params object[] parameters)
@@ -42,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations
                 function = functionName,
                 parameters = _cache.ToArray(),
             };
-            var result = await _communicator.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.EncodeFunctionData, message, ct);
+            var result = await _playPadMessagingSystem.SendRequestMessage<EncodeFunctionDataRequest, StringPayloadResponse>(RequestResponseMessageTypes.EncodeFunctionData, message, ct);
             return result.message;
         }
     }

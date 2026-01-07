@@ -11,13 +11,14 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.Lobby;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
-using ElympicsPlayPad.JWT;
-using ElympicsPlayPad.JWT.Extensions;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session.Exceptions;
+using ElympicsPlayPad.Session.Strategies;
 using ElympicsPlayPad.Utility;
-using ElympicsPlayPad.Wrappers;
+using ElympicsPlayPad.Utils;
 using JetBrains.Annotations;
 using SCS;
 using UnityEngine;
@@ -25,7 +26,7 @@ using UnityEngine;
 namespace ElympicsPlayPad.Session
 {
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.SessionManager)]
-    public class SessionManager : MonoBehaviour
+    public class SessionManager : MonoBehaviour, ISessionManager
     {
         [PublicAPI]
         public event Action? StartSessionInfoUpdate;
@@ -43,26 +44,46 @@ namespace ElympicsPlayPad.Session
 
         private static SessionManager? instance;
         private string _region = null!;
-        private IElympicsLobbyWrapper _lobbyWrapper = null!;
+        private ISessionManagerAuthProvider _authProvider = null!;
+        private AuthFactory _authFactory = null!;
+        private SessionManagerInitializationStrategy _initializationStrategy = null!;
         private static IExternalAuthenticator ExternalAuthenticator => PlayPadCommunicator.Instance!.ExternalAuthenticator!;
         private static IExternalGameStatusCommunicator GameStatusCommunicator => PlayPadCommunicator.Instance!.GameStatusCommunicator!;
         private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
         private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
         private static IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
+        private static IExternalLobbyCommunicator LobbyCommunicator => PlayPadCommunicator.Instance!.LobbyCommunicator!;
 
         private ElympicsLoggerContext _logger;
 
         private AuthData? _newAuthDataRequest;
         private string? _newRegionChange;
+        private IPlayPadMessagingSystem _playpadMessagingSystem = null!;
 
 
         private CancellationTokenSource _sessionManagerToken = new();
 
 
-        internal void Init(ElympicsLoggerContext logger)
+        internal void Init(AuthFactory authFactory, ElympicsLoggerContext logger, IPlayPadMessagingSystem playPadCommunicator)
         {
-            _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
+            _authFactory = authFactory;
             _logger = logger.WithContext(nameof(SessionManager));
+            _playpadMessagingSystem = playPadCommunicator;
+        }
+
+        private SessionManagerInitializationStrategy CreateInitializationStrategy(LaunchMode launchMode)
+        {
+            if (launchMode.HasOnlyGamePlay())
+                return new SessionManagerPlatformInitializationStrategy(LobbyCommunicator, GameStatusCommunicator, _logger);
+            if (launchMode.HasLobby())
+                return new SessionManagerPlayPadInitializationStrategy(
+                    _logger,
+                    GameStatusCommunicator,
+                    TournamentCommunicator,
+                    LeaderboardCommunicator,
+                    VirtualDepositCommunicator);
+
+            throw new SessionmanagerException($"Unknown launchMode: {launchMode}");
         }
 
         /// <summary>
@@ -83,43 +104,26 @@ namespace ElympicsPlayPad.Session
 
                 if (SmartContractService.Instance != null)
                     await SmartContractService.Instance.Initialize();
-
+                await _playpadMessagingSystem.Connect();
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
-                _ = logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
+                var log = logger.SetRegion(handshake.ClosestRegion).SetFeatureAccess(handshake.FeatureAccess.ToString()).SetCapabilities(handshake.Capabilities.ToString());
+                log.Log($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
+                _initializationStrategy = CreateInitializationStrategy(handshake.LaunchMode);
+                _authProvider = _authFactory.GetAuthProvider(handshake.LaunchMode);
+                Debug.Log($"[CRITICAL] Auth provider: {_authProvider.GetType().FullName}");
+                Debug.Log($"[CRITICAL] LaunchMode: {handshake.LaunchMode}, Int value: {(int)handshake.LaunchMode}");
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-                var (accountWallet, signWallet, _) = ExtractWalletAddresses(authData);
 #pragma warning disable CS0618 // Type or member is obsolete
-                _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname)
+                _ = logger.SetAuthType(authData.AuthType).SetUserId(authData.UserId.ToString()).SetNickname(authData.Nickname);
 #pragma warning restore CS0618 // Type or member is obsolete
-                    .SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
-                if (handshake.FeatureAccess.HasTournament())
-                {
-                    var tournament = await TournamentCommunicator.GetTournament();
-                    _ = logger.SetTournamentId(tournament?.Id);
-                }
-
-                _ = await GameStatusCommunicator.CanPlayGame(false);
-
-                if (VirtualDepositCommunicator != null)
-                    _ = await VirtualDepositCommunicator.GetElympicsCoins();
-
-                if (handshake.FeatureAccess.HasLeaderboard())
-                    _ = await LeaderboardCommunicator.FetchLeaderboard();
-
-                if (handshake.FeatureAccess.HasUserHighScore())
-                    _ = await LeaderboardCommunicator.FetchUserHighScore();
-
-                if (handshake.FeatureAccess.HasVirtualDeposit())
-                    if (VirtualDepositCommunicator != null)
-                        _ = await VirtualDepositCommunicator.GetVirtualDeposit();
-
+                log.Log($"Authentication succeeded: AuthType={authData.AuthType}, UserId={authData.UserId}, Nickname={authData.Nickname}");
+                await _initializationStrategy.InitializePostAuthenticationAsync(handshake, authData, _sessionManagerToken.Token);
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
                 AuthChangeRequestDispatcher(_sessionManagerToken.Token).Forget(logger.Exception);
-                logger.Log($"PlayPad connection established.");
             }
             else
                 Destroy(gameObject);
@@ -140,15 +144,6 @@ namespace ElympicsPlayPad.Session
         {
             var logger = _logger.WithMethodName();
             var result = await ExternalAuthenticator.Authenticate() ?? throw logger.CaptureAndThrow(new SessionManagerAuthException($"External authenticator did not return AuthData."));
-#if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
-            var standaloneAuthType = result.AuthType;
-            if (standaloneAuthType != AuthType.ClientSecret)
-                throw new SessionManagerAuthException($"Cannot authenticate with {standaloneAuthType} on Editor or with ELYMPICS_DISABLE_PLAYPAD. Please use {AuthType.ClientSecret}");
-
-            await _lobbyWrapper.ConnectStandaloneEditorToElympicsAsync(result, _region);
-
-            return _lobbyWrapper.AuthData!;
-#else
             try
             {
                 await AuthWithCached(result, _region, false);
@@ -158,20 +153,28 @@ namespace ElympicsPlayPad.Session
             {
                 throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
             }
-#endif
         }
 
         private void SetupSession(HandshakeInfo handshake, string region, AuthData authData)
         {
-            var (accountWallet, signWallet, tonWallet) = ExtractWalletAddresses(authData);
-            CurrentSession = new SessionInfo(authData, accountWallet, signWallet, handshake.Capabilities, handshake.Environment, handshake.IsMobile, region, handshake.FeatureAccess, tonWallet);
+            var (accountWallet, signWallet, tonWallet) = WalletAddress.ExtractWalletAddresses(authData);
+            CurrentSession = new SessionInfo(authData,
+                accountWallet,
+                signWallet,
+                handshake.Capabilities,
+                handshake.Environment,
+                handshake.IsMobile,
+                region,
+                handshake.FeatureAccess,
+                tonWallet,
+                handshake.LaunchMode);
         }
 
         private void SetupSession(AuthData authData, string region, SessionInfo currentSession)
         {
             ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
 
-            var (accountWallet, signWallet, tonWallet) = ExtractWalletAddresses(authData);
+            var (accountWallet, signWallet, tonWallet) = WalletAddress.ExtractWalletAddresses(authData);
             CurrentSession = new SessionInfo(authData,
                 accountWallet,
                 signWallet,
@@ -180,14 +183,8 @@ namespace ElympicsPlayPad.Session
                 currentSession.IsMobile,
                 region,
                 currentSession.Features,
-                tonWallet);
-        }
-
-        private static (string? accountWallet, string? signWallet, string? tonWallet) ExtractWalletAddresses(AuthData authData)
-        {
-            var jwtPayload = authData.JwtToken.ExtractUnityPayloadFromJwt();
-            var (accountWallet, signWallet, tonWallet) = GetAccountAndSignWalletAddressesFromPayload(jwtPayload, authData.AuthType);
-            return (accountWallet, signWallet, tonWallet);
+                tonWallet,
+                currentSession.LaunchMode);
         }
 
         private async UniTask<string> GetClosestRegion(string externalClosestRegion)
@@ -233,15 +230,11 @@ namespace ElympicsPlayPad.Session
         {
             try
             {
-                if (_lobbyWrapper.IsAuthenticated)
-                    _lobbyWrapper.SignOut();
+                if (_authProvider.IsAuthenticated)
+                    _authProvider.SignOut();
 
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
-                await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData
-                {
-                    Region = new RegionData(region),
-                    AuthFromCacheData = new CachedAuthData(cachedData, autoRetry),
-                });
+                await _authProvider.Authenticate(cachedData, region, autoRetry);
             }
             catch (Exception e)
             {
@@ -249,15 +242,6 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private static (string? accountWallet, string? signWallet, string? tonWallet) GetAccountAndSignWalletAddressesFromPayload(JwtPayload payload, AuthType currentAuthType)
-        {
-            var accountWallet = payload.ethAddress;
-            string? signWallet = null;
-            if (currentAuthType.IsWallet())
-                signWallet = accountWallet;
-            var tonAddress = payload.tonNoBounceAddress ?? payload.tonAddress;
-            return (accountWallet, signWallet, tonAddress);
-        }
 
         private void OnAuthDataChanged(AuthData data) => _newAuthDataRequest = data;
 
@@ -300,6 +284,7 @@ namespace ElympicsPlayPad.Session
                 FinishSessionInfoUpdate?.Invoke();
             }
         }
+
         private async UniTask AuthChangeRequestDispatcher(CancellationToken token)
         {
             while (true)
@@ -349,7 +334,9 @@ namespace ElympicsPlayPad.Session
         {
             instance = null;
             CurrentSession = null;
-            _lobbyWrapper.SignOut();
+            _authProvider?.SignOut();
         }
+
+        internal static string PlayPadMessagingSystem => nameof(_playpadMessagingSystem);
     }
 }

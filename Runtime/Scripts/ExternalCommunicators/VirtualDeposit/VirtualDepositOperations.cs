@@ -14,7 +14,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
     internal static class VirtualDepositOperations
     {
-        public static async UniTask<SignProofOfEntryResult> SignProofOfEntry(JsCommunicator jsCommunicator, IRoom room, CancellationToken ct)
+        public static async UniTask<SignProofOfEntryResult> SignProofOfEntry(PlayPadMessagingSystem jsCommunicator, IRoom room, CancellationToken ct)
         {
             var betDetails = room.State.MatchmakingData?.BetDetails;
             if (betDetails == null)
@@ -30,7 +30,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             return new SignProofOfEntryResult(response.success, response.error);
         }
 
-        public static async UniTask<EnsureDepositInfo> EnsureVirtualDeposit(JsCommunicator jsCommunicator, decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
+        public static async UniTask<EnsureDepositInfo> EnsureVirtualDeposit(PlayPadMessagingSystem jsCommunicator, decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount of virtual deposit has to be greater than 0", nameof(amount));

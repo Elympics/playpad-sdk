@@ -1,0 +1,9 @@
+{
+  "name": "com.elympics.playpad",
+  "description": "Native messaging host for PlayPad extension",
+  "path": "",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://dpifjnhdapmlijnifelcihpecigladob/"
+  ]
+}

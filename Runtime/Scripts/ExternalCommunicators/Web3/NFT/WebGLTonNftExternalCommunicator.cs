@@ -12,13 +12,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
 {
     internal class WebGLTonNftExternalCommunicator : ITonNftExternalCommunicator
     {
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
 
-        internal WebGLTonNftExternalCommunicator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
+        internal WebGLTonNftExternalCommunicator(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
         public async UniTask<bool> MintNft(string collectionAddress, string price, string payload, CancellationToken ct = default)
         {
-            var response = await _jsCommunicator.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(RequestResponseMessageTypes.MintNft,
+            var response = await _playPadMessagingSystem.SendRequestMessage<MintNftRequest<MintTonNftPayload>, BoolPayloadResponse>(RequestResponseMessageTypes.MintNft,
                 new MintNftRequest<MintTonNftPayload>
                 {
                     collectionAddress = collectionAddress,
@@ -44,7 +44,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Web3.NFT
                 },
             };
 
-            var response = await _jsCommunicator.SendRequestMessage<SendRawTransactionRequest<TonPayload>, SendRawTransactionResponse>(RequestResponseMessageTypes.SendRawTransaction, request, ct);
+            var response = await _playPadMessagingSystem.SendRequestMessage<SendRawTransactionRequest<TonPayload>, SendRawTransactionResponse>(RequestResponseMessageTypes.SendRawTransaction, request, ct);
             if (!string.IsNullOrEmpty(response.error))
                 throw new ElympicsException("Couldn't send transaction: " + response.error);
             return response.txHash;

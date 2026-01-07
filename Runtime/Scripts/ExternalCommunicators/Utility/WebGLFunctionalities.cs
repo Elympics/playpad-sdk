@@ -1,25 +1,39 @@
 using System;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.WebMessages;
-using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Utility
 {
-    internal class WebGLFunctionalities : IDisposable
+    internal class WebGLFunctionalities : IDisposable, IWebMessageReceiver
     {
-        private readonly JsCommunicator _jsCommunicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
 
-        public WebGLFunctionalities(JsCommunicator jsCommunicator)
+        public WebGLFunctionalities(PlayPadMessagingSystem playPadMessagingSystem)
         {
-#if UNITY_WEBGL_API
+#if !UNITY_EDITOR && UNITY_WEBGL_API
             WebGLInput.captureAllKeyboardInput = true;
+            _playPadMessagingSystem = playPadMessagingSystem;
+            _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.WebGLKeyboardInputControl);
 #endif
-            _jsCommunicator = jsCommunicator;
-            _jsCommunicator.WebObjectReceived += OnWebMessageReceived;
 
         }
-        private static void OnWebMessageReceived(WebMessage message)
+
+        private static void OnKeyboardInputControlsRequested(string webMessageMessage)
+        {
+#if!UNITY_EDITOR && UNITY_WEBGL_API
+            var inputControlRequest = JsonUtility.FromJson<WebGLKeyboardInputControlMessage>(webMessageMessage);
+            WebGLInput.captureAllKeyboardInput = !inputControlRequest.isKeyboardControlRequested;
+#endif
+        }
+        public void Dispose()
+        {
+#if !UNITY_EDITOR && UNITY_WEBGL_API
+            _playPadMessagingSystem.WebObjectReceived -= OnWebMessageReceived;
+#endif
+        }
+        public void OnWebMessage(WebMessage message)
         {
             switch (message.type)
             {
@@ -30,14 +44,5 @@ namespace ElympicsPlayPad.ExternalCommunicators.Utility
                     break;
             }
         }
-
-        private static void OnKeyboardInputControlsRequested(string webMessageMessage)
-        {
-            var inputControlRequest = JsonUtility.FromJson<WebGLKeyboardInputControlMessage>(webMessageMessage);
-#if UNITY_WEBGL_API
-            WebGLInput.captureAllKeyboardInput = !inputControlRequest.isKeyboardControlRequested;
-#endif
-        }
-        public void Dispose() => _jsCommunicator.WebObjectReceived -= OnWebMessageReceived;
     }
 }

@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -11,8 +12,10 @@ namespace ElympicsPlayPad.Wrappers
         private ElympicsLobbyClient _matchLauncher = null!;
         private void Awake()
         {
-            if (ElympicsLobbyClient.Instance != null)
-                _matchLauncher = ElympicsLobbyClient.Instance;
+            if (ElympicsLobbyClient.Instance)
+                _matchLauncher = ElympicsLobbyClient.Instance!;
+            else
+                throw new InvalidOperationException("ElympicsLobbyClient instance is null. Make sure ElympicsLobbyClient is initialized before using DefaultElympicsLobbyWrapper.");
         }
         public IGameplaySceneMonitor GameplaySceneMonitor => ElympicsLobbyClient.Instance!.GameplaySceneMonitor!;
         public IRoomsManager RoomsManager => ElympicsLobbyClient.Instance!.RoomsManager;
@@ -30,6 +33,14 @@ namespace ElympicsPlayPad.Wrappers
             };
             return ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(connectionData);
         }
-        public UniTask ConnectToElympicsAsync(ConnectionData data) => ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(data);
+        public UniTask Authenticate(AuthData authData, string region, bool autoRetry)
+        {
+            var data = new ConnectionData
+            {
+                Region = new RegionData(region),
+                AuthFromCacheData = new CachedAuthData(authData, autoRetry),
+            };
+            return ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(data);
+        }
     }
 }

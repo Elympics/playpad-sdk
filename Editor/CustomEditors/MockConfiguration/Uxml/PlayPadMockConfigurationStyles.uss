@@ -1,0 +1,50 @@
+.communicator-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 2px;
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.communicator-field {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.communicator-field > .unity-object-field__label {
+    min-width: 80px;
+    max-width: 120px;
+    flex-shrink: 0;
+}
+
+.communicator-field > .unity-object-field__selector {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.communicator-toggle {
+    margin-left: 4px;
+    flex-shrink: 0;
+    width: 80px;
+}
+
+.communicator-toggle > .unity-toggle__label {
+    min-width: 0;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.section-header {
+    -unity-font-style: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.communicator-container {
+    padding: 5px;
+    margin-bottom: 10px;
+}

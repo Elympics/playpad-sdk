@@ -23,6 +23,7 @@ namespace ElympicsPlayPad.Session
         public readonly string Environment;
         public readonly bool IsMobile;
         public readonly string ClosestRegion;
+        public readonly LaunchMode LaunchMode;
 
         public SessionInfo(
             AuthData authData,
@@ -33,7 +34,8 @@ namespace ElympicsPlayPad.Session
             bool isMobile,
             string closestRegion,
             FeatureAccess features,
-            string? tonWalletAddress)
+            string? tonWalletAddress,
+            LaunchMode launchMode)
         {
             AuthData = authData;
             AccountWallet = accountWallet;
@@ -44,6 +46,7 @@ namespace ElympicsPlayPad.Session
             ClosestRegion = closestRegion;
             Features = features;
             TonWalletAddress = tonWalletAddress;
+            LaunchMode = launchMode;
         }
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);
