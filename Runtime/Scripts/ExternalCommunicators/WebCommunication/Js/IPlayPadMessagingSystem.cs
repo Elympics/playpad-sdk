@@ -13,6 +13,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes);
+
+        public void UnregisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
+
+        public UniTask Connect();
     }
 
 }

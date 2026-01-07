@@ -66,6 +66,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 RegisterHandler(receiver, messageType);
         }
 
+        public void UnregisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType)
+        {
+            if (_webMessageReceivers.TryGetValue(messageType, out var list))
+                _ = list.Remove(receiver);
+        }
+        public UniTask Connect() => playpadCommunicator.Connect();
         public void Deinit()
         {
             playpadCommunicator.Dispose();

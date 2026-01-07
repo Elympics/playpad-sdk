@@ -1,5 +1,4 @@
 #nullable enable
-
 using System.Collections.Generic;
 using Elympics;
 using Elympics.AssemblyCommunicator.Events;
@@ -35,7 +34,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 
         public void FlushRttBuffer()
         {
-            var message = new NetworkStatusMessage { matchId = ElympicsLobbyClient.Instance!.MatchDataGuid!.MatchId.ToString(), data = _rttBuffer };
+            var message = new NetworkStatusMessage { matchId = LobbyRegister.GetMatchData()?.MatchId.ToString() ?? string.Empty, data = _rttBuffer };
             _playPadMessagingSystem.SendVoidMessage<NetworkStatusMessage>(VoidMessageTypes.NetworkStatusMessage, message);
             _rttBuffer.Clear();
         }

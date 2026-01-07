@@ -2,10 +2,11 @@
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
+using ElympicsPlayPad.Session;
 
 namespace ElympicsPlayPad.Wrappers
 {
-    internal interface IElympicsLobbyWrapper
+    internal interface IElympicsLobbyWrapper : ISessionManagerAuthProvider
     {
         IGameplaySceneMonitor GameplaySceneMonitor { get; }
 
@@ -13,14 +14,9 @@ namespace ElympicsPlayPad.Wrappers
 
         AuthData? AuthData { get; }
 
-        bool IsAuthenticated { get; }
-
         IWebSocketSession WebSocketSession { get; }
 
-        void SignOut();
-
         UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
-        UniTask ConnectToElympicsAsync(ConnectionData connectionData);
 
         void WatchReplay();
     }

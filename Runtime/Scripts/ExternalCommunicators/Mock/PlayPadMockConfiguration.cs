@@ -2,6 +2,7 @@
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.Lobby;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
@@ -32,5 +33,7 @@ namespace ElympicsPlayPad
         public CustomTonNftExternalCommunicator? customTonNftExternalCommunicator;
         public bool useCustomEvmExternalCommunicator = false;
         public CustomEvmExternalCommunicator? customEvmExternalCommunicator;
+        public bool useCustomLobbyCommunicator = false;
+        public CustomLobbyExternalCommunicator? customLobbyExternalCommunicator;
     }
 }
