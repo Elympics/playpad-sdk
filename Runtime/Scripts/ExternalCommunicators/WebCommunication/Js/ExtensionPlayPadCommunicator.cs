@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,8 +18,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 #if UNITY_EDITOR
     internal class ExtensionPlayPadCommunicator : IPlayPadCommunicator
     {
-        public event Action<string> ResponseMessageReceived;
-        public event Action<string> WebMessageReceived;
+        public event Action<string>? ResponseMessageReceived;
+        public event Action<string>? WebMessageReceived;
+        public event Action<string>? WebRequestMessageReceived;
 
         private const string MinSupportedExtensionVersion = "0.1.0";
         private const string ExtensionProtocolVersion = "0.1.0";

@@ -14,6 +14,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
     {
         public event Action<string>? ResponseMessageReceived;
         public event Action<string>? WebMessageReceived;
+        public event Action<string>? WebRequestMessageReceived;
 
         private const string GameObjectName = "JsReceiver";
         private ElympicsLoggerContext _loggerContext; //TODO implement later k.pieta 29.01.2025
@@ -32,6 +33,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public void HandleWebEvent(string messageObject)
         {
             Debug.Log($"From JS: handle web event {messageObject}");
+            WebMessageReceived?.Invoke(messageObject);
+        }
+
+        public void HandleWebRequest(string messageObject)
+        {
+            Debug.Log($"From JS: handle web request {messageObject}");
             WebMessageReceived?.Invoke(messageObject);
         }
 
