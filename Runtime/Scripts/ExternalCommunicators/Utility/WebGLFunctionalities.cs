@@ -3,6 +3,9 @@ using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.WebMessages;
+#if !UNITY_EDITOR && UNITY_WEBGL_API
+using UnityEngine;
+#endif
 
 namespace ElympicsPlayPad.ExternalCommunicators.Utility
 {
@@ -30,7 +33,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Utility
         public void Dispose()
         {
 #if !UNITY_EDITOR && UNITY_WEBGL_API
-            _playPadMessagingSystem.WebObjectReceived -= OnWebMessageReceived;
+            _playPadMessagingSystem.WebObjectReceived -= OnWebMessage;
 #endif
         }
         public void OnWebMessage(WebMessage message)
