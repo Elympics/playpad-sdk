@@ -13,6 +13,13 @@ namespace ElympicsPlayPad.Protocol.Responses
         public int featureAccess;
         public string closestRegion;
         public ushort heartbeatIntervalMs;
+        public UserPrefs userPrefs;
         public int launchMode;
+    }
+
+    [Serializable]
+    public struct UserPrefs
+    {
+        public string[] languages;
     }
 }

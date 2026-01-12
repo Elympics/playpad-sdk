@@ -167,6 +167,7 @@ namespace ElympicsPlayPad.Session
                 region,
                 handshake.FeatureAccess,
                 tonWallet,
+                handshake.UserPrefs,
                 handshake.LaunchMode);
         }
 
@@ -184,6 +185,7 @@ namespace ElympicsPlayPad.Session
                 region,
                 currentSession.Features,
                 tonWallet,
+                currentSession.UserPrefs,
                 currentSession.LaunchMode);
         }
 

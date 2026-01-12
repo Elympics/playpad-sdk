@@ -8,6 +8,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
         public readonly FeatureAccess FeatureAccess;
         public readonly string Environment;
         public readonly string ClosestRegion;
+        public readonly UserPrefsInfo UserPrefs;
         public readonly LaunchMode LaunchMode;
 
         public HandshakeInfo(
@@ -16,6 +17,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
             string environment,
             string closestRegion,
             FeatureAccess featureAccess,
+            UserPrefsInfo userPrefs,
             LaunchMode launchMode)
         {
             IsMobile = isMobile;
@@ -23,7 +25,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
             Environment = environment;
             ClosestRegion = closestRegion;
             FeatureAccess = featureAccess;
+            UserPrefs = userPrefs;
             LaunchMode = launchMode;
+
         }
+    }
+
+    public readonly struct UserPrefsInfo
+    {
+        public readonly string[] Languages;
+
+        public UserPrefsInfo(string[] languages) => Languages = languages;
     }
 }
