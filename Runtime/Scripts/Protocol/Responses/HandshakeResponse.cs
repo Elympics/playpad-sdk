@@ -15,6 +15,8 @@ namespace ElympicsPlayPad.Protocol.Responses
         public ushort heartbeatIntervalMs;
         public UserPrefs userPrefs;
         public int launchMode;
+        public string gameVersionId;
+        public string fleetName;
     }
 
     [Serializable]
