@@ -91,6 +91,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
                 var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
+                logger = logger.SetFleetName(result.fleetName).SetGameVersionId(result.gameVersionId);
                 return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
             }
             catch (ResponseException e)
