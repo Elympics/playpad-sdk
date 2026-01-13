@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
@@ -13,6 +15,8 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
+using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
@@ -33,7 +37,9 @@ namespace ElympicsPlayPad.Tests
         private PlayPadCommunicator _communicator;
         private static readonly IExternalAuthenticator AuthMock = Substitute.For<IExternalAuthenticator>();
         private static readonly IExternalGameStatusCommunicator GameMock = Substitute.For<IExternalGameStatusCommunicator>();
+        private static readonly IExternalBlockChainCurrencyCommunicator VirtualDepositMock = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
         private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
+        private static readonly IPlayPadMessagingSystem PlaypadCommunicatorMock = Substitute.For<IPlayPadMessagingSystem>();
         public override string SceneName => "ElympicsSessionManagerTestScene";
         public override bool RequiresElympicsConfig => true;
 
@@ -76,8 +82,17 @@ namespace ElympicsPlayPad.Tests
             yield return new WaitUntil(() => Object.FindObjectOfType<SessionManager>() != null);
             _sut = Object.FindObjectOfType<SessionManager>();
             _communicator = PlayPadCommunicator.Instance;
+            Assert.NotNull(_communicator);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.ExternalAuthenticatorFieldName, AuthMock);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.GameStatusCommunicatorFieldName, GameMock);
+            MockExternalCommunicator(_communicator, PlayPadCommunicator.VirtualDepositCommunicatorFieldName, VirtualDepositMock);
+            MockIPlaypadCommunicator(_sut, PlaypadCommunicatorMock);
+            _ = PlaypadCommunicatorMock.Connect().Returns(UniTask.CompletedTask);
+            _ = VirtualDepositMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(x =>
+            {
+                var toReturn = new Dictionary<Guid, CoinInfo>();
+                return UniTask.FromResult((IReadOnlyDictionary<Guid, CoinInfo>)toReturn);
+            });
             Assert.NotNull(_sut);
             _sut.Reset();
         }
@@ -87,7 +102,13 @@ namespace ElympicsPlayPad.Tests
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false,
+                    Capabilities.Ethereum,
+                    DefaultEnvironment,
+                    DefaultClosestRegion,
+                    FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
+                    LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
@@ -123,7 +144,13 @@ namespace ElympicsPlayPad.Tests
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false,
+                    Capabilities.Ethereum,
+                    DefaultEnvironment,
+                    DefaultClosestRegion,
+                    FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
+                    LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
@@ -148,7 +175,13 @@ namespace ElympicsPlayPad.Tests
         {
             // Prepare
             _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(UniTask.FromResult(new HandshakeInfo(false, Capabilities.Ethereum, DefaultEnvironment, DefaultClosestRegion, FeatureAccess.Authentication)));
+                .Returns(UniTask.FromResult(new HandshakeInfo(false,
+                    Capabilities.Ethereum,
+                    DefaultEnvironment,
+                    DefaultClosestRegion,
+                    FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
+                    LaunchMode.Lobby | LaunchMode.Gameplay)));
 
             _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
 
@@ -198,11 +231,18 @@ namespace ElympicsPlayPad.Tests
             return output;
         }
 
-        public static void MockExternalCommunicator<T>(PlayPadCommunicator playPad, string externalCommunicatorName, T mock)
+        private static void MockExternalCommunicator<T>(PlayPadCommunicator playPad, string externalCommunicatorName, T mock)
         {
             var externalCommunicator = playPad.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(x => x.Name == externalCommunicatorName);
             Assert.NotNull(playPad);
             externalCommunicator!.SetValue(playPad, mock);
+        }
+
+        private static void MockIPlaypadCommunicator(SessionManager sessionManager, IPlayPadMessagingSystem messagingSystem)
+        {
+            var field = typeof(SessionManager).GetField(SessionManager.PlayPadMessagingSystem, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.NotNull(field);
+            field!.SetValue(sessionManager, messagingSystem);
         }
 
         [TearDown]

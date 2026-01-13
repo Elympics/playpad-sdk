@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
-    public class StandaloneExternalUiCommunicator : IExternalUiCommunicator
+    public class StandaloneExternalUiCommunicator : CustomStandaloneExternalUiCommunicatorBase
     {
-        public async UniTask Display(string name)
+        public override UniTask Display(string name)
         {
             Debug.Log($"Show PlayPad UI: \"{name}\"");
-            await UniTask.CompletedTask;
+            return UniTask.CompletedTask;
         }
     }
 }

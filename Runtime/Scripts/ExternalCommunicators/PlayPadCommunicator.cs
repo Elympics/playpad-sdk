@@ -6,9 +6,11 @@ using Elympics;
 using Elympics.Communication.Mappers;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.ExternalCommunicators.Lobby;
 using ElympicsPlayPad.ExternalCommunicators.Replay;
 using ElympicsPlayPad.ExternalCommunicators.Sentry;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
@@ -72,12 +74,15 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [PublicAPI]
         public IExternalWebCommunicator? ExternalWebCommunicator;
 
-        [SerializeField] private StandaloneExternalAuthenticatorConfig standaloneAuthConfig = null!;
-        [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
-        [SerializeField] private StandaloneExternalGameStatusConfig standaloneGameStatusConfig = null!;
+        [PublicAPI]
+        public IExternalLobbyCommunicator? LobbyCommunicator;
+
+        [NonSerialized]
+        [PublicAPI]
+        public ISessionManager SessionManager = null!;
 
         private PlayPadCommunicatorInternal _communicatorInternal = null!;
-        private JsCommunicator _jsCommunicator = null!;
+        private PlayPadMessagingSystem _playPadMessagingSystem = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
         private IElympicsLobbyWrapper _lobby = null!;
 
@@ -86,8 +91,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private static ElympicsLoggerContext loggerContext;
 
         /// <summary>False in editor and local builds that are not run through PlayPad website.</summary>
-        private static bool UseRealPlayPad =>
-#if UNITY_WEBGL && !UNITY_EDITOR && !ELYMPICS_DISABLE_PLAYPAD
+        private static bool CanMockPlayPad =>
+#if UNITY_EDITOR || ELYMPICS_DISABLE_PLAYPAD
             true;
 #else
             false;
@@ -97,68 +102,77 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (!Instance)
             {
+                DontDestroyOnLoad(gameObject);
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
                 loggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
-                loggerContext = loggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(JsCommunicator.ProtocolVersion, version).WithContext(nameof(PlayPadCommunicator));
-                _jsCommunicator = GetComponent<JsCommunicator>();
-                if (_jsCommunicator == null)
-                    throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
-                _jsCommunicator.Init(loggerContext);
+                loggerContext = loggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(PlayPadMessagingSystem.ProtocolVersion, version)
+                    .WithContext(nameof(PlayPadCommunicator));
+                _playPadMessagingSystem = GetComponent<PlayPadMessagingSystem>();
+                if (!_playPadMessagingSystem)
+                    throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(PlayPadMessagingSystem)} component on gameObject {gameObject.name}");
+                var playpadCommunicationFactory = GetComponent<PlayPadCommunicatorFactory>();
+                if (!playpadCommunicationFactory)
+                    throw new ArgumentNullException($"Couldn't find {nameof(PlayPadCommunicatorFactory)} component on gameObject {gameObject.name}");
+                _playPadMessagingSystem.Init(playpadCommunicationFactory, loggerContext);
 
                 _lobby = GetComponent<IElympicsLobbyWrapper>();
                 if (_lobby == null)
-                    throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
+                    throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
 
-                var sessionmanager = GetComponent<SessionManager>();
-                if (sessionmanager == null)
-                    throw new ArgumentNullException(nameof(sessionmanager), $"Couldn't find {nameof(SessionManager)} component on gameObject {gameObject.name}");
-                sessionmanager.Init(loggerContext);
+                var gameConfig = ElympicsConfig.LoadCurrentElympicsGameConfig();
+                if (!gameConfig)
+                    throw new ArgumentNullException(nameof(gameConfig),
+                        "Elympics Game Config is missing. Please make sure you have an ElympicsGameConfig asset in your project and it is properly configured.");
 
-                if (UseRealPlayPad)
-                {
-                    _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
-                    _heartbeat = new WebGLHeartbeatCommunicator(_jsCommunicator);
-                    ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator, loggerContext, sessionmanager, _heartbeat);
-                    var walletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator);
-                    VirtualDepositCommunicator = new WebGLBlockChainCurrencyCommunicator(_jsCommunicator, loggerContext);
-                    TournamentCommunicator = new WebGLTournamentCommunicator(loggerContext, VirtualDepositCommunicator, _jsCommunicator);
-                    GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator, _lobby, TournamentCommunicator, loggerContext);
-                    ExternalUiCommunicator = new WebGLExternalUiCommunicator(_jsCommunicator);
-                    var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
-                    TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
-                    LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator, loggerContext);
-                    _sentry = new WebGLExternalSentryCommunicator(_jsCommunicator);
-                    ReplayCommunicator = new WebGLExternalReplay(_jsCommunicator, loggerContext, _lobby);
-                    TonNftExternalCommunicator = new WebGLTonNftExternalCommunicator(_jsCommunicator);
-                    EvmExternalCommunicator = new WebGLEvmExternalCommunicator(_jsCommunicator);
-                    ExternalWebCommunicator = new WebGLWebCommunicator(_jsCommunicator);
-                    Room.BeforeMarkYourselfReady = BeforeSetReady;
-                }
-                else
-                {
-                    if (customErc20SmartContractCommunicator != null)
-                        TokenCommunicator = customErc20SmartContractCommunicator;
-                    else
-                    {
-                        var standaloneCommunicator = new StandaloneWalletCommunicator();
-                        ExternalAuthenticator = customAuthenticatorCommunicator ? customAuthenticatorCommunicator : new StandaloneExternalAuthenticator(standaloneAuthConfig);
-                        TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
-                    }
-                    GameStatusCommunicator = customGameStatusCommunicator ? customGameStatusCommunicator
-                        : new StandaloneExternalGameStatusCommunicator(standaloneGameStatusConfig, _lobby.RoomsManager);
-                    ExternalUiCommunicator = customExternalUiCommunicator ? customExternalUiCommunicator : new StandaloneExternalUiCommunicator();
-                    TournamentCommunicator = customTournamentCommunicator ? customTournamentCommunicator
-                        : new StandaloneTournamentCommunicator(standaloneTournamentConfig, standaloneAuthConfig, _jsCommunicator);
-                    LeaderboardCommunicator = customLeaderboardCommunicator ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
-                    VirtualDepositCommunicator = customBlockChainCurrencyCommunicator ? customBlockChainCurrencyCommunicator : null;
-                    TonNftExternalCommunicator = customTonNftExternalCommunicator ? customTonNftExternalCommunicator : new StandaloneTonNftExternalCommunicator();
-                    EvmExternalCommunicator = customEvmExternalCommunicator ? customEvmExternalCommunicator : new StandaloneEvmExternalCommunicator();
-                    ExternalWebCommunicator = new StandaloneWebCommunicator();
-                }
+                var sessionManager = GetComponent<SessionManager>();
+                if (sessionManager == null)
+                    throw new ArgumentNullException(nameof(sessionManager), $"Couldn't find {nameof(sessionManager)} component on gameObject {gameObject.name}");
 
-                _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator);
+                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, loggerContext, _lobby);
+                _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator, gameConfig!);
+
+                var authFactory = new AuthFactory();
+                authFactory.RegisterAuthProvider(GetComponent<IElympicsLobbyWrapper>(), LaunchMode.Lobby | LaunchMode.Gameplay);
+                authFactory.RegisterAuthProvider(_communicatorInternal, LaunchMode.Gameplay);
+                sessionManager.Init(authFactory, loggerContext, _playPadMessagingSystem);
+                SessionManager = sessionManager;
+
+                _webGLFunctionalities = new WebGLFunctionalities(_playPadMessagingSystem);
+                _heartbeat = new WebGLHeartbeatCommunicator(_playPadMessagingSystem);
+                ExternalAuthenticator = UseMockAuth
+                    ? mockConfiguration!.customAuthenticatorCommunicator
+                    : new WebGLExternalAuthenticator(_playPadMessagingSystem, loggerContext, sessionManager, _heartbeat);
+                var walletCommunicator = new WebGLExternalWalletCommunicator(_playPadMessagingSystem);
+                VirtualDepositCommunicator = UseMockBlockChainCurrency
+                    ? mockConfiguration!.customBlockChainCurrencyCommunicator
+                    : new WebGLBlockChainCurrencyCommunicator(_playPadMessagingSystem, loggerContext);
+                TournamentCommunicator = UseMockTournament
+                    ? mockConfiguration!.customTournamentCommunicator
+                    : new WebGLTournamentCommunicator(loggerContext, VirtualDepositCommunicator!, _playPadMessagingSystem);
+                GameStatusCommunicator = UseMockGameStatus
+                    ? mockConfiguration!.customGameStatusCommunicator
+                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, _lobby, TournamentCommunicator!, loggerContext);
+                ExternalUiCommunicator = UseMockExternalUi
+                    ? mockConfiguration!.customExternalUiCommunicator
+                    : new WebGLExternalUiCommunicator(_playPadMessagingSystem);
+                var webGLContractOperations = new WebGLExternalContractOperations(_playPadMessagingSystem);
+                TokenCommunicator = UseMockErc20SmartContract
+                    ? mockConfiguration!.customErc20SmartContractCommunicator
+                    : new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
+                LeaderboardCommunicator = UseMockLeaderboard
+                    ? mockConfiguration!.customLeaderboardCommunicator
+                    : new WebGLLeaderboardCommunicator(_playPadMessagingSystem, loggerContext);
+                TonNftExternalCommunicator = UseMockTonNft
+                    ? mockConfiguration!.customTonNftExternalCommunicator
+                    : new WebGLTonNftExternalCommunicator(_playPadMessagingSystem);
+                EvmExternalCommunicator = UseMockEvm
+                    ? mockConfiguration!.customEvmExternalCommunicator
+                    : new WebGLEvmExternalCommunicator(_playPadMessagingSystem);
+                LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem, loggerContext);
+                Room.BeforeMarkYourselfReady = BeforeSetReady;
+                ExternalWebCommunicator = new WebGLWebCommunicator(_playPadMessagingSystem);
+                _sentry = new WebGLExternalSentryCommunicator(_playPadMessagingSystem);
                 LobbyRegister.PlayPadLobby = _communicatorInternal;
-
                 Instance = this;
             }
             else
@@ -173,46 +187,97 @@ namespace ElympicsPlayPad.ExternalCommunicators
             var logger = loggerContext.WithMethodName();
 
             var coinInfo = await betDetails.Coin.ToCoinInfo(logger);
-            var ensureVirtualDepositResult = await VirtualDepositOperations.EnsureVirtualDeposit(_jsCommunicator, betDetails.BetValue, coinInfo, ct);
+            var ensureVirtualDepositResult = await VirtualDepositOperations.EnsureVirtualDeposit(_playPadMessagingSystem, betDetails.BetValue, coinInfo, ct);
             if (!ensureVirtualDepositResult.Success)
                 throw logger.CaptureAndThrow(new ElympicsException(ensureVirtualDepositResult.Error));
 
-            var signProofOfEntryResult = await VirtualDepositOperations.SignProofOfEntry(_jsCommunicator, room, ct);
+            var signProofOfEntryResult = await VirtualDepositOperations.SignProofOfEntry(_playPadMessagingSystem, room, ct);
             if (!signProofOfEntryResult.IsSuccess)
                 throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
         [Header("Custom implementations of communicators (works only in Editor)")]
-        [SerializeField] private CustomStandaloneAuthenticationCommunicatorBase? customAuthenticatorCommunicator;
+        [SerializeField] private bool useMockConfiguration;
 
-        [SerializeField] private CustomStandaloneLeaderboardCommunicatorBase? customLeaderboardCommunicator;
+        [SerializeField] private PlayPadMockConfiguration? mockConfiguration;
 
-        [SerializeField] private CustomStandaloneTournamentCommunicatorBase? customTournamentCommunicator;
-
-        [SerializeField] private CustomStandaloneGameStatusCommunicatorBase? customGameStatusCommunicator;
-
-        [SerializeField] private CustomStandaloneExternalUiCommunicatorBase? customExternalUiCommunicator;
-
-        [SerializeField] private CustomStandaloneErc20SmartContractCommunicatorBase? customErc20SmartContractCommunicator;
-
-        [SerializeField] private CustomStandaloneBlockChainCurrencyCommunicatorBase? customBlockChainCurrencyCommunicator;
-
-        [SerializeField] private CustomTonNftExternalCommunicator? customTonNftExternalCommunicator;
-
-        [SerializeField] private CustomEvmExternalCommunicator? customEvmExternalCommunicator;
 
         private void OnDestroy()
         {
+            if (_playPadMessagingSystem)
+                _playPadMessagingSystem.Deinit();
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
             _heartbeat?.Dispose();
         }
+
+        private bool UseMockAuth => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useStandaloneAuthenticationCommunicator
+            && mockConfiguration!.customAuthenticatorCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockBlockChainCurrency => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneBlockChainCurrencyCommunicator
+            && mockConfiguration!.customBlockChainCurrencyCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockTournament => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneTournamentCommunicator
+            && mockConfiguration!.customTournamentCommunicator
+            && CanMockPlayPad
+            && VirtualDepositCommunicator != null;
+
+        private bool UseMockGameStatus => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneGameStatusCommunicator
+            && mockConfiguration!.customGameStatusCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockExternalUi => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneExternalUiCommunicator
+            && mockConfiguration!.customExternalUiCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockErc20SmartContract => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneErc20SmartContractCommunicator
+            && mockConfiguration!.customErc20SmartContractCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockLeaderboard => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomStandaloneLeaderboardCommunicator
+            && mockConfiguration!.customLeaderboardCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockTonNft => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomTonNftExternalCommunicator
+            && mockConfiguration!.customTonNftExternalCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockEvm => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomEvmExternalCommunicator
+            && mockConfiguration!.customEvmExternalCommunicator
+            && CanMockPlayPad;
+
+        private bool UseMockLobby => useMockConfiguration
+            && mockConfiguration
+            && mockConfiguration!.useCustomLobbyCommunicator
+            && mockConfiguration!.customLobbyExternalCommunicator
+            && CanMockPlayPad;
 
         #region internal
 
         internal const string ExternalAuthenticatorFieldName = nameof(ExternalAuthenticator);
         internal const string TournamentCommunicatorFieldName = nameof(TournamentCommunicator);
         internal const string GameStatusCommunicatorFieldName = nameof(GameStatusCommunicator);
+        internal const string VirtualDepositCommunicatorFieldName = nameof(VirtualDepositCommunicator);
 
         #endregion
     }

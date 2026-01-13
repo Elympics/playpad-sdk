@@ -22,16 +22,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
         private readonly ElympicsLoggerContext _logger;
         private byte[] _currentRawReplay;
         private SnapshotAnalysisRetriever _snapshotAnalysisRetriever;
-        public WebGLExternalReplay(JsCommunicator jsCommunicator, ElympicsLoggerContext logger, IElympicsLobbyWrapper lobbyWrapper)
+        public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger, IElympicsLobbyWrapper lobbyWrapper)
         {
             _lobbyWrapper = lobbyWrapper;
             CrossAssemblyEventBroadcaster.AddObserver(this);
             _logger = logger.WithContext(nameof(WebGLExternalReplay));
-            jsCommunicator.RegisterIWebEventReceiver(this, WebMessageTypes.SnapshotReplay);
+            playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.SnapshotReplay);
         }
 
         public void OnWebMessage(WebMessage message)
         {
+            var logger = _logger.WithMethodName();
             try
             {
                 switch (message.type)
@@ -48,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
                         var currentVersion = ElympicsConfig.LoadCurrentElympicsGameConfig().GameVersion;
 
                         if (replayVersion != currentVersion)
-                            _logger.Error($"Game version mismatch. Replay was recorded using game version {replayVersion} and current game version is {currentVersion}. Use a matching version of the game to watch this replay.");
+                            logger.Error($"Game version mismatch. Replay was recorded using game version {replayVersion} and current game version is {currentVersion}. Use a matching version of the game to watch this replay.");
                         else
                             ReplayRetrieved?.Invoke();
 
@@ -60,7 +61,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
             }
             catch (Exception e)
             {
-                var logger = _logger.WithMethodName();
                 logger.Exception(e);
             }
 

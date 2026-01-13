@@ -1,0 +1,62 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="PlayPadMockConfigurationStyles.uss" />
+
+    <ui:VisualElement class="communicator-container">
+        <ui:Label text="Mock Communicators Configuration" class="section-header" />
+        <ui:HelpBox text="Enable mock communicators for testing in Editor. Each row shows the custom communicator reference on the left and an enable toggle on the right." message-type="Info" />
+
+        <!-- Authentication Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="Authentication" name="customAuthenticatorCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useStandaloneAuthenticationCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- Leaderboard Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="Leaderboard" name="customLeaderboardCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneLeaderboardCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- Tournament Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="Tournament" name="customTournamentCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneTournamentCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- Game Status Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="Game Status" name="customGameStatusCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneGameStatusCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- External UI Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="External UI" name="customExternalUiCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneExternalUiCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- ERC20 Smart Contract Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="ERC20 Contract" name="customErc20SmartContractCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneErc20SmartContractCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- BlockChain Currency Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="BlockChain Currency" name="customBlockChainCurrencyCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomStandaloneBlockChainCurrencyCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- TON NFT Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="TON NFT" name="customTonNftExternalCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomTonNftExternalCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+
+        <!-- EVM Communicator -->
+        <ui:VisualElement class="communicator-row">
+            <uie:ObjectField label="EVM" name="customEvmExternalCommunicator" class="communicator-field" />
+            <ui:Toggle label="Use Mock" name="useCustomEvmExternalCommunicator" class="communicator-toggle" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

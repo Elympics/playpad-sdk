@@ -9,20 +9,26 @@ namespace ElympicsPlayPad.Session
     public readonly struct SessionInfo
     {
         public readonly AuthData AuthData;
+
         /// <summary>EVM wallet address or null if current user doesn't have an EVM wallet connected.</summary>
         public readonly string? AccountWallet;
+
         /// <summary>
         /// If <see cref="AuthData"/>.<see cref="AuthData.AuthType"/> is <see cref="AuthType.EthAddress"/>,
         /// this field has the same value as <see cref="AccountWallet"/>, otherwise it is null.
         /// </summary>
         public readonly string? SignWallet;
+
         /// <summary>TON wallet address or null if current user doesn't have a TON wallet connected.</summary>
         public readonly string? TonWalletAddress;
+
         public readonly Capabilities Capabilities;
         public readonly FeatureAccess Features;
         public readonly string Environment;
         public readonly bool IsMobile;
         public readonly string ClosestRegion;
+        public readonly LaunchMode LaunchMode;
+        public readonly UserPrefsInfo UserPrefs;
 
         public SessionInfo(
             AuthData authData,
@@ -33,7 +39,9 @@ namespace ElympicsPlayPad.Session
             bool isMobile,
             string closestRegion,
             FeatureAccess features,
-            string? tonWalletAddress)
+            string? tonWalletAddress,
+            UserPrefsInfo userPrefs,
+            LaunchMode launchMode)
         {
             AuthData = authData;
             AccountWallet = accountWallet;
@@ -44,6 +52,8 @@ namespace ElympicsPlayPad.Session
             ClosestRegion = closestRegion;
             Features = features;
             TonWalletAddress = tonWalletAddress;
+            LaunchMode = launchMode;
+            UserPrefs = userPrefs;
         }
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);

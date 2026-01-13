@@ -3,24 +3,15 @@ using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
-using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
     internal class WebGLExternalUiCommunicator : IExternalUiCommunicator
     {
-        private readonly JsCommunicator _communicator;
+        private readonly PlayPadMessagingSystem _playPadMessagingSystem;
 
-        public WebGLExternalUiCommunicator(JsCommunicator communicator) => _communicator = communicator;
+        public WebGLExternalUiCommunicator(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
-        public async UniTask Display(string name)
-        {
-            Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal started");
-
-            _ = await _communicator.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal,
-                new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
-
-            Debug.Log($"[{nameof(IExternalUiCommunicator)}] Displaying {name} modal ended");
-        }
+        public async UniTask Display(string name) => _ = await _playPadMessagingSystem.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
     }
 }

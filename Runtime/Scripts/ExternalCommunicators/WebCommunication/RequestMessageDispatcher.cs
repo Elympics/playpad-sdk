@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.ElympicsSystems.Internal;
-using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using UnityEngine;
@@ -14,12 +13,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     internal class RequestMessageDispatcher
     {
         private readonly TimeSpan _requestTimeOut;
-        private ElympicsLoggerContext _logger;
+        private readonly ElympicsLoggerContext _logger;
 
-        public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever, ElympicsLoggerContext logger)
+        public RequestMessageDispatcher(ElympicsLoggerContext logger)
         {
             _requestTimeOut = TimeSpan.FromSeconds(10 * 60);
-            messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
             _logger = logger.WithContext(nameof(RequestMessageDispatcher));
         }
 
@@ -85,11 +83,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             code = ticketStatus.Response!.status;
             return code != 0;
         }
-        private void OnResponseObjectReceived(string responseObject)
+        public void OnResponseObjectReceived(string responseMessageJson)
         {
             var logger = _logger.WithMethodName();
-            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
-            var response = JsonUtility.FromJson<ResponseMessage>(responseObject);
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseMessageJson}");
+            var response = JsonUtility.FromJson<ResponseMessage>(responseMessageJson);
 
             if (!TicketStatus.TryGetValue(response.ticket, out var ticketStatus))
             {
