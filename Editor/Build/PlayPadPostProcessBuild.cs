@@ -14,7 +14,7 @@ namespace ElympicsPlayPad.Editor.Build
     {
         public int callbackOrder => PostProcessOrders.PlayPadPostProcessOrder;
 
-        private const string MetaDataFile = "_meta.json";
+        private const string MetaDataFile = ".elympicsmeta.json";
         private const string BuildFolder = "Build";
 
         public void OnPostprocessBuild(BuildReport report)
