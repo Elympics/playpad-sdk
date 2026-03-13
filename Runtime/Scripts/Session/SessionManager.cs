@@ -123,7 +123,7 @@ namespace ElympicsPlayPad.Session
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
                 instance = this;
-                AuthChangeRequestDispatcher(_sessionManagerToken.Token).Forget(logger.Exception);
+                AuthChangeRequestDispatcher(_sessionManagerToken.Token).Forget(e => logger.Exception(e));
             }
             else
                 Destroy(gameObject);
