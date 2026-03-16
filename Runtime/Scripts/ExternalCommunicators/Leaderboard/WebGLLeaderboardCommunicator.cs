@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -10,6 +11,7 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
+using LeaderboardResponse = ElympicsPlayPad.Protocol.Responses.LeaderboardResponse;
 
 #nullable enable
 namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard

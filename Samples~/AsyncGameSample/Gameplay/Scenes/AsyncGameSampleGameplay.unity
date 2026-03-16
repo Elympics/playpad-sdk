@@ -123,6 +123,125 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &303173758
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 359210302102351433, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: networkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 359210302102351433, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: autoAssignNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 359210302102351433, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: migratedAutoNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 778477889166288857, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844773, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_Name
+      value: Elympics
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.4907627
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.9479818
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2902.3477
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761056987631085800, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: networkId
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761056987631085800, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: autoAssignNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761056987631085800, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: migratedAutoNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939587856119930963, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: networkId
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939587856119930963, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: autoAssignNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939587856119930963, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
+      propertyPath: migratedAutoNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f96262bc694c229408688203398b88ed, type: 3}
 --- !u!1 &432633986
 GameObject:
   m_ObjectHideFlags: 0
@@ -588,7 +707,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forceNetworkId: 0
-  networkId: 1
+  migratedAutoNetworkId: 1
+  autoAssignNetworkId: 1
+  networkId: 3
   predictableFor:
     playerIndex: 0
   isUpdatableForNonOwners: 0
@@ -1433,76 +1554,6 @@ MonoBehaviour:
   pointsDisplay: {fileID: 432633989}
   gameEndedView: {fileID: 1489275319}
   mainCamera: {fileID: 519420031}
---- !u!1001 &1931895802
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7529846740173844773, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_Name
-      value: Elympics
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 7.4907627
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -2.9479818
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 2902.3477
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 778477889166288857, guid: f96262bc694c229408688203398b88ed, type: 3}
-  m_SourcePrefab: {fileID: 100100000, guid: f96262bc694c229408688203398b88ed, type: 3}
 --- !u!1 &1977521221
 GameObject:
   m_ObjectHideFlags: 0
@@ -1781,6 +1832,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3243345787180007073, guid: 912476c71ab5fc7408c5da62261278fd,
+        type: 3}
+      propertyPath: networkId
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3243345787180007073, guid: 912476c71ab5fc7408c5da62261278fd,
+        type: 3}
+      propertyPath: autoAssignNetworkId
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3243345787180007073, guid: 912476c71ab5fc7408c5da62261278fd,
+        type: 3}
+      propertyPath: migratedAutoNetworkId
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6505273636500013732, guid: 912476c71ab5fc7408c5da62261278fd,
         type: 3}
       propertyPath: m_RootOrder
