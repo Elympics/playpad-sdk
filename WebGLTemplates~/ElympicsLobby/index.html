@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <script>
+      window.__ELYMPICS_TEMPLATE_CONFIG__ = {
+        gameId: "{{{ ELYMPICS_GAME_ID }}}",
+        gameName: "{{{ ELYMPICS_GAME_NAME }}}",
+        buildIdentifier: "{{{ ELYMPICS_BUILD_IDENTIFIER }}}",
+        protocolVersion: "{{{ ELYMPICS_PROTOCOL_VERSION }}}",
+        urls: {
+          loader: "Build/{{{ LOADER_FILENAME }}}",
+          data: "Build/{{{ DATA_FILENAME }}}",
+          framework: "Build/{{{ FRAMEWORK_FILENAME }}}",
+          code: "Build/{{{ CODE_FILENAME }}}",
+          streamingAssets: "StreamingAssets",
+        },
+        region: "{{{ ELYMPICS_REGION }}}",
+        queue: "{{{ ELYMPICS_QUEUE }}}",
+        environment: "{{{ ELYMPICS_ENVIRONMENT }}}",
+      };
+    </script>
+#if SHOW_DIAGNOSTICS
+    <link rel="stylesheet" href="<<<TemplateData/diagnostics.css>>>">
+    <script src="<<<TemplateData/diagnostics.js>>>"></script>
+    <script>window.__ELYMPICS_SHOW_DIAGNOSTICS__ = true;</script>
+#endif
+#if DEVELOPMENT_PLAYER
+    <script src="<<<TemplateData/profiler.js>>>"></script>
+    <script>window.__ELYMPICS_DEVELOPMENT_PLAYER__ = true; window.__ELYMPICS_UNITY_PROFILER__ = unityProfiler;</script>
+#endif
+
+    <script type="module" crossorigin src="assets/index-CuV56vsN.js"></script>
+    <link rel="stylesheet" crossorigin href="assets/index-ZHong7e6.css">
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  </head>
+  <body style="overflow:hidden;position:fixed;width:100%;height:100%;background:#000">
+    <div id="root"></div>
+  </body>
+</html>
