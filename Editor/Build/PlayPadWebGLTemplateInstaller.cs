@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.Editor.Build
 
         private static bool TryInstallTemplate()
         {
-            Debug.LogError("Installing ElympicsLobby WebGL template.");
+            Debug.Log("Installing ElympicsLobby WebGL template.");
             var packagePath = GetPackageResolvedPath();
             if (string.IsNullOrEmpty(packagePath))
             {
