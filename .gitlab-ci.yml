@@ -26,6 +26,7 @@ stages:
   - prepare-project
   - test
   - check
+  - trigger
 
 default:
   cache: {}
@@ -162,3 +163,14 @@ verify-formatting:
     expire_in: 2 weeks
     reports:
       codequality: format-report.codequality.json
+
+trigger:renovate:
+  stage: trigger
+  trigger:
+    project: elympics/deployment
+    branch: develop
+    strategy: depend
+  variables:
+    renovate-games: "true"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'

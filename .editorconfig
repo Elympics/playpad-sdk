@@ -120,6 +120,8 @@ dotnet_diagnostic.IDE0072.severity = suggestion
 ### Make struct fields writable
 dotnet_diagnostic.IDE0064.severity = warning
 
+### Capture expression values that are never used
+dotnet_diagnostic.IDE0058.severity = warning
 
 # Unnecessary code rules
 
