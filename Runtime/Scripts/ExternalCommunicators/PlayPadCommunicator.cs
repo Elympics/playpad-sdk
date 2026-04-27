@@ -104,8 +104,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
             {
                 DontDestroyOnLoad(gameObject);
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
-                loggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
-                loggerContext = loggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(PlayPadMessagingSystem.ProtocolVersion, version)
+                loggerContext = loggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp)
+                    .SetPlayPadSdkContext(PlayPadMessagingSystem.ProtocolVersion, version)
                     .WithContext(nameof(PlayPadCommunicator));
                 _playPadMessagingSystem = GetComponent<PlayPadMessagingSystem>();
                 if (!_playPadMessagingSystem)
