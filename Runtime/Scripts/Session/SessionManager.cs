@@ -54,20 +54,17 @@ namespace ElympicsPlayPad.Session
         private static IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
         private static IExternalLobbyCommunicator LobbyCommunicator => PlayPadCommunicator.Instance!.LobbyCommunicator!;
 
-        private ElympicsLoggerContext _logger;
+        private readonly ElympicsLoggerContext _logger = ElympicsLogger.CurrentContext.WithContext(nameof(SessionManager));
 
         private AuthData? _newAuthDataRequest;
         private string? _newRegionChange;
         private IPlayPadMessagingSystem _playpadMessagingSystem = null!;
 
-
         private CancellationTokenSource _sessionManagerToken = new();
 
-
-        internal void Init(AuthFactory authFactory, ElympicsLoggerContext logger, IPlayPadMessagingSystem playPadCommunicator)
+        internal void Init(AuthFactory authFactory, IPlayPadMessagingSystem playPadCommunicator)
         {
             _authFactory = authFactory;
-            _logger = logger.WithContext(nameof(SessionManager));
             _playpadMessagingSystem = playPadCommunicator;
         }
 

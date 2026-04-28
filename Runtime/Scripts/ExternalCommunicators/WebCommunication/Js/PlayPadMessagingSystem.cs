@@ -17,13 +17,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private IPlayPadCommunicator playpadCommunicator = null!;
         private PlayPadMessageFactory _messageFactory = null!;
         private RequestMessageDispatcher _dispatcher = null!;
-        private ElympicsLoggerContext _loggerContext;
+        private readonly ElympicsLoggerContext _loggerContext = ElympicsLogger.CurrentContext.WithContext(nameof(PlayPadMessagingSystem));
         private int _requestCounter;
         private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
-        public void Init(PlayPadCommunicatorFactory factory, ElympicsLoggerContext loggerContext)
+        public void Init(PlayPadCommunicatorFactory factory)
         {
-            _loggerContext = loggerContext.WithContext(nameof(PlayPadMessagingSystem));
             _messageFactory = new PlayPadMessageFactory();
             _dispatcher = new RequestMessageDispatcher(_loggerContext);
             playpadCommunicator = factory.GetPlayPadCommunicator();
