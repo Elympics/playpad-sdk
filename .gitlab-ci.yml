@@ -164,13 +164,20 @@ verify-formatting:
     reports:
       codequality: format-report.codequality.json
 
-trigger:renovate:
+notify:slack-merged-to-develop:
   stage: trigger
-  trigger:
-    project: elympics/deployment
-    branch: develop
-    strategy: depend
+  image: curlimages/curl:latest
+  needs: []
   variables:
-    renovate-games: "true"
+    GIT_DEPTH: 1
+  script:
+    - |
+      PAYLOAD=$(cat <<EOF
+      {
+        "text": "*PLAYPAD SDK Merged to develop*\n\`\`\`\n$CI_COMMIT_MESSAGE\n\`\`\`"
+      }
+      EOF
+      )
+      curl -X POST -H 'Content-Type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_SDK_CHANNEL"
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'
