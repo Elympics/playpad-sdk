@@ -4,19 +4,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     public interface IPlayPadMessagingSystem
     {
-        public UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
+        UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
             where TInput : struct
             where TReturn : struct;
 
-        public void SendVoidMessage<TInput>(string messageType, TInput? payload = null)
+        void SendVoidMessage<TInput>(string messageType, TInput? payload = null)
             where TInput : struct;
 
-        public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
-        public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes);
+        void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
+        void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes);
 
-        public void UnregisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
+        void UnregisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType);
 
-        public UniTask Connect();
+        UniTask Connect();
     }
 
 }

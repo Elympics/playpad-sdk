@@ -301,11 +301,11 @@ namespace ElympicsPlayPad.Session
                     _newAuthDataRequest = null;
                     _newRegionChange = null;
 
-                    if (currentAuthData != null && string.IsNullOrEmpty(currentRegion) is false)
+                    if (currentAuthData != null && !string.IsNullOrEmpty(currentRegion))
                         await OnAuthChangedWithRegionAsync(currentAuthData, currentRegion!);
                     else if (currentAuthData != null)
                         await OnAuthDataChangedAsync(currentAuthData);
-                    else if (string.IsNullOrEmpty(currentRegion) is false)
+                    else if (!string.IsNullOrEmpty(currentRegion))
                         await OnRegionUpdatedAsync(currentRegion!);
                 }
                 catch (Exception e)

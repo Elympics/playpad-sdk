@@ -42,9 +42,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
                 Lobby = result.ToLobbyInfo();
                 var logger = _logger.WithMethodName();
                 if (Lobby.IsMatchReady)
-                    logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
+                    _ = logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
                 else
-                    logger.SetNoRoom();
+                    _ = logger.SetNoRoom();
                 logger.Log("Lobby status recieved.");
                 return Lobby;
             }
@@ -66,7 +66,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 
         public void PlayMatch()
         {
-            if (Lobby.IsMatchReady == false)
+            if (!Lobby.IsMatchReady)
                 throw new InvalidOperationException("Cannot play match: Lobby is null or match is not ready.");
             _ = _logger.SetMatchId(Lobby.MatchData!.MatchId.ToString()).SetQueue(Lobby.MatchData.QueueName)
                 .SetServerAddress(Lobby.MatchData.WebServerAddress, Lobby.MatchData.TcpUdpServerAddress);
@@ -92,9 +92,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             var result = JsonUtility.FromJson<LobbyStatusResponse>(message.message);
             Lobby = result.ToLobbyInfo();
             if (Lobby.IsMatchReady)
-                logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
+                _ = logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
             else
-                logger.SetNoRoom();
+                _ = logger.SetNoRoom();
             logger.Log("Handling lobby status update.");
             OnLobbyInfoUpdated?.Invoke(Lobby);
         }

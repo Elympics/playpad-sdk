@@ -116,7 +116,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 _playPadMessagingSystem.Init(playpadCommunicationFactory, loggerContext);
 
                 _lobby = GetComponent<IElympicsLobbyWrapper>();
-                if (_lobby == null)
+                if (_lobby is null)
                     throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
 
                 var gameConfig = ElympicsConfig.LoadCurrentElympicsGameConfig();

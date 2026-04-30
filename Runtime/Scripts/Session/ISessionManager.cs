@@ -5,10 +5,10 @@ namespace ElympicsPlayPad.Session
 {
     public interface ISessionManager
     {
-        public event Action? StartSessionInfoUpdate;
-        public event Action? FinishSessionInfoUpdate;
+        event Action? StartSessionInfoUpdate;
+        event Action? FinishSessionInfoUpdate;
         SessionInfo? CurrentSession { get; }
-        public bool ConnectedWithPlayPad { get; }
-        public UniTask AuthenticateFromExternalAndConnect();
+        bool ConnectedWithPlayPad { get; }
+        UniTask AuthenticateFromExternalAndConnect();
     }
 }
