@@ -44,7 +44,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         }
         private static void SetupStream()
         {
-            if (client.Connected == false)
+            if (!client.Connected)
             {
                 throw new ElympicsException("Can't connect to PlayPad extension.");
             }
@@ -146,7 +146,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 
         public static void SendProtocolMessage(ExtensionRequest protocolMessage)
         {
-            if (IsConnected is false)
+            if (!IsConnected)
                 throw new InvalidOperationException("No connection with PlayPad Extension established.");
             var json = JsonUtility.ToJson(protocolMessage);
             Send(json);

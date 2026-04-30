@@ -12,6 +12,7 @@ using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 {
     internal class WebGLExternalLobby : IExternalLobbyCommunicator, IWebMessageReceiver
@@ -20,6 +21,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
         public LobbyInfo Lobby { get; private set; }
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly ElympicsLoggerContext _logger;
+
         public WebGLExternalLobby(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger)
         {
             Lobby = new LobbyInfo
@@ -38,6 +40,12 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             {
                 var result = await _playPadMessagingSystem.SendRequestMessage<EmptyPayload, LobbyStatusResponse>(RequestResponseMessageTypes.GetLobbyStatus, null, ct);
                 Lobby = result.ToLobbyInfo();
+                var logger = _logger.WithMethodName();
+                if (Lobby.IsMatchReady)
+                    _ = logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
+                else
+                    _ = logger.SetNoRoom();
+                logger.Log("Lobby status recieved.");
                 return Lobby;
             }
             catch (Exception e)
@@ -58,10 +66,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 
         public void PlayMatch()
         {
-            if (Lobby.IsMatchReady == false)
+            if (!Lobby.IsMatchReady)
                 throw new InvalidOperationException("Cannot play match: Lobby is null or match is not ready.");
             _ = _logger.SetMatchId(Lobby.MatchData!.MatchId.ToString()).SetQueue(Lobby.MatchData.QueueName)
                 .SetServerAddress(Lobby.MatchData.WebServerAddress, Lobby.MatchData.TcpUdpServerAddress);
+            _logger.WithMethodName().Log("Play Match.");
             LobbyRegister.PlayMatchInternal(Lobby.MatchData);
         }
 
@@ -70,16 +79,23 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             switch (message.type)
             {
                 case WebMessageTypes.LobbyStatusUpdated:
-                    HandleRoomStatusUpdated(message);
+                    HandleLobbyStatusUpdated(message);
                     break;
                 default:
                     break;
             }
         }
-        private void HandleRoomStatusUpdated(WebMessage message)
+
+        private void HandleLobbyStatusUpdated(WebMessage message)
         {
+            var logger = _logger.WithMethodName();
             var result = JsonUtility.FromJson<LobbyStatusResponse>(message.message);
             Lobby = result.ToLobbyInfo();
+            if (Lobby.IsMatchReady)
+                _ = logger.SetMatchId(Lobby.MatchData.MatchId.ToString());
+            else
+                _ = logger.SetNoRoom();
+            logger.Log("Handling lobby status update.");
             OnLobbyInfoUpdated?.Invoke(Lobby);
         }
     }

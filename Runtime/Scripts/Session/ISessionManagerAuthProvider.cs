@@ -4,8 +4,8 @@ namespace ElympicsPlayPad.Session
 {
     public interface ISessionManagerAuthProvider
     {
-        public UniTask Authenticate(AuthData cachedData, string region, bool autoRetry);
-        public void SignOut();
+        UniTask Authenticate(AuthData cachedData, string region, bool autoRetry);
+        void SignOut();
         bool IsAuthenticated { get; }
     }
 }

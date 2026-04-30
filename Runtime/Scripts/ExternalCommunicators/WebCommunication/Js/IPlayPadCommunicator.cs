@@ -6,10 +6,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal interface IPlayPadCommunicator : IDisposable
     {
-        public event Action<string>? ResponseMessageReceived;
-        public event Action<string>? WebMessageReceived;
-        public event Action<string>? WebRequestMessageReceived;
-        public void SendRequestMessage(string messageType, string jsonMessage);
+        event Action<string>? ResponseMessageReceived;
+        event Action<string>? WebMessageReceived;
+        event Action<string>? WebRequestMessageReceived;
+        void SendRequestMessage(string messageType, string jsonMessage);
         UniTask Connect();
     }
 }

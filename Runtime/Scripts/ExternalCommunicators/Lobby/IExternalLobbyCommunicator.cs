@@ -7,7 +7,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 {
     public interface IExternalLobbyCommunicator
     {
-        public event Action<LobbyInfo>? OnLobbyInfoUpdated;
+        event Action<LobbyInfo>? OnLobbyInfoUpdated;
         LobbyInfo Lobby { get; }
         UniTask<LobbyInfo> GetLobbyStatus(CancellationToken ct = default);
 

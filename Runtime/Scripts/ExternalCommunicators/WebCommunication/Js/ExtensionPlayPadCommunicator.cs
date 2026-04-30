@@ -105,7 +105,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 if (cts.IsCancellationRequested)
                     break;
 
-                if (PlayPadExtensionConnection.IsConnected is false)
+                if (!PlayPadExtensionConnection.IsConnected)
                     if (_requestQueue.Count > 0)
                     {
                         Debug.LogWarning(
@@ -195,7 +195,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         }
         public async UniTask Connect()
         {
-            if (PlayPadExtensionConnection.IsConnected is false)
+            if (!PlayPadExtensionConnection.IsConnected)
                 try
                 {
                     PlayPadExtensionConnection.ConnectToExtension();

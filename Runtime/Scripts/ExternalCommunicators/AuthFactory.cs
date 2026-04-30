@@ -11,7 +11,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         public void RegisterAuthProvider(ISessionManagerAuthProvider provider, LaunchMode mode)
         {
-            if (_authProviders.TryAdd(mode, provider) == false)
+            if (!_authProviders.TryAdd(mode, provider))
                 Debug.LogError($"Auth provider already existing for LaunchMode {mode}");
         }
 
