@@ -29,7 +29,13 @@ stages:
   - trigger
 
 default:
-  cache: {}
+  # Cache is NOT shared between runners
+  cache:
+    paths:
+      - "./$TESTING_PROJECT_NAME/Library"
+    key:
+      files:
+        - "./$TESTING_PROJECT_NAME/Packages/packages-lock.json"
   tags:
     - docker
 
@@ -106,6 +112,8 @@ create-testing-project:
   artifacts:
     paths:
       - "./$TESTING_PROJECT_NAME"
+    exclude:
+      - "./$TESTING_PROJECT_NAME/Library/**/*"
     expire_in: 1 hour
 
 .test:

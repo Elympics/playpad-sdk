@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.Editor.Build
             Console.WriteLine("Setting Elympics PlayPad WebGL template custom values.");
 
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig()
-                         ?? throw new ElympicsException("Elympics config not found");
+                ?? throw new ElympicsException("Elympics config not found");
 
             var gameId = GetEnvOrDefault("TEMPLATE_GAME_ID", config.GameId);
             var gameName = GetEnvOrDefault("TEMPLATE_GAME_NAME", config.GameName);
