@@ -34,11 +34,6 @@ echo "Elympics Playpad package moved ✅"
 
 echo "Adding Elympics SDK dependency..."
 
-GIT_CREDENTIALS_FILE=~/.git-credentials
-BASE_URL=$(echo $CI_REPOSITORY_URL | sed "s;\/*$CI_PROJECT_PATH.*;;")
-echo "$BASE_URL" > $GIT_CREDENTIALS_FILE
-git config --global credential.helper store --file=$GIT_CREDENTIALS_FILE
-
 echo "Using Elympics SDK git path: $CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE"
 DEFAULT_REF_HASH="$(git ls-remote "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" HEAD | sed 's/\s\+HEAD$//i')"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'" = "'"$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE"'"' "$PACKAGES_MANIFEST_PATH"
