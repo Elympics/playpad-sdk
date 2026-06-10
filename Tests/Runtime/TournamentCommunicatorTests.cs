@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Communication.Authentication.Models;
 using Elympics.Communication.Authentication.Models.Internal;
-using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -30,7 +29,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                 {
                     entries = null,
                 }));
-            var communicator = new WebGLTournamentCommunicator(new ElympicsLoggerContext(Guid.Empty), blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -47,7 +46,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                 {
                     entries = Array.Empty<GetRollingTournamentHistoryResponse.HistoryEntry>(),
                 }));
-            var communicator = new WebGLTournamentCommunicator(new ElympicsLoggerContext(Guid.Empty), blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -93,7 +92,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                         },
                     },
                 }));
-            var communicator = new WebGLTournamentCommunicator(new ElympicsLoggerContext(Guid.Empty), blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -131,7 +130,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                         },
                     },
                 }));
-            var communicator = new WebGLTournamentCommunicator(new ElympicsLoggerContext(Guid.Empty), blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
@@ -26,8 +25,7 @@ namespace ElympicsPlayPad.Tests
         [OneTimeSetUp]
         public new void Setup()
         {
-            var logger = new ElympicsLoggerContext(Guid.Empty);
-            _sut = new RequestMessageDispatcher(logger);
+            _sut = new RequestMessageDispatcher();
         }
 
         [UnityTest]

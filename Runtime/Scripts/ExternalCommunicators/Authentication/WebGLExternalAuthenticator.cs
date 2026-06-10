@@ -2,8 +2,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Utility;
@@ -27,17 +26,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly SessionManager _sessionManager;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLExternalAuthenticator));
         private readonly IHeartbeatCommunicator _heartbeatCommunicator;
 
-        public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
+        public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _sessionManager = sessionManager;
             _heartbeatCommunicator = heartbeatCommunicator;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
-            _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
         }
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
@@ -92,15 +90,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
                 var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
-                logger = logger.SetFleetName(result.fleetName).SetGameVersionId(result.gameVersionId);
+                ElympicsLogger.State.SetFleetName(result.fleetName);
+                ElympicsLogger.State.SetGameVersionId(result.gameVersionId);
                 return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
             }
             catch (ResponseException e)
             {
                 if (e.Code == RequestErrors.ExternalAuthFailed)
-                    throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
+                    throw logger.LogExceptionAndReturn(new SessionManagerFatalError(e.Message));
 
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
 
@@ -108,7 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         {
             var logger = _logger.WithMethodName();
             if (string.IsNullOrEmpty(result.jwt))
-                throw logger.CaptureAndThrow(new SessionManagerFatalError("External message did not return authorization token. Unable to authorize."));
+                throw logger.LogExceptionAndReturn(new SessionManagerFatalError("External message did not return authorization token. Unable to authorize."));
         }
 
         public void OnWebMessage(WebMessage message)
@@ -134,14 +133,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                         break;
                     }
                     default:
-                        logger.Error($"Unable to handle message type {message.type}");
+                        logger.LogError($"Unable to handle message type {message.type}");
                         break;
                 }
 
             }
             catch (Exception e)
             {
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
     }

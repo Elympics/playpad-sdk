@@ -1,8 +1,7 @@
 #nullable enable
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
@@ -22,12 +21,10 @@ namespace ElympicsPlayPad.Session.Strategies
         private readonly IExternalBlockChainCurrencyCommunicator? _virtualDepositCommunicator;
 
         public SessionManagerPlayPadInitializationStrategy(
-            ElympicsLoggerContext logger,
             IExternalGameStatusCommunicator gameStatusCommunicator,
             IExternalTournamentCommunicator tournamentCommunicator,
             IExternalLeaderboardCommunicator leaderboardCommunicator,
             IExternalBlockChainCurrencyCommunicator? virtualDepositCommunicator)
-            : base(logger)
         {
             _gameStatusCommunicator = gameStatusCommunicator;
             _tournamentCommunicator = tournamentCommunicator;
@@ -43,12 +40,12 @@ namespace ElympicsPlayPad.Session.Strategies
             var logger = Logger.WithMethodName();
 
             var (accountWallet, signWallet, _) = WalletAddress.ExtractWalletAddresses(authData);
-            _ = logger.SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
+            ElympicsLogger.State.SetWalletAddress(signWallet ?? accountWallet ?? string.Empty);
 
             if (handshake.FeatureAccess.HasTournament())
             {
                 var tournament = await _tournamentCommunicator.GetTournament(ct);
-                _ = logger.SetTournamentId(tournament?.Id);
+                ElympicsLogger.State.SetTournamentId(tournament?.Id);
             }
 
             _ = await _gameStatusCommunicator.CanPlayGame(false, ct);
@@ -66,7 +63,7 @@ namespace ElympicsPlayPad.Session.Strategies
                 if (_virtualDepositCommunicator != null)
                     _ = await _virtualDepositCommunicator.GetVirtualDeposit(ct);
 
-            logger.Log($"PlayPad post-authentication initialization completed.");
+            logger.LogInfo($"PlayPad post-authentication initialization completed.");
         }
     }
 }

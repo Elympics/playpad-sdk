@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Elympics;
+using Elympics.Core.Logger;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -20,13 +21,13 @@ namespace ElympicsPlayPad.Tests.Runtime.Mocks
 #if UNITY_EDITOR
             if (RequiresElympicsConfig)
             {
-                ElympicsLogger.Log("Setup configs");
+                ElympicsLogger.LogInfo("Setup configs");
                 var config = ElympicsConfig.Load();
                 if (!config)
                 {
                     if (!Directory.Exists(ElympicsConfig.ElympicsResourcesPath))
                     {
-                        ElympicsLogger.Log("Creating Elympics resources directory...");
+                        ElympicsLogger.LogInfo("Creating Elympics resources directory...");
                         _ = Directory.CreateDirectory(ElympicsConfig.ElympicsResourcesPath);
                     }
 
@@ -47,9 +48,9 @@ namespace ElympicsPlayPad.Tests.Runtime.Mocks
                     var gameConfig = ScriptableObject.CreateInstance<ElympicsGameConfig>();
                     if (!Directory.Exists(ElympicsConfig.ElympicsResourcesPath))
                     {
-                        ElympicsLogger.Log("Creating Elympics Resources directory...");
+                        ElympicsLogger.LogInfo("Creating Elympics Resources directory...");
                         _ = Directory.CreateDirectory(ElympicsConfig.ElympicsResourcesPath);
-                        ElympicsLogger.Log("Elympics Resources directory created successfully.");
+                        ElympicsLogger.LogInfo("Elympics Resources directory created successfully.");
                     }
 
                     AssetDatabase.CreateAsset(gameConfig, ElympicsConfig.ElympicsResourcesPath + "/ElympicsGameConfig.asset");
@@ -67,7 +68,7 @@ namespace ElympicsPlayPad.Tests.Runtime.Mocks
                     games.Add(currentConfigs![0]);
                     config.availableGames = games;
                 }
-                ElympicsLogger.Log($"Current test elympicsConfig has {config.availableGames.Count} games and current game ID is {config.GetCurrentGameConfig().GameId}");
+                ElympicsLogger.LogInfo($"Current test elympicsConfig has {config.availableGames.Count} games and current game ID is {config.GetCurrentGameConfig().GameId}");
             }
 
             var currentScenes = EditorBuildSettings.scenes.ToList();

@@ -1,8 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Leaderboard;
@@ -23,14 +22,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 
         public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
         public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
-        private ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLLeaderboardCommunicator));
 
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
-        public WebGLLeaderboardCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger)
+        public WebGLLeaderboardCommunicator(PlayPadMessagingSystem playPadMessagingSystem)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.LeaderboardUpdated, WebMessageTypes.UserHighScoreUpdated);
-            _logger = logger.WithContext(nameof(WebGLLeaderboardCommunicator));
         }
 
         public async UniTask<LeaderboardStatusInfo> FetchLeaderboard(CancellationToken ct = default)
@@ -70,13 +68,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
                         break;
                     }
                     default:
-                        logger.Error($"Unable to handle message {message.type}");
+                        logger.LogError($"Unable to handle message {message.type}");
                         break;
                 }
             }
             catch (Exception e)
             {
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
     }
