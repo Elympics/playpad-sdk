@@ -152,6 +152,7 @@ namespace ElympicsPlayPad.Tests
             _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
+            LogAssert.Expect(LogType.Exception, new Regex("Request reached timeout"));
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, CancellationToken.None);
             await UniTask.Delay(TimeSpan.FromMilliseconds(20));
             var exceptionThrown = false;
@@ -177,6 +178,7 @@ namespace ElympicsPlayPad.Tests
             _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
+            LogAssert.Expect(LogType.Exception, new Regex("Request reached timeout"));
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
             await UniTask.Delay(TimeSpan.FromMilliseconds(20));
             var exceptionThrown = false;
