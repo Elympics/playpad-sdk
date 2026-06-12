@@ -5,6 +5,7 @@ using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Lobby;
+
 namespace ElympicsPlayPad.Session.Strategies
 {
     internal class SessionManagerPlatformInitializationStrategy : SessionManagerInitializationStrategy

@@ -6,6 +6,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal static class PlayPadExtensionConnection

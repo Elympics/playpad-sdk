@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Internal
 {
     internal class WebGLHeartbeatCommunicator : IHeartbeatCommunicator

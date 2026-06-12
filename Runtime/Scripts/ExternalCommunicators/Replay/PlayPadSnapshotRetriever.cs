@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Elympics;
 using Elympics.SnapshotAnalysis;
 using Elympics.SnapshotAnalysis.Retrievers;
+
 namespace ElympicsPlayPad
 {
     internal class PlayPadSnapshotRetriever : SnapshotAnalysisRetriever

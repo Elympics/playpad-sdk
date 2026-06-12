@@ -11,10 +11,7 @@ namespace ElympicsPlayPad.Tests
             ChainId = "11155111",
         };
 
-        public void RegisterWallet(IWallet wallet)
-        {
-            _ = wallet;
-            Debug.Log("Wallet registered.");
-        }
+        public void RegisterWallet(IWallet wallet) => Debug.Log($"Wallet registered for address: {wallet.Address}");
+
     }
 }

@@ -1,4 +1,5 @@
 using Elympics.Models.Matchmaking;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby.Models
 {
     public struct LobbyInfo

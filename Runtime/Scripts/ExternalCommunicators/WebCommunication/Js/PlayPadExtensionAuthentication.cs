@@ -1,5 +1,6 @@
 using Elympics;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal static class PlayPadExtensionAuthentication

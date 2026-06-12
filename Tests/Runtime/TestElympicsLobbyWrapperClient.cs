@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
@@ -48,6 +49,9 @@ namespace ElympicsPlayPad.Tests
         public void WatchReplay() => throw new NotImplementedException();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
+            ElympicsLogger.State.SetUserId(data.UserId);
+            ElympicsLogger.State.SetAuthType(data.AuthType);
+            ElympicsLogger.State.SetRegion(region);
             AuthData = data;
             _mockWebSocket = new MockWebSocket();
             _mockWebSocket.ToggleConnection(true);

@@ -7,6 +7,7 @@ using Elympics.Core.Logger;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal class PlayPadMessagingSystem : MonoBehaviour, IPlayPadMessagingSystem

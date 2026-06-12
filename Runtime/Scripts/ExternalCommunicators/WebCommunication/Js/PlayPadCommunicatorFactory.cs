@@ -1,4 +1,5 @@
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal class PlayPadCommunicatorFactory : MonoBehaviour

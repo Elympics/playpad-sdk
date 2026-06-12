@@ -1,4 +1,5 @@
 using System;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js.Extension.Response
 {
     [Serializable]
