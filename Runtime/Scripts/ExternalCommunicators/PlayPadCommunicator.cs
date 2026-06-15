@@ -89,7 +89,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         private IExternalSentryCommunicator? _sentry;
         private IHeartbeatCommunicator? _heartbeat;
         private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService()
-            .WithClass(typeof(PlayPadCommunicator));
+            .WithClass(typeof(PlayPadCommunicator))
+            .WithMonitoringEnabled();
 
         /// <summary>False in editor and local builds that are not run through PlayPad website.</summary>
         private static bool CanMockPlayPad =>

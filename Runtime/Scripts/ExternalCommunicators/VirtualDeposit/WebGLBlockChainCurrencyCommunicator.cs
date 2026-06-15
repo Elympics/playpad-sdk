@@ -30,7 +30,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
         private readonly List<KeyValuePair<Guid, VirtualDepositInfo>> _tempDeletedCoinsCache;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLBlockChainCurrencyCommunicator));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLBlockChainCurrencyCommunicator))
+            .WithMonitoringEnabled();
         private readonly Dictionary<Guid, CoinInfo> _elympicsCoins = new();
         private readonly Dictionary<Guid, VirtualDepositInfo> _removedDeposits = new();
 

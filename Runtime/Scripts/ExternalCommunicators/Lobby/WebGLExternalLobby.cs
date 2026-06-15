@@ -20,7 +20,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
         public event Action<LobbyInfo>? OnLobbyInfoUpdated;
         public LobbyInfo Lobby { get; private set; }
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLExternalLobby));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLExternalLobby))
+            .WithMonitoringEnabled();
 
         public WebGLExternalLobby(PlayPadMessagingSystem playPadMessagingSystem)
         {

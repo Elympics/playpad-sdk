@@ -13,7 +13,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     internal class RequestMessageDispatcher
     {
         private readonly TimeSpan _requestTimeOut;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(RequestMessageDispatcher));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(RequestMessageDispatcher))
+            .WithMonitoringEnabled();
 
         public RequestMessageDispatcher()
         {

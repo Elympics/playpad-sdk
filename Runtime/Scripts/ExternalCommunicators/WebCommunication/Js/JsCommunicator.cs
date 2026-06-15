@@ -17,7 +17,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public event Action<string>? WebRequestMessageReceived;
 
         private const string GameObjectName = "JsReceiver";
-        private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(JsCommunicator)); // TODO: implement later ~kpieta 2025-01-29
+        private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(JsCommunicator))
+            .WithMonitoringEnabled(); // TODO: implement later ~kpieta 2025-01-29
 
         private void Awake() => gameObject.name = GameObjectName;
 

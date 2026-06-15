@@ -26,7 +26,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly SessionManager _sessionManager;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLExternalAuthenticator));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLExternalAuthenticator))
+            .WithMonitoringEnabled();
         private readonly IHeartbeatCommunicator _heartbeatCommunicator;
 
         public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)

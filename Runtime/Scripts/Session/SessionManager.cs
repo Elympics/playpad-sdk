@@ -54,7 +54,9 @@ namespace ElympicsPlayPad.Session
         private static IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
         private static IExternalLobbyCommunicator LobbyCommunicator => PlayPadCommunicator.Instance!.LobbyCommunicator!;
 
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(SessionManager));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(SessionManager))
+            .WithMonitoringEnabled();
 
         private AuthData? _newAuthDataRequest;
         private string? _newRegionChange;

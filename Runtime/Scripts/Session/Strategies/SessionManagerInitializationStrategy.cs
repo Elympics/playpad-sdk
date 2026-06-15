@@ -9,7 +9,8 @@ namespace ElympicsPlayPad.Session.Strategies
 {
     internal abstract class SessionManagerInitializationStrategy
     {
-        protected readonly LoggerConfig Logger = ElympicsLogger.WithPlayPadSdkService();
+        protected readonly LoggerConfig Logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithMonitoringEnabled();
 
         /// <summary>
         /// Performs post-authentication initialization tasks specific to the platform.

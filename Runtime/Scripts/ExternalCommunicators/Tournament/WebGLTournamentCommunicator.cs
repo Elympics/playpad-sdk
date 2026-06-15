@@ -29,7 +29,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
         private readonly IPlayPadMessagingSystem _playPadMessagingSystem;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLTournamentCommunicator));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLTournamentCommunicator))
+            .WithMonitoringEnabled();
 
         public WebGLTournamentCommunicator(IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
         {

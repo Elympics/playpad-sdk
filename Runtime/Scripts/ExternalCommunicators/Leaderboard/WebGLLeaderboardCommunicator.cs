@@ -22,7 +22,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Leaderboard
 
         public event Action<LeaderboardStatusInfo>? LeaderboardUpdated;
         public event Action<UserHighScoreInfo>? UserHighScoreUpdated;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLLeaderboardCommunicator));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLLeaderboardCommunicator))
+            .WithMonitoringEnabled();
 
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         public WebGLLeaderboardCommunicator(PlayPadMessagingSystem playPadMessagingSystem)

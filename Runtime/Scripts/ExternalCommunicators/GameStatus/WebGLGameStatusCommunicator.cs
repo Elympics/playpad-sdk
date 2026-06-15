@@ -34,7 +34,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLGameStatusCommunicator));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLGameStatusCommunicator))
+            .WithMonitoringEnabled();
 
         public WebGLGameStatusCommunicator(
             PlayPadMessagingSystem playPadMessagingSystem,

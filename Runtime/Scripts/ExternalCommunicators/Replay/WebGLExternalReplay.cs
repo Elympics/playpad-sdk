@@ -19,7 +19,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
     {
         public event Action ReplayRetrieved;
         private readonly IElympicsLobbyWrapper _lobbyWrapper;
-        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService().WithClass(typeof(WebGLExternalReplay));
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLExternalReplay))
+            .WithMonitoringEnabled();
         private byte[] _currentRawReplay;
         private SnapshotAnalysisRetriever _snapshotAnalysisRetriever;
         public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, IElympicsLobbyWrapper lobbyWrapper)
