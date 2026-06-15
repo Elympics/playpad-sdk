@@ -42,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         private static bool BlockLog(LogLevel level) => level switch
         {
             LogLevel.Log => false,
-            LogLevel.Warning => true,
+            LogLevel.Warning => false,
             LogLevel.Error => false,
             LogLevel.Exception => false,
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),

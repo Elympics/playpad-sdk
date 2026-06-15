@@ -106,7 +106,7 @@ namespace ElympicsPlayPad.Session
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
                 ElympicsLogger.State.SetRegion(handshake.ClosestRegion);
-                ElympicsLogger.State.SetPlayPad(ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js.PlayPadMessagingSystem.ProtocolVersion,
+                ElympicsLogger.State.SetPlayPad(ExternalCommunicators.WebCommunication.Js.PlayPadMessagingSystem.ProtocolVersion,
                     handshake.Capabilities.ToString(),
                     handshake.FeatureAccess.ToString());
                 logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
