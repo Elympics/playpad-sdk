@@ -71,6 +71,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
                 throw new InvalidOperationException("Cannot play match: Lobby is null or match is not ready.");
             ElympicsLogger.State.SetMatchId(Lobby.MatchData!.MatchId.ToString());
             ElympicsLogger.State.SetQueue(Lobby.MatchData.QueueName);
+            ElympicsLogger.State.SetWebRtc();
             ElympicsLogger.State.SetGameServerAddress(Lobby.MatchData.TcpUdpServerAddress, Lobby.MatchData.WebServerAddress);
             _logger.WithMethodName().LogInfo("Play Match.");
             LobbyRegister.PlayMatchInternal(Lobby.MatchData);

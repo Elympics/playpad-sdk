@@ -240,7 +240,7 @@ namespace ElympicsPlayPad.Tests
 
         private static void MockIPlaypadCommunicator(SessionManager sessionManager, IPlayPadMessagingSystem messagingSystem)
         {
-            var field = typeof(SessionManager).GetField(SessionManager.PlayPadMessagingSystem, BindingFlags.NonPublic | BindingFlags.Instance);
+            var field = typeof(SessionManager).GetField(SessionManager.PlayPadMessagingSystemNameof, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.NotNull(field);
             field!.SetValue(sessionManager, messagingSystem);
         }
