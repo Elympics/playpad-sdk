@@ -104,6 +104,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (!Instance)
             {
+                if (transform.parent != null)
+                    transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
                 var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
                 _ = _loggerContext.SetPlayPadSdkContext(PlayPadMessagingSystem.ProtocolVersion, version);
