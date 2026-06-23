@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics.Core.Logger;
 using ElympicsPlayPad.Protocol;
+using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
 using UnityEngine;
 
@@ -50,11 +51,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                 ElympicsLogger.LogInfo($"Send Void {messageType} message: {message}");
 
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.VoidMessage, message);
-            return;
-
-            static bool BlockEventLog(string type) =>
-                type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage) || type.Equals(VoidMessageTypes.HeartbeatMessage);
         }
+
+        public void SendVoidMessageStringified(string messageType, string payload)
+        {
+            var message = $"{{\"{nameof(VoidMessage<string>.type)}\":\"{messageType}\", \"{nameof(VoidMessage<string>.payload)}\":{payload}}}";
+            if (!BlockEventLog(messageType))
+                ElympicsLogger.LogInfo($"Send Void {messageType} message: {message}");
+
+            playpadCommunicator.SendRequestMessage(PlayPadHandlers.VoidMessage, message);
+        }
+
+        private static bool BlockEventLog(string type) =>
+            type.Equals(VoidMessageTypes.BreadcrumbMessage) || type.Equals(VoidMessageTypes.NetworkStatusMessage) || type.Equals(VoidMessageTypes.HeartbeatMessage);
 
         public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, string messageType) => RegisterHandler(receiver, messageType);
 

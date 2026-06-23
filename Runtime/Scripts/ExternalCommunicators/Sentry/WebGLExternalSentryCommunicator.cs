@@ -30,15 +30,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         {
             if (BlockLog(level))
                 return;
-
-            var data = new BreadcrumbMessage
-            {
-                level = (int)level,
-                message = message,
-            };
-
-            _playPadMessagingSystem.SendVoidMessage<BreadcrumbMessage>(VoidMessageTypes.BreadcrumbMessage, data);
+            _playPadMessagingSystem.SendVoidMessageStringified(VoidMessageTypes.BreadcrumbMessage, message);
         }
+
         private static bool BlockLog(LogLevel level) => level switch
         {
             LogLevel.Log => false,
@@ -55,6 +49,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             if (argument.PreviousState == ElympicsState.PlayingMatch)
                 _rttReporter.FlushRttBuffer();
         }
-        public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Message, argument.LogLevel);
+        public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Json, argument.LogLevel);
     }
 }
