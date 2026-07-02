@@ -7,7 +7,6 @@ using Elympics.AssemblyCommunicator.Events;
 using Elympics.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.VoidMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -35,7 +34,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 
         private static bool BlockLog(LogLevel level) => level switch
         {
-            LogLevel.Log => false,
+            LogLevel.Trace => false,
+            LogLevel.Debug => false,
+            LogLevel.Info => false,
             LogLevel.Warning => false,
             LogLevel.Error => false,
             LogLevel.Exception => false,

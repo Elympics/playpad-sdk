@@ -107,7 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (transform.parent != null)
                     transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
-                ElympicsLogger.State.SetPlayPad(PlayPadMessagingSystem.ProtocolVersion);
+                ElympicsLogger.State.SetPlayPadVersion(PlayPadMessagingSystem.ProtocolVersion);
                 _playPadMessagingSystem = GetComponent<PlayPadMessagingSystem>();
                 if (!_playPadMessagingSystem)
                     throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(PlayPadMessagingSystem)} component on gameObject {gameObject.name}");

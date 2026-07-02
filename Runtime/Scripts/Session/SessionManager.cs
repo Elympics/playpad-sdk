@@ -106,9 +106,9 @@ namespace ElympicsPlayPad.Session
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
                 ElympicsLogger.State.SetRegion(handshake.ClosestRegion);
-                ElympicsLogger.State.SetPlayPad(ExternalCommunicators.WebCommunication.Js.PlayPadMessagingSystem.ProtocolVersion,
-                    handshake.Capabilities.ToString(),
-                    handshake.FeatureAccess.ToString());
+                ElympicsLogger.State.SetPlayPadVersion(ExternalCommunicators.WebCommunication.Js.PlayPadMessagingSystem.ProtocolVersion);
+                ElympicsLogger.State.SetPlayPadCapabilities(handshake.Capabilities.ToString());
+                ElympicsLogger.State.SetPlayPadFeatureAccess(handshake.FeatureAccess.ToString());
                 logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
                 _initializationStrategy = CreateInitializationStrategy(handshake.LaunchMode);
                 _authProvider = _authFactory.GetAuthProvider(handshake.LaunchMode);
