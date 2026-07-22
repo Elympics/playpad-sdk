@@ -11,5 +11,6 @@ namespace ElympicsPlayPad.Protocol.VoidMessages
     {
         public string matchId;
         public List<RttReceived> data;
+        public ReceivedStatsUpdated receivedStats;
     }
 }

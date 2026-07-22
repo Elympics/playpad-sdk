@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Ui
 {
@@ -8,15 +9,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
     /// <remarks>All methods of this interface return a <see cref="UniTask"/> which completes when the modal window opened by the method is closed.</remarks>
     public interface IExternalUiCommunicator
     {
-        /// <inheritdoc cref="Display(string)"/>
+        /// <inheritdoc cref="Display(string, string)"/>
         [Obsolete("Cancellation of the task returned by this method is no longer supported. Use the " + nameof(Display) + "(string) overload instead and implement cancellation separately if necessary.")]
         UniTask Display(string name, CancellationToken ct) => Display(name);
 
         /// <summary>Opens a PlayPad modal window displayed over the game.</summary>
         /// <param name="name">Name of the modal window to open.</param>
+        /// <param name="payload">Modal parameters in the form of serialized JSON.</param>
         /// <returns>An awaitable task which is completed when the modal window opened by this method is closed.</returns>
         /// <remarks>Most of the time using other methods from this interface is simpler than calling this method directly.</remarks>
-        UniTask Display(string name);
+        UniTask Display(string name, string payload = null);
 
         #region helpers
 
@@ -26,6 +28,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
         private const string IslandExpand = "island/expand";
         private const string TonOnRamp = "ton/on-ramp";
         private const string EvmOnRamp = "evm/on-ramp";
+
+        private const string DisconnectedBeforeStart = "network/disconnected-before-start";
+        private const string DisconnectedAfterStart = "network/disconnected-after-start";
+        private const string MatchStartTimedOut = "match/start-timed-out";
 
         UniTask DisplayTournamentRewards() => Display(TournamentRewards);
         /// <summary>
@@ -49,6 +55,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
         /// <summary>Displays a window that allows the user to purchase coins on EVM.</summary>
         UniTask DisplayEvmOnRamp() => Display(EvmOnRamp);
 
+        /// <summary>Displays a window that informs the user that the server has closed before the game even started.</summary>
+        UniTask DisplayDisconnectedBeforeStart() => Display(DisconnectedBeforeStart);
+        /// <summary>Displays a window that informs the user that the server has closed after the game started.</summary>
+        UniTask DisplayDisconnectedAfterStart(float score) =>
+            Display(DisconnectedAfterStart, JsonUtility.ToJson(new DisconnectedAfterStartMetadata(score)));
+        /// <summary>Displays a window that informs the user that the match has closed without starting due to player's inactivity.</summary>
+        UniTask DisplayMatchStartTimedOut() => Display(MatchStartTimedOut);
+
         #endregion
+
+        [Serializable]
+        private struct DisconnectedAfterStartMetadata
+        {
+            public float score;
+
+            public DisconnectedAfterStartMetadata(float score) => this.score = score;
+        }
     }
 }

@@ -55,6 +55,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         public void HideSplashScreen() => _playPadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideSplashScreen);
 
+        public void ShowReconnectingScreen() => _playPadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.ShowReconnectingScreen);
+        public void HideReconnectingScreen() => _playPadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideReconnectingScreen);
+
         public async UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default)
         {
             var request = new CanPlayGameRequest

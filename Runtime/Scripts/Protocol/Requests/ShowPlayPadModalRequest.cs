@@ -6,5 +6,6 @@ namespace ElympicsPlayPad.Protocol.Requests
     internal struct ShowPlayPadModalRequest
     {
         public string modalName;
+        public string payload;
     }
 }

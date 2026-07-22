@@ -108,7 +108,6 @@ create-testing-project:
   script:
     - ./.scripts/ci/create_testing_project.sh
     - ./.scripts/ci/run_with_defines.sh ELYMPICS_DEBUG
-    - ./.scripts/ci/generate_solution_files.sh
   artifacts:
     paths:
       - "./$TESTING_PROJECT_NAME"
@@ -160,8 +159,10 @@ verify-formatting:
   variables:
     GIT_DEPTH: 1
   before_script:
+    - *unity_default_before_script
     - wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb
     - apt-get update && apt-get install -y --no-install-recommends jq dotnet-sdk-$DOTNET_VERSION
+    - ./.scripts/ci/generate_solution_files.sh
   script:
     - ./.scripts/ci/generate_formatting_report.sh
   artifacts:

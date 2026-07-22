@@ -12,7 +12,7 @@ using ElympicsPlayPad.Protocol.VoidMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
-    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsObserver<RttReceived>, IElympicsObserver<ElympicsStateChanged>, IElympicsObserver<ElympicsLogEvent>
+    internal class WebGLExternalSentryCommunicator : IExternalSentryCommunicator, IElympicsObserver<RttReceived>, IElympicsObserver<ReceivedStatsUpdated>, IElympicsObserver<ElympicsStateChanged>, IElympicsObserver<ElympicsLogEvent>
     {
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
@@ -20,8 +20,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
-            _rttReporter = new(32, _playPadMessagingSystem);
+            _rttReporter = new WebGLRoundTripTimeReporter(32, _playPadMessagingSystem);
             CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
+            CrossAssemblyEventBroadcaster.AddObserver<ReceivedStatsUpdated>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsStateChanged>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsLogEvent>(this);
         }
@@ -66,6 +67,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         }
 
         public void OnEvent(RttReceived argument) => _rttReporter.OnRttReceived(argument);
+        public void OnEvent(ReceivedStatsUpdated stats) => _rttReporter.OnReceivedStatsUpdated(stats);
         public void OnEvent(ElympicsStateChanged argument)
         {
             if (argument.PreviousState == ElympicsState.PlayingMatch)

@@ -55,6 +55,8 @@ namespace ElympicsPlayPad.Protocol
         public const string OpenUrlMessage = "OpenUrlMessage";
         public const string HeartbeatMessage = "HeartbeatMessage";
         public const string Quit = "Quit";
+        public const string ShowReconnectingScreen = "ShowReconnectingScreen";
+        public const string HideReconnectingScreen = "HideReconnectingScreen";
     }
 
     public static class DebugMessageTypes
