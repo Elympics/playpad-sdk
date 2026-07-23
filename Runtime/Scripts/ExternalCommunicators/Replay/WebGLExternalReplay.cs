@@ -3,7 +3,7 @@ using System.IO;
 using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.SnapshotAnalysis.Retrievers;
 using Elympics.SnapshotAnalysis.Serialization;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
@@ -19,14 +19,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
     {
         public event Action ReplayRetrieved;
         private readonly IElympicsLobbyWrapper _lobbyWrapper;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLExternalReplay))
+            .WithMonitoringEnabled();
         private byte[] _currentRawReplay;
         private SnapshotAnalysisRetriever _snapshotAnalysisRetriever;
-        public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger, IElympicsLobbyWrapper lobbyWrapper)
+        public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, IElympicsLobbyWrapper lobbyWrapper)
         {
             _lobbyWrapper = lobbyWrapper;
             CrossAssemblyEventBroadcaster.AddObserver(this);
-            _logger = logger.WithContext(nameof(WebGLExternalReplay));
             playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.SnapshotReplay);
         }
 
@@ -49,7 +50,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
                         var currentVersion = ElympicsConfig.LoadCurrentElympicsGameConfig().GameVersion;
 
                         if (replayVersion != currentVersion)
-                            logger.Error($"Game version mismatch. Replay was recorded using game version {replayVersion} and current game version is {currentVersion}. Use a matching version of the game to watch this replay.");
+                            logger.LogError($"Game version mismatch. Replay was recorded using game version {replayVersion} and current game version is {currentVersion}. Use a matching version of the game to watch this replay.");
                         else
                             ReplayRetrieved?.Invoke();
 
@@ -61,7 +62,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
             }
             catch (Exception e)
             {
-                logger.Exception(e);
+                logger.LogException(e);
             }
 
         }

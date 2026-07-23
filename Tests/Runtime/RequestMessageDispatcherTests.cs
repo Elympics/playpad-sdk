@@ -3,7 +3,6 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics.ElympicsSystems.Internal;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
@@ -26,8 +25,7 @@ namespace ElympicsPlayPad.Tests
         [OneTimeSetUp]
         public new void Setup()
         {
-            var logger = new ElympicsLoggerContext(Guid.Empty);
-            _sut = new RequestMessageDispatcher(logger);
+            _sut = new RequestMessageDispatcher();
         }
 
         [UnityTest]
@@ -154,6 +152,7 @@ namespace ElympicsPlayPad.Tests
             _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
+            LogAssert.Expect(LogType.Exception, new Regex("Request reached timeout"));
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, CancellationToken.None);
             await UniTask.Delay(TimeSpan.FromMilliseconds(20));
             var exceptionThrown = false;
@@ -179,6 +178,7 @@ namespace ElympicsPlayPad.Tests
             _ = _sut.SetTimeoutLenght(TimeSpan.FromMilliseconds(10));
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
+            LogAssert.Expect(LogType.Exception, new Regex("Request reached timeout"));
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
             await UniTask.Delay(TimeSpan.FromMilliseconds(20));
             var exceptionThrown = false;

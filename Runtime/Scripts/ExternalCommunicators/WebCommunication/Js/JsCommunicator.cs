@@ -2,8 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -18,7 +17,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public event Action<string>? WebRequestMessageReceived;
 
         private const string GameObjectName = "JsReceiver";
-        private readonly ElympicsLoggerContext _loggerContext = ElympicsLogger.CurrentContext.WithContext(nameof(JsCommunicator)); // TODO: implement later ~kpieta 2025-01-29
+        private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(JsCommunicator))
+            .WithMonitoringEnabled(); // TODO: implement later ~kpieta 2025-01-29
 
         private void Awake() => gameObject.name = GameObjectName;
 

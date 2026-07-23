@@ -3,6 +3,7 @@ using System.Linq;
 using Elympics.Models.Matchmaking;
 using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
 using ElympicsPlayPad.Protocol.Responses;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 {
     internal static class LobbyExtensions

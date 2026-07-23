@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
@@ -30,16 +30,17 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
         private readonly Dictionary<Guid, VirtualDepositInfo> _tempUpdatedCoinsCache;
         private readonly List<KeyValuePair<Guid, VirtualDepositInfo>> _tempDeletedCoinsCache;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLBlockChainCurrencyCommunicator))
+            .WithMonitoringEnabled();
         private readonly Dictionary<Guid, CoinInfo> _elympicsCoins = new();
         private readonly Dictionary<Guid, VirtualDepositInfo> _removedDeposits = new();
 
-        public WebGLBlockChainCurrencyCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger)
+        public WebGLBlockChainCurrencyCommunicator(PlayPadMessagingSystem playPadMessagingSystem)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _tempUpdatedCoinsCache = new Dictionary<Guid, VirtualDepositInfo>();
             _tempDeletedCoinsCache = new List<KeyValuePair<Guid, VirtualDepositInfo>>();
-            _logger = logger.WithContext(nameof(WebGLBlockChainCurrencyCommunicator));
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.VirtualDepositUpdated);
         }
 

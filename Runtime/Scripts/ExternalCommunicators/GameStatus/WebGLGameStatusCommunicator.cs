@@ -7,7 +7,7 @@ using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
 using Elympics.Communication.Rooms.PublicModels;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
@@ -34,23 +34,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLGameStatusCommunicator))
+            .WithMonitoringEnabled();
 
         public WebGLGameStatusCommunicator(
             PlayPadMessagingSystem playPadMessagingSystem,
             IElympicsLobbyWrapper lobby,
-            IExternalTournamentCommunicator tournamentCommunicator,
-            ElympicsLoggerContext logger)
+            IExternalTournamentCommunicator tournamentCommunicator)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
             _lobby = lobby;
             _tournamentCommunicator = tournamentCommunicator;
-            _logger = logger;
             _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
             CrossAssemblyEventBroadcaster.AddObserver(this);
             _roomsManager = _lobby.RoomsManager;
-            _logger = logger.WithContext(nameof(WebGLGameStatusCommunicator));
         }
 
         public void HideSplashScreen() => _playPadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideSplashScreen);
@@ -106,13 +105,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
                         PlayStatusUpdated?.Invoke(CurrentPlayStatus);
                         break;
                     default:
-                        logger.Error($"Unable to handle {message.type}");
+                        logger.LogError($"Unable to handle {message.type}");
                         break;
                 }
             }
             catch (Exception e)
             {
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
 
         }

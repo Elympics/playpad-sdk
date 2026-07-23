@@ -3,6 +3,7 @@ using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.Session;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators
 {
     public class AuthFactory

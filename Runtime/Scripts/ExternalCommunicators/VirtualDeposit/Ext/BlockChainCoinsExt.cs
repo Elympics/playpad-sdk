@@ -3,7 +3,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Communication.Mappers;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Protocol.Responses;
@@ -13,7 +13,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 {
     internal static class BlockChainCoinsExt
     {
-        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositResponse response, ElympicsLoggerContext logger)
+        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositResponse response, LoggerConfig logger)
         {
 
             var coinInfo = await response.currency.ToCoinInfo(logger);
@@ -27,7 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             return depositInfo;
         }
 
-        public static async UniTask<CoinInfo> ToCoinInfo(this CurrencyResponse currencyResponse, ElympicsLoggerContext logger)
+        public static async UniTask<CoinInfo> ToCoinInfo(this CurrencyResponse currencyResponse, LoggerConfig logger)
         {
             var currencyInfo = new CurrencyInfo
             {
@@ -53,7 +53,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             return coinInfo;
         }
 
-        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositUpdated response, ElympicsLoggerContext logger)
+        public static async UniTask<VirtualDepositInfo> ToVirtualDepositInfo(this DepositUpdated response, LoggerConfig logger)
         {
             var coinInfo = await response.currency.ToCoinInfo(logger);
 
@@ -76,7 +76,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
             };
         }
 
-        private static async UniTask<CoinInfo> ToCoinInfo(this CurrencyUpdated currencyResponse, ElympicsLoggerContext logger)
+        private static async UniTask<CoinInfo> ToCoinInfo(this CurrencyUpdated currencyResponse, LoggerConfig logger)
         {
             var currencyInfo = new CurrencyInfo
             {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
@@ -29,13 +29,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
         private readonly IPlayPadMessagingSystem _playPadMessagingSystem;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLTournamentCommunicator))
+            .WithMonitoringEnabled();
 
-        public WebGLTournamentCommunicator(ElympicsLoggerContext logger, IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
+        public WebGLTournamentCommunicator(IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
         {
             _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
             _playPadMessagingSystem = playPadMessagingSystem;
-            _logger = logger.WithContext(nameof(WebGLTournamentCommunicator));
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
 
@@ -119,7 +120,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 var logger = _logger.WithMethodName();
                 var allMatches = entry.scores.OrderBy(participation => participation.position).Select(x => ParticipationToMatch(x, coinInfo)).ToList().AsReadOnly();
                 if (!entry.scores.Any(score => score.mine))
-                    throw logger.CaptureAndThrow(new ElympicsException("Received list of all matches in a rolling tournament does not contain local player's match."));
+                    throw logger.LogExceptionAndReturn(new ElympicsException("Received list of all matches in a rolling tournament does not contain local player's match."));
                 var localPlayerMatch = ParticipationToMatch(entry.scores.First(score => score.mine), coinInfo);
                 var localPlayerMatchIndex = allMatches.IndexOf(localPlayerMatch);
 
@@ -137,7 +138,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 };
 
                 if (state == RollingTournamentHistoryEntry.TournamentState.Unknown)
-                    logger.Error($"Unexpected rolling tournament state '{entry.state}' received.");
+                    logger.LogError($"Unexpected rolling tournament state '{entry.state}' received.");
 
                 return new RollingTournamentHistoryEntry(state, prizeDetails, entry.numberOfPlayers, allMatches, localPlayerMatchIndex, entry.unreadSettled);
             }
@@ -148,7 +149,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 if (!DateTime.TryParse(rollingScore.matchEnded, out var matchEnded))
                 {
                     matchEnded = DateTime.MinValue;
-                    logger.Error($"Received match end date and time is in invalid format: {rollingScore.matchEnded}. SDK will return {matchEnded} instead.");
+                    logger.LogError($"Received match end date and time is in invalid format: {rollingScore.matchEnded}. SDK will return {matchEnded} instead.");
                 }
 
                 var matchState = ConvertToMatchState(rollingScore.state, logger);
@@ -198,7 +199,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             };
 
             if (tournamentState == RollingTournamentDetails.TournamentState.Unknown)
-                _logger.Error($"Unexpected rolling tournament state '{response.state}' received.");
+                _logger.LogError($"Unexpected rolling tournament state '{response.state}' received.");
 
             var coinInfo = await FetchCoinForHistoryMatch(Guid.Parse(response.coinId));
 
@@ -224,7 +225,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 if (match.mine)
                 {
                     if (localPlayerMatchIndex > -1)
-                        _logger.WithMethodName().Error($"Received multiple matches from a rolling tournament with {nameof(RollingTournamentScore.mine)} set to true.");
+                        _logger.WithMethodName().LogError($"Received multiple matches from a rolling tournament with {nameof(RollingTournamentScore.mine)} set to true.");
 
                     localPlayerMatchIndex = i;
                 }
@@ -233,7 +234,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             return new RollingTournamentDetails(tournamentState, prizeDetails, response.numberOfPlayers, Array.AsReadOnly(matches), localPlayerMatchIndex);
         }
 
-        private static MatchState ConvertToMatchState(string matchState, ElympicsLoggerContext logger)
+        private static MatchState ConvertToMatchState(string matchState, LoggerConfig logger)
         {
             switch (matchState)
             {
@@ -244,7 +245,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                 case "Playing":
                     return MatchState.Playing;
                 default:
-                    logger.Error($"Unexpected match state '{matchState}' received.");
+                    logger.LogError($"Unexpected match state '{matchState}' received.");
                     return MatchState.Unknown;
             }
         }
@@ -253,7 +254,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         {
             var logger = _logger.WithMethodName();
             if (!string.Equals(message.type, WebMessageTypes.TournamentUpdated))
-                throw logger.CaptureAndThrow(new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type."));
+                throw logger.LogExceptionAndReturn(new Exception($"{nameof(WebGLTournamentCommunicator)} can handle only {WebMessageTypes.TournamentUpdated} event type."));
             try
             {
                 switch (message.type)
@@ -264,14 +265,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
                         TournamentUpdated?.Invoke(CurrentTournament.Value);
                         break;
                     default:
-                        logger.Error($"Unable to handle message {message.type}");
+                        logger.LogError($"Unable to handle message {message.type}");
                         break;
                 }
 
             }
             catch (Exception e)
             {
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
 

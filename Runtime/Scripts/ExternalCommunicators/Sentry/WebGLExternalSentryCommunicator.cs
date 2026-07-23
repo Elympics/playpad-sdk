@@ -4,11 +4,9 @@ using System;
 using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
-using Elympics.ElympicsSystems.Internal;
 using Elympics.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
-using ElympicsPlayPad.Protocol.VoidMessages;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -27,44 +25,23 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsLogEvent>(this);
         }
 
-        private void LogCaptured(string message, string time, ElympicsLoggerContext log, LogLevel level)
+        private void LogCaptured(string message, LogLevel level)
         {
-            if (BlockLog(log, level))
+            if (BlockLog(level))
                 return;
-
-            var data = new BreadcrumbMessage
-            {
-                level = (int)level,
-                message = message,
-                data = MetaData.FromElympicsLoggerContext(time, log),
-            };
-
-            _playPadMessagingSystem.SendVoidMessage<BreadcrumbMessage>(VoidMessageTypes.BreadcrumbMessage, data);
+            _playPadMessagingSystem.SendVoidMessageStringified(VoidMessageTypes.BreadcrumbMessage, message);
         }
-        private static bool BlockLog(ElympicsLoggerContext log, LogLevel level) => level switch
+
+        private static bool BlockLog(LogLevel level) => level switch
         {
-            LogLevel.Log => BlockLogLevelStrategy(log),
-            LogLevel.Warning => true,
+            LogLevel.Trace => false,
+            LogLevel.Debug => false,
+            LogLevel.Info => false,
+            LogLevel.Warning => false,
             LogLevel.Error => false,
             LogLevel.Exception => false,
             _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
         };
-
-        private static bool BlockLogLevelStrategy(ElympicsLoggerContext log)
-        {
-            switch (log.Context)
-            {
-                case ElympicsLoggerContext.ElympicsContextApp:
-                    if (log.MethodName == "Awake")
-                    {
-                        return true;
-                    }
-                    return false;
-                default:
-                    break;
-            }
-            return false;
-        }
 
         public void OnEvent(RttReceived argument) => _rttReporter.OnRttReceived(argument);
         public void OnEvent(ReceivedStatsUpdated stats) => _rttReporter.OnReceivedStatsUpdated(stats);
@@ -73,6 +50,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
             if (argument.PreviousState == ElympicsState.PlayingMatch)
                 _rttReporter.FlushRttBuffer();
         }
-        public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Message, argument.Time, argument.Context, argument.LogLevel);
+        public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Json, argument.LogLevel);
     }
 }
