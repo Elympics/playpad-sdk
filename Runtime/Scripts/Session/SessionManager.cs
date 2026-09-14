@@ -20,7 +20,6 @@ using ElympicsPlayPad.Session.Strategies;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Utils;
 using JetBrains.Annotations;
-using SCS;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Session
@@ -100,8 +99,6 @@ namespace ElympicsPlayPad.Session
                 ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
                 ExternalAuthenticator.RegionUpdated += OnRegionUpdated;
 
-                if (SmartContractService.Instance != null)
-                    await SmartContractService.Instance.Initialize();
                 await _playpadMessagingSystem.Connect();
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();

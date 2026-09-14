@@ -30,7 +30,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             playpadCommunicator.ResponseMessageReceived += OnResponseMessageReceived;
         }
 
-        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
+        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct, TimeSpan? timeout = null)
             where TInput : struct
             where TReturn : struct
         {
@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             ++_requestCounter;
             var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, payload);
             ElympicsLogger.LogInfo($"Send Request {messageType} message: {message}");
-            _dispatcher.RegisterTicket(ticket);
+            _dispatcher.RegisterTicket(ticket, messageType, timeout);
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.HandleMessage, message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
         }

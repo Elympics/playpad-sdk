@@ -66,6 +66,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             void OnSessionUpdated() => sessionUpdated = true;
         }
 
+        /// <summary>
+        /// The handshake is sent from scene Awake and answered by the host with no
+        /// human in the loop, so it must not inherit the dispatcher's minutes-long
+        /// default: a lost response would otherwise look like an indefinite hang on
+        /// the launch screen with nothing in the log naming the cause. Generous
+        /// enough for a slow device (the host answers in well under a second once
+        /// the player is instantiated), short enough to diagnose.
+        /// </summary>
+        private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(30);
+
         public async UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
             string gameName,
@@ -85,7 +95,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var logger = _logger.WithMethodName();
             try
             {
-                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
+                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct, HandshakeTimeout);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;

@@ -22,14 +22,28 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             _requestTimeOut = TimeSpan.FromSeconds(10 * 60);
         }
 
-        public void RegisterTicket(int ticket)
+        /// <summary>
+        /// Registers a ticket to await a response on.
+        /// </summary>
+        /// <param name="messageType">
+        /// The request type. Recorded so a timeout can name the message that never
+        /// came back — without it the failure reads "[] Request reached timeout."
+        /// and says nothing about what to look at.
+        /// </param>
+        /// <param name="timeout">
+        /// Per-request override of the default wait. Pass one for machine-to-machine
+        /// requests that should fail fast; leave it null for anything that waits on a
+        /// person (wallet confirmations, on-ramp and modal flows), which legitimately
+        /// takes minutes.
+        /// </param>
+        public void RegisterTicket(int ticket, string messageType = "", TimeSpan? timeout = null)
         {
-            var added = TicketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
+            var added = TicketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(timeout ?? _requestTimeOut), messageType));
             if (added)
                 return;
 
             var logger = _logger.WithMethodName();
-            throw logger.LogExceptionAndReturn(new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty));
+            throw logger.LogExceptionAndReturn(new ProtocolException($"Ticket {ticket} already exist in map.", messageType));
         }
 
         public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket, CancellationToken ct)
@@ -55,7 +69,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                     ClearTicketStatus(ticket);
 
                 if (isTimeout)
-                    throw logger.LogExceptionAndReturn(new ProtocolException("Request reached timeout.", string.Empty));
+                    throw logger.LogExceptionAndReturn(
+                        new ProtocolException($"Request reached timeout. No response for ticket {ticket}.", ticketStatus.MessageType));
 
                 ct.ThrowIfCancellationRequested();
             }
