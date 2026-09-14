@@ -5,8 +5,6 @@ using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
-using ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract;
-using ElympicsPlayPad.ExternalCommunicators.Web3.NFT;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -74,29 +72,11 @@ namespace ElympicsPlayPad.Editor.MockConfiguration
                 "customExternalUiCommunicator",
                 "useCustomStandaloneExternalUiCommunicator");
 
-            // Bind ERC20 Smart Contract Communicator
-            BindCommunicatorRow<CustomStandaloneErc20SmartContractCommunicatorBase>(
-                root,
-                "customErc20SmartContractCommunicator",
-                "useCustomStandaloneErc20SmartContractCommunicator");
-
             // Bind BlockChain Currency Communicator
             BindCommunicatorRow<CustomStandaloneBlockChainCurrencyCommunicatorBase>(
                 root,
                 "customBlockChainCurrencyCommunicator",
                 "useCustomStandaloneBlockChainCurrencyCommunicator");
-
-            // Bind TON NFT Communicator
-            BindCommunicatorRow<CustomTonNftExternalCommunicator>(
-                root,
-                "customTonNftExternalCommunicator",
-                "useCustomTonNftExternalCommunicator");
-
-            // Bind EVM Communicator
-            BindCommunicatorRow<CustomEvmExternalCommunicator>(
-                root,
-                "customEvmExternalCommunicator",
-                "useCustomEvmExternalCommunicator");
         }
 
         private void BindCommunicatorRow<T>(VisualElement root, string objectFieldName, string toggleName) where T : Object

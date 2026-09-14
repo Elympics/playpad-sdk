@@ -18,10 +18,6 @@ using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.Utility;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.Web;
-using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
-using ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract;
-using ElympicsPlayPad.ExternalCommunicators.Web3.NFT;
-using ElympicsPlayPad.ExternalCommunicators.Web3.Wallet;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Utility;
@@ -51,9 +47,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [PublicAPI] public IExternalUiCommunicator? ExternalUiCommunicator;
 
         [PublicAPI]
-        public IExternalERC20SmartContractOperations? TokenCommunicator;
-
-        [PublicAPI]
         public IExternalTournamentCommunicator? TournamentCommunicator;
 
         [PublicAPI]
@@ -64,12 +57,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         [PublicAPI]
         public IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator;
-
-        [PublicAPI]
-        public ITonNftExternalCommunicator? TonNftExternalCommunicator;
-
-        [PublicAPI]
-        public IEvmExternalCommunicator? EvmExternalCommunicator;
 
         [PublicAPI]
         public IExternalWebCommunicator? ExternalWebCommunicator;
@@ -143,10 +130,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 ExternalAuthenticator = UseMockAuth
                     ? mockConfiguration!.customAuthenticatorCommunicator
                     : new WebGLExternalAuthenticator(_playPadMessagingSystem, sessionManager, _heartbeat);
-                var walletCommunicator = new WebGLExternalWalletCommunicator(_playPadMessagingSystem);
-                VirtualDepositCommunicator = UseMockBlockChainCurrency
-                    ? mockConfiguration!.customBlockChainCurrencyCommunicator
-                    : new WebGLBlockChainCurrencyCommunicator(_playPadMessagingSystem);
                 TournamentCommunicator = UseMockTournament
                     ? mockConfiguration!.customTournamentCommunicator
                     : new WebGLTournamentCommunicator(VirtualDepositCommunicator!, _playPadMessagingSystem);
@@ -156,19 +139,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 ExternalUiCommunicator = UseMockExternalUi
                     ? mockConfiguration!.customExternalUiCommunicator
                     : new WebGLExternalUiCommunicator(_playPadMessagingSystem);
-                var webGLContractOperations = new WebGLExternalContractOperations(_playPadMessagingSystem);
-                TokenCommunicator = UseMockErc20SmartContract
-                    ? mockConfiguration!.customErc20SmartContractCommunicator
-                    : new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
                 LeaderboardCommunicator = UseMockLeaderboard
                     ? mockConfiguration!.customLeaderboardCommunicator
                     : new WebGLLeaderboardCommunicator(_playPadMessagingSystem);
-                TonNftExternalCommunicator = UseMockTonNft
-                    ? mockConfiguration!.customTonNftExternalCommunicator
-                    : new WebGLTonNftExternalCommunicator(_playPadMessagingSystem);
-                EvmExternalCommunicator = UseMockEvm
-                    ? mockConfiguration!.customEvmExternalCommunicator
-                    : new WebGLEvmExternalCommunicator(_playPadMessagingSystem);
                 LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem);
                 Room.BeforeMarkYourselfReady = BeforeSetReady;
                 ExternalWebCommunicator = new WebGLWebCommunicator(_playPadMessagingSystem);
@@ -218,12 +191,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
             && mockConfiguration!.customAuthenticatorCommunicator
             && CanMockPlayPad;
 
-        private bool UseMockBlockChainCurrency => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneBlockChainCurrencyCommunicator
-            && mockConfiguration!.customBlockChainCurrencyCommunicator
-            && CanMockPlayPad;
-
         private bool UseMockTournament => useMockConfiguration
             && mockConfiguration
             && mockConfiguration!.useCustomStandaloneTournamentCommunicator
@@ -243,28 +210,10 @@ namespace ElympicsPlayPad.ExternalCommunicators
             && mockConfiguration!.customExternalUiCommunicator
             && CanMockPlayPad;
 
-        private bool UseMockErc20SmartContract => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneErc20SmartContractCommunicator
-            && mockConfiguration!.customErc20SmartContractCommunicator
-            && CanMockPlayPad;
-
         private bool UseMockLeaderboard => useMockConfiguration
             && mockConfiguration
             && mockConfiguration!.useCustomStandaloneLeaderboardCommunicator
             && mockConfiguration!.customLeaderboardCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockTonNft => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomTonNftExternalCommunicator
-            && mockConfiguration!.customTonNftExternalCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockEvm => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomEvmExternalCommunicator
-            && mockConfiguration!.customEvmExternalCommunicator
             && CanMockPlayPad;
 
         private bool UseMockLobby => useMockConfiguration
