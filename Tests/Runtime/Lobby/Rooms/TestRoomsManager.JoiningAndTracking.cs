@@ -33,7 +33,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             Assert.IsNull(RoomsManager.CurrentRoom);
 
-            // Act
             EmitRoomUpdate(InitialRoomState);
 
             Assert.That(RoomsManager.CurrentRoom?.RoomId, Is.EqualTo(RoomId));
@@ -47,7 +46,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             EventRegister.ListenForEvents(nameof(IRoomsManager.JoinedRoomUpdated));
 
-            // Act
             EmitRoomUpdate(InitialRoomState);
 
             EventRegister.AssertIfInvoked();
@@ -60,7 +58,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             RoomsClientMock.ReturnsForJoinOrCreate(() => GetResponseDelay().ContinueWith(() => RoomId));
 
-            // Act
             var joinedRoom = await RoomsManager.JoinRoom(RoomId, null);
 
             Assert.That(joinedRoom.RoomId, Is.EqualTo(RoomId));
@@ -72,7 +69,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             await EnsureRoomIsBeingJoined(RoomId);
 
-            // Act
             var exception = await AssertThrowsAsync<RoomAlreadyJoinedException>(async () => await RoomsManager.JoinRoom(RoomId, null));
 
             Assert.That(exception.RoomId, Is.EqualTo(RoomId));
@@ -87,7 +83,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             await EnsureRoomIsBeingJoined(joinCode: testJoinCode);
 
-            // Act
             var exception = await AssertThrowsAsync<RoomAlreadyJoinedException>(async () => await RoomsManager.JoinRoom(null, testJoinCode));
 
             Assert.That(exception.RoomId.HasValue, Is.False);
@@ -106,10 +101,8 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             EventRegister.ListenForEvents(nameof(IRoomsManager.JoinedRoomUpdated));
 
-            // Act
             EmitRoomUpdate(joinedRoomState);
 
-            // Assert
             EventRegister.AssertIfInvoked();
             Assert.That(RoomsManager.CurrentRoom, Is.Not.Null);
             var joinedRoom = RoomsManager.CurrentRoom!;
@@ -123,7 +116,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             EventRegister.ListenForEvents(nameof(IRoomsManager.RoomListUpdated));
 
-            // Act
             RoomsClientMock.RoomListChanged += Raise.Event<Action<RoomListChangedDto>>(InitialRoomList);
 
             EventRegister.AssertIfInvoked();
@@ -134,7 +126,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             Assert.That(RoomsManager.ListAvailableRooms().Count, Is.EqualTo(0));
 
-            // Act
             RoomsClientMock.RoomListChanged += Raise.Event<Action<RoomListChangedDto>>(InitialRoomList);
 
             Assert.That(RoomsManager.ListAvailableRooms().Count, Is.EqualTo(1));
@@ -153,7 +144,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
                 new(RoomId, null),
             });
 
-            // Act
             RoomsClientMock.RoomListChanged += Raise.Event<Action<RoomListChangedDto>>(roomListChanged);
 
             Assert.That(RoomsManager.ListAvailableRooms().Count, Is.EqualTo(0));
@@ -184,7 +174,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             EventRegister.ListenForEvents(testCase.ExpectedEvents);
 
-            // Act
             RoomsClientMock.RoomListChanged += Raise.Event<Action<RoomListChangedDto>>(roomListChanged);
 
             EventRegister.AssertIfInvoked();
@@ -299,7 +288,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             EventRegister.ListenForEvents(testCase.ExpectedEvents);
 
-            // Act
             EmitRoomUpdate(modifiedState);
 
             EventRegister.AssertIfInvoked();
@@ -334,7 +322,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             EmitRoomUpdate(InitialRoomState);
             EventRegister.ListenForEvents(nameof(IRoomsManager.JoinedRoomUpdated));
 
-            // Act
             EmitRoomUpdate(InitialRoomState);
 
             EventRegister.AssertIfInvoked();
@@ -347,7 +334,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             Assert.NotNull(RoomsManager.CurrentRoom);
             Assert.AreEqual(RoomId, RoomsManager.CurrentRoom!.RoomId);
 
-            // Act
             EmitRoomUpdate(InitialRoomState);
 
             Assert.NotNull(RoomsManager.CurrentRoom);
@@ -362,7 +348,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             EmitRoomUpdate(roomState, false);
             EventRegister.Reset();
 
-            // Act
             EmitRoomUpdate(lateRoomState, false);
 
             EventRegister.AssertIfInvoked();
@@ -565,7 +550,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             EventRegister.ListenForEvents(nameof(IRoomsManager.JoinedRoomUpdated), nameof(IRoomsManager.RoomPublicnessChanged));
 
-            // Act
             EmitRoomUpdate(matchmakingRoomState);
 
             EventRegister.AssertIfInvoked();
@@ -587,7 +571,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             _ = RoomsClientMock.JoinRoom("", null)
                 .ReturnsForAnyArgs(UniTask.FromException<Guid>(expected));
 
-            // Act
             var exception = await AssertThrowsAsync<DummyException>(async () => await RoomsManager.JoinRoom(null, ""));
 
             Assert.That(exception.Message, Is.EqualTo(expected.Message));
@@ -604,7 +587,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomJoiningState? lastRoomJoiningState = null;
             RoomJoiner.JoiningStateChanged += UpdateLastJoiningState;
 
-            // Act
             try
             {
                 _ = await RoomJoiner.JoinRoom(null, "");

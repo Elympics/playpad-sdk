@@ -603,7 +603,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.When(x => x.PlayMatch(Arg.Any<RoomMatchData>()))
                 .Do(x => playMatchArgs = x.ArgAt<RoomMatchData>(0));
 
-            // Act
             RoomsClientMock.RoomStateChanged += Raise.Event<Action<RoomStateChangedDto>>(matchmakingRoomState);
 
             Assert.That(playMatchArgs, Is.Not.Null);
@@ -640,7 +639,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.When(x => x.PlayMatch(Arg.Any<RoomMatchData>()))
                 .Do(x => playMatchArgs = x.ArgAt<RoomMatchData>(0));
 
-            // Act
             RoomsClientMock.RoomStateChanged += Raise.Event<Action<RoomStateChangedDto>>(matchmakingRoomState);
 
             Assert.That(playMatchArgs, Is.Null);
@@ -676,7 +674,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.When(x => x.PlayMatch(Arg.Any<RoomMatchData>()))
                 .Do(x => playMatchArgs = x.ArgAt<RoomMatchData>(0));
 
-            // Act
             RoomsClientMock.RoomStateChanged += Raise.Event<Action<RoomStateChangedDto>>(matchmakingRoomState);
 
             Assert.That(playMatchArgs, Is.Null);

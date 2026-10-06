@@ -5,16 +5,11 @@ using Elympics.Communication.Authentication.Models;
 
 namespace ElympicsPlayPad.Auth.Models
 {
-    /// <summary>Represents a user's public profile.</summary>
     public readonly struct ElympicsUser : IEquatable<ElympicsUser>
     {
-        /// <summary>Globally-unique user ID.</summary>
         public readonly Guid UserId;
-        /// <summary>User's current nickname.</summary>
         public readonly string Nickname;
-        /// <summary>Current status of user's <see cref="Nickname"/>.</summary>
         public readonly NicknameType NicknameType;
-        /// <summary>URL from which user's avatar image can be fetched.</summary>
         public readonly string AvatarUrl;
 
         public ElympicsUser(Guid userId, string nickname, NicknameType nicknameType, string avatarUrl)

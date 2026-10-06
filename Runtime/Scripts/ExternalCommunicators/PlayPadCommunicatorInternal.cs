@@ -17,7 +17,6 @@ namespace ElympicsPlayPad
         private readonly bool _useWeb;
         private readonly Func<IElympicsMatchLauncher> _launcher;
 
-        /// <param name="useWeb">Usually <see cref="ElympicsGameConfig.UseWeb"/>.</param>
         public PlayPadCommunicatorInternal(string gameId, bool useWeb, Func<IElympicsMatchLauncher> launcher)
         {
             _gameId = gameId;

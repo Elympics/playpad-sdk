@@ -106,7 +106,7 @@ namespace ElympicsPlayPad.Rooms
                 if (newUser == null)
                 {
                     stateDiff.UsersThatLeft.Add(oldUser);
-                    _ = stateDiff.NewCustomPlayerData.Remove(oldUser.User.UserId); //Remove user who left to prevent that dictionary from growing endlessly
+                    _ = stateDiff.NewCustomPlayerData.Remove(oldUser.User.UserId); // Users who left would otherwise accumulate.
                     continue;
                 }
 

@@ -16,11 +16,7 @@ namespace ElympicsPlayPad.Wrappers.Connection
 
         protected ConnectionStrategy(WebSocketSession webSocketSession) => _webSocketSession = webSocketSession;
 
-        /// <summary>
-        /// Connects to lobby services, performing a handshake for exchanging client-side and server-side game details.
-        /// </summary>
-        /// <param name="newConnectionDetails">Client-side game details and authentication data.</param>
-        /// <returns>Server-side game details (only if <paramref name="newConnectionDetails"/> changed since last call).</returns>
+        /// <returns>Server-side game details, or null if <paramref name="newConnectionDetails"/> did not change since the last call.</returns>
         public abstract UniTask<GameDataResponseDto?> Connect(SessionConnectionDetails newConnectionDetails);
 
         protected async UniTask<GameDataResponseDto?> ConnectToLobby(SessionConnectionDetails connectionDetails) =>

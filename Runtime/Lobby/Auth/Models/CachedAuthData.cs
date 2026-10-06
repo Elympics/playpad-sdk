@@ -14,9 +14,7 @@ namespace ElympicsPlayPad.Auth.Models
 
         public AuthData CachedData { get; init; }
 
-        /// <summary>
-        /// If true and JWT token is expired, performs call to Auth service using cached <see cref="AuthType"/>.
-        /// </summary>
+        /// <summary>If the JWT has expired, authenticate again with the cached <see cref="AuthData.AuthType"/>.</summary>
         public bool AutoRetryIfExpired { get; init; }
     }
 }

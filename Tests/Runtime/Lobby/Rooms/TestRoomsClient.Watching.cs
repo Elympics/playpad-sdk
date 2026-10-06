@@ -39,7 +39,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClient.UnwatchRooms().Forget();
             await UniTask.WaitUntil(() => operationsExecuted > 0);
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.WatchRooms()).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -63,7 +62,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var awaitable = UniTask.Create(async () => await RoomsClient.WatchRooms());
             shouldReturn = true;
 
-            // Act
             await awaitable;
 
             Assert.That(operationsExecuted, Is.EqualTo(1));
@@ -82,7 +80,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClient.WatchRooms().Forget();
             await UniTask.WaitUntil(() => operationsExecuted > 0);
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.UnwatchRooms()).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -109,7 +106,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var awaitable = UniTask.Create(async () => await RoomsClient.UnwatchRooms());
             shouldReturn = true;
 
-            // Act
             await awaitable;
 
             Assert.That(operationsExecuted, Is.EqualTo(1));
@@ -130,7 +126,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             var awaitable = UniTask.Create(async () => await RoomsClient.WatchRooms());
 
-            // Act
             await awaitable;
 
             Assert.That(operationsExecuted, Is.EqualTo(1));
@@ -149,7 +144,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
             var awaitable = UniTask.Create(async () => await RoomsClient.UnwatchRooms());
 
-            // Act
             await awaitable;
 
             Assert.That(operationsExecuted, Is.EqualTo(0));

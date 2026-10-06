@@ -52,7 +52,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new CreateRoomDto("test room name", true, false, "test queue", true, new Dictionary<string, string>(), new Dictionary<string, string>(), null, null, Guid.Empty, null);
             WsSessionMock.ResultToReturn = new RoomOperationResultDto(Guid.Empty, TestRoomGuid);
 
-            // Act
             _ = await RoomsClient.CreateRoom(expectedMessage.RoomName,
                 expectedMessage.IsPrivate,
                 expectedMessage.IsEphemeral,
@@ -71,7 +70,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new CreateRoomDto("test room name", true, false, "test queue", true, new Dictionary<string, string>(), new Dictionary<string, string>(), null, null, Guid.Empty, null);
             RoomsClient.Session = null;
 
-            // Act
             var result = await ((UniTask)UniTask.Create(async () => await RoomsClient.CreateRoom(expectedMessage.RoomName,
                 expectedMessage.IsPrivate,
                 expectedMessage.IsEphemeral,
@@ -90,7 +88,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new CreateRoomDto("test room name", true, false, "test queue", true, new Dictionary<string, string>(), new Dictionary<string, string>(), null, null, Guid.Empty, null);
             WsSessionMock.ResultToReturn = new OperationResultDto(Guid.Empty);
 
-            // Act
             var result = await UniTask.Create(async () => await (UniTask)RoomsClient.CreateRoom(expectedMessage.RoomName,
                 expectedMessage.IsPrivate,
                 expectedMessage.IsEphemeral,
@@ -110,7 +107,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithRoomIdDto(TestRoomGuid, null, null);
             WsSessionMock.ResultToReturn = new RoomOperationResultDto(Guid.Empty, TestRoomGuid);
 
-            // Act
             _ = await RoomsClient.JoinRoom(expectedMessage.RoomId, expectedMessage.TeamIndex);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -123,7 +119,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithRoomIdDto(TestRoomGuid, null, null);
             RoomsClient.Session = null;
 
-            // Act
             var result = await ((UniTask)UniTask.Create(async () => await RoomsClient.JoinRoom(expectedMessage.RoomId, expectedMessage.TeamIndex))).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -136,7 +131,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithRoomIdDto(TestRoomGuid, null, null);
             WsSessionMock.ResultToReturn = new OperationResultDto(Guid.Empty);
 
-            // Act
             var result = await ((UniTask)UniTask.Create(async () => await RoomsClient.JoinRoom(expectedMessage.RoomId, expectedMessage.TeamIndex))).Catch();
 
             Assert.That(result, Is.InstanceOf<UnexpectedRoomResultException>());
@@ -150,7 +144,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithJoinCodeDto("test join code", null, null);
             WsSessionMock.ResultToReturn = new RoomOperationResultDto(Guid.Empty, TestRoomGuid);
 
-            // Act
             _ = await RoomsClient.JoinRoom(expectedMessage.JoinCode, expectedMessage.TeamIndex);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -163,7 +156,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithJoinCodeDto("test join code", null, null);
             RoomsClient.Session = null;
 
-            // Act
             var result = await ((UniTask)UniTask.Create(async () => await RoomsClient.JoinRoom(expectedMessage.JoinCode, expectedMessage.TeamIndex))).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -176,7 +168,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new JoinWithJoinCodeDto("test join code", null, null);
             WsSessionMock.ResultToReturn = new OperationResultDto(Guid.Empty);
 
-            // Act
             var result = await ((UniTask)UniTask.Create(async () => await RoomsClient.JoinRoom(expectedMessage.JoinCode, expectedMessage.TeamIndex))).Catch();
 
             Assert.That(result, Is.InstanceOf<UnexpectedRoomResultException>());
@@ -189,7 +180,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             var expectedMessage = new ChangeTeamDto(TestRoomGuid, 5);
 
-            // Act
             await RoomsClient.ChangeTeam(expectedMessage.RoomId, expectedMessage.TeamIndex);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -202,7 +192,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new ChangeTeamDto(TestRoomGuid, 5);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.ChangeTeam(expectedMessage.RoomId, expectedMessage.TeamIndex)).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -227,7 +216,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
                 },
                 DateTime.UtcNow);
 
-            // Act
             await RoomsClient.SetReady(expectedMessage.RoomId, expectedMessage.GameEngineData, expectedMessage.MatchmakerData, expectedMessage.LastRoomUpdate);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -253,7 +241,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
                 DateTime.UtcNow);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () =>
                 await RoomsClient.SetReady(expectedMessage.RoomId, expectedMessage.GameEngineData, expectedMessage.MatchmakerData, expectedMessage.LastRoomUpdate)).Catch();
 
@@ -266,7 +253,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             var expectedMessage = new SetUnreadyDto(TestRoomGuid);
 
-            // Act
             await RoomsClient.SetUnready(expectedMessage.RoomId);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -279,7 +265,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new SetUnreadyDto(TestRoomGuid);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.SetUnready(expectedMessage.RoomId)).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -291,7 +276,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             var expectedMessage = new LeaveRoomDto(TestRoomGuid);
 
-            // Act
             await RoomsClient.LeaveRoom(expectedMessage.RoomId);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -304,7 +288,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new LeaveRoomDto(TestRoomGuid);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.LeaveRoom(expectedMessage.RoomId)).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -316,7 +299,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             var expectedMessage = new StartMatchmakingDto(TestRoomGuid);
 
-            // Act
             await RoomsClient.StartMatchmaking(expectedMessage.RoomId, TestHostGuid);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -329,7 +311,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new StartMatchmakingDto(TestRoomGuid);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.StartMatchmaking(expectedMessage.RoomId, TestHostGuid)).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -341,7 +322,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             var expectedMessage = new CancelMatchmakingDto(TestRoomGuid);
 
-            // Act
             await RoomsClient.CancelMatchmaking(expectedMessage.RoomId);
 
             Assert.That(WsSessionMock.ExecutedOperations, Has.Count.EqualTo(1));
@@ -354,7 +334,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var expectedMessage = new CancelMatchmakingDto(TestRoomGuid);
             RoomsClient.Session = null;
 
-            // Act
             var result = await UniTask.Create(async () => await RoomsClient.CancelMatchmaking(expectedMessage.RoomId)).Catch();
 
             Assert.That(result, Is.InstanceOf<InvalidOperationException>());
@@ -377,7 +356,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             using var eventScope = new RoomsClientEventScope(RoomsClient);
 
-            // Act
             WsSessionMock.InvokeMessageReceived(testCase.Message);
 
             Assert.That(eventScope.InvokedEventName, Is.EqualTo(testCase.ExpectedEventName));
@@ -399,7 +377,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         {
             using var eventScope = new RoomsClientEventScope(RoomsClient);
 
-            // Act
             WsSessionMock.InvokeMessageReceived(message);
 
             Assert.That(eventScope.InvokedEventName, Is.Null);

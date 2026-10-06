@@ -8,9 +8,6 @@ namespace ElympicsPlayPad.Auth.Models
     {
         public RegionData(string name) => Name = name;
 
-        /// <summary>
-        /// Name of the region.
-        /// </summary>
         public string Name { get; init; }
 
         public bool Equals(RegionData other) => Name == other.Name;

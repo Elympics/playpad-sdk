@@ -144,22 +144,22 @@ namespace ElympicsPlayPad.Lobby
             var dataTask = WaitForLobbyData<TResponse>(message.OperationId, LobbyTimeout.WebSocketOperationTimeout, linkedCts.Token);
             try
             {
-                _ = await ExecuteOperationInternal(message, linkedCts.Token); //If the result was an error, this will throw an exception
+                _ = await ExecuteOperationInternal(message, linkedCts.Token); // Throws if the result is an error.
             }
             catch
             {
                 try
                 {
-                    //A response will never arrive if we got an error as the result, so cancel the operation and suppress the OperationCanceledException exception
+                    // No response follows an error result, so stop waiting for it.
                     linkedCts.Cancel();
                     _ = await dataTask.SuppressCancellationThrow();
                 }
                 catch (Exception exception)
                 {
-                    ElympicsLogger.LogException(exception); //If there is an exception unrelated to cancellation, log it
+                    ElympicsLogger.LogException(exception);
                 }
 
-                throw; //Throw the exception that contains the result's error message
+                throw;
             }
 
             return await dataTask;

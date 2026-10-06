@@ -254,7 +254,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var matchmakingData = roomState.MatchmakingData!;
             var matchData = matchmakingData.MatchData!;
 
-            // Act
             room.PlayAvailableMatch();
 
             Assert.That(matchLauncher.PlayMatchCalledArgs, Is.Not.Null);
@@ -281,7 +280,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             var room = new Room(matchLauncher, roomsClient, RoomId, roomStateWithoutMatchDetails, true);
 
-            // Act
             TestDelegate testDelegate = () => room.PlayAvailableMatch();
 
             Assert.That(testDelegate, Throws.InvalidOperationException.With.Message.Contain("Running"));
@@ -309,7 +307,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             var room = new Room(matchLauncher, roomsClient, RoomId, roomStateWithoutMatchDetails, true);
 
-            // Act
             TestDelegate testDelegate = () => room.PlayAvailableMatch();
 
             Assert.That(testDelegate, Throws.InvalidOperationException.With.Message.Contain("match details"));
@@ -332,7 +329,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             var room = new Room(matchLauncher, roomsClient, RoomId, roomState, true);
 
-            // Act
             TestDelegate testDelegate = () => room.PlayAvailableMatch();
 
             Assert.That(testDelegate, Throws.InvalidOperationException.With.Message.Contain("Playing"));
@@ -356,7 +352,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             var room = new Room(matchLauncher, roomsClient, RoomId, roomState, true);
 
-            // Act
             TestDelegate testDelegate = () => room.PlayAvailableMatch();
 
             Assert.That(testDelegate, Throws.InvalidOperationException.With.Message.Contain("match data"));
@@ -376,7 +371,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             };
             var room = new Room(matchLauncher, roomsClient, RoomId, roomState, true);
 
-            // Act
             TestDelegate testDelegate = () => room.PlayAvailableMatch();
 
             Assert.That(testDelegate, Throws.Exception.TypeOf<MatchmakingException>().With.Message.Contain("non-matchmaking"));
@@ -479,10 +473,8 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var room = new Room(matchLauncherMock, roomClientMock, RoomId, testCase.RoomState, true);
             var operation = testCase.Operation(room);
 
-            // Act
             ((IRoom)room).IsJoined = false;
 
-            // Assert
             Assert.That(await operation.SuppressCancellationThrow(), Is.True);
         });
 
@@ -508,10 +500,8 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var room = new Room(matchLauncherMock, roomClientMock, RoomId, testCase.RoomState, true);
             var operation = testCase.Operation(room);
 
-            // Act
             room.Dispose();
 
-            // Assert
             Assert.That(await operation.SuppressCancellationThrow(), Is.True);
         });
 
@@ -539,10 +529,8 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
                 .Do(_ => ((IRoom)room).IsJoined = false);
             var operation = testCase.Operation(room);
 
-            // Act
             await room.Leave();
 
-            // Assert
             Assert.That(await operation.SuppressCancellationThrow(), Is.True);
         });
     }

@@ -54,7 +54,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.When(x => x.StartMatchmaking(Arg.Any<IRoom>()))
                 .Do(_ => MatchmakingFlow().Forget());
 
-            // Act
             _ = await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>());
 
             async UniTask MatchmakingFlow()
@@ -68,7 +67,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         [UnityTest]
         public IEnumerator CurrentRoomShouldBeNullAfterQuickMatchIsCancelled_CancellationToken() => UniTask.ToCoroutine(async () =>
         {
-            // Arrange
             _ = RoomsClientMock.SessionConnectionDetails.Returns(Defaults.CreateConnectionDetails(HostId));
             RoomsClientMock.ReturnsForJoinOrCreate(() => UniTask.FromResult(RoomId));
 
@@ -98,11 +96,9 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var quickMatchTask = RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>(), ct: cts.Token);
             await UniTask.DelayFrame(2, cancellationToken: CancellationToken.None);
 
-            // Act
             LogAssert.Expect(LogType.Exception, new Regex("operation was canceled"));
             cts.Cancel();
 
-            // Assert
             _ = await AssertThrowsAsync<OperationCanceledException>(quickMatchTask);
             Assert.That(RoomsManager.CurrentRoom, Is.Null, $"{nameof(RoomsManager.CurrentRoom)} should be null after cancellation");
         });
@@ -110,7 +106,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         [UnityTest]
         public IEnumerator CurrentRoomShouldBeNullAfterQuickMatchIsCancelled_CancelMatchmaking() => UniTask.ToCoroutine(async () =>
         {
-            // Arrange
             _ = RoomsClientMock.SessionConnectionDetails.Returns(Defaults.CreateConnectionDetails(HostId));
             RoomsClientMock.ReturnsForJoinOrCreate(() => UniTask.FromResult(RoomId));
 
@@ -140,11 +135,9 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             var quickMatchTask = RoomsManager.StartQuickMatch("");
             await UniTask.WaitUntil(() => RoomsManager.CurrentRoom != null && RoomsManager.CurrentRoom.State.MatchmakingData?.MatchmakingState != MatchmakingState.Unlocked);
 
-            // Act
             LogAssert.Expect(LogType.Exception, new Regex("operation was canceled"));
             RoomsManager.CurrentRoom?.CancelMatchmaking().Forget();
 
-            // Assert
             _ = await AssertThrowsAsync<OperationCanceledException>(quickMatchTask);
             Assert.That(RoomsManager.CurrentRoom, Is.Null, $"{nameof(RoomsManager.CurrentRoom)} should be null after cancellation");
         });
@@ -152,7 +145,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         [UnityTest]
         public IEnumerator LeaveShouldBeSkippedIfRoomCeasesToExistAfterQuickMatchIsCancelled() => UniTask.ToCoroutine(async () =>
         {
-            // Arrange
             _ = RoomsClientMock.SessionConnectionDetails.Returns(Defaults.CreateConnectionDetails(HostId));
             RoomsClientMock.ReturnsForJoinOrCreate(() => UniTask.FromResult(RoomId));
 
@@ -185,10 +177,8 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClientMock.When(x => x.LeaveRoom(Arg.Any<Guid>()))
                 .Do(_ => leaveCalled = true);
 
-            // Act
             var exception = await AssertThrowsAsync<OperationCanceledException>(RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>(), ct: cts.Token));
 
-            // Assert
             Assert.That(exception.CancellationToken, Is.EqualTo(cts.Token));
             Assert.That(leaveCalled, Is.False);
         });
@@ -227,7 +217,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClientMock.When(x => x.LeaveRoom(Arg.Any<Guid>()))
                 .Do(args => RoomsClientMock.LeftRoom += Raise.Event<Action<LeftRoomArgs>>(new LeftRoomArgs(args.ArgAt<Guid>(0), LeavingReason.UserLeft)));
 
-            // Act
             LogAssert.Expect(LogType.Exception, new Regex("timed out"));
             _ = await AssertThrowsAsync<LobbyOperationException>(async () => await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>()));
             Assert.Null(RoomsManager.CurrentRoom);
@@ -266,7 +255,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClientMock.When(x => x.LeaveRoom(Arg.Any<Guid>()))
                 .Do(args => RoomsClientMock.LeftRoom += Raise.Event<Action<LeftRoomArgs>>(new LeftRoomArgs(args.ArgAt<Guid>(0), LeavingReason.UserLeft)));
 
-            // Act
             LogAssert.Expect(LogType.Exception, new Regex("Failed to create quick match room"));
             _ = await AssertThrowsAsync<LobbyOperationException>(async () => await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>()));
             Assert.Null(RoomsManager.CurrentRoom);
@@ -313,7 +301,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClientMock.When(x => x.LeaveRoom(Arg.Any<Guid>()))
                 .Do(args => RoomsClientMock.LeftRoom += Raise.Event<Action<LeftRoomArgs>>(new LeftRoomArgs(args.ArgAt<Guid>(0), LeavingReason.UserLeft)));
 
-            // Act
             LogAssert.Expect(LogType.Exception, new Regex("timed out"));
             _ = await AssertThrowsAsync<LobbyOperationException>(async () => await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>()));
 
@@ -349,7 +336,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             RoomsClientMock.When(x => x.ChangeTeam(Arg.Any<Guid>(), Arg.Any<uint?>(), Arg.Any<CancellationToken>()))
                 .Do(_ => EmitRoomUpdate(newTeamChangedState));
 
-            // Act
             _ = await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>());
 
             async UniTask MatchmakingFlow()
@@ -399,7 +385,6 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.When(x => x.CancelMatchmaking(Arg.Any<IRoom>(), Arg.Any<CancellationToken>()))
                 .Do(_ => throw new LobbyOperationException(new OperationResultDto(Guid.Empty, ErrorBlameDto.UserError, ErrorKindDto.RoomAlreadyInMatchedState, "")));
 
-            // Act
             var result = await RoomsManager.StartQuickMatch("", Array.Empty<byte>(), Array.Empty<float>(), ct: cts.Token);
 
             Assert.That(result, Is.Not.Null);

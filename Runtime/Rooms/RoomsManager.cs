@@ -120,7 +120,7 @@ namespace ElympicsPlayPad.Rooms
             {
                 var (roomId, updatedState) = listedRoomChange;
 
-                // when a room ceases to exist
+                // A null state means the room no longer exists.
                 if (updatedState == null)
                 {
                     if (CurrentRoom?.RoomId == roomId)
@@ -435,11 +435,9 @@ namespace ElympicsPlayPad.Rooms
                 throw logger.LogExceptionAndReturn(new LobbyOperationException($"Failed to create quick match room. Error: {error}"));
             }
 
-            // happy path
             if (!isCancelled)
                 return room;
 
-            // the process has been cancelled
             var timeoutCts = new CancellationTokenSource();
             using var timeoutDisposable = timeoutCts.CancelAfterSlim(LobbyTimeout.RoomStateChangeConfirmationTimeout);
             try

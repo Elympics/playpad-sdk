@@ -9,11 +9,11 @@ namespace ElympicsPlayPad.Rooms.Models
 {
     public class CompetitivenessConfig
     {
-        /// <summary>Type of competitiveness selected. Determines how other fields should be interpreted.</summary>
+        /// <summary>Determines how the other fields are interpreted.</summary>
         internal readonly CompetitivenessType CompetitivenessType;
         /// <summary>Tournament ID, rolling tournament type ID or coin ID.</summary>
         internal readonly string ID;
-        /// <summary>Bet amount. Only used with <see cref="CompetitivenessType.Bet"/>.</summary>
+        /// <summary>Bet amount, or the total prize of a rolling tournament.</summary>
         internal readonly decimal Value;
         /// <summary>Only used with <see cref="CompetitivenessType.RollingTournament"/>.</summary>
         internal readonly int NumberOfPlayers;
@@ -23,17 +23,10 @@ namespace ElympicsPlayPad.Rooms.Models
         [PublicAPI]
         public static CompetitivenessConfig GlobalTournament(string id) => new(id, CompetitivenessType.GlobalTournament, 0, -1, Array.Empty<decimal>());
 
-        /// <summary>Creates a configuration for a rolling tournament.</summary>
-        /// <param name="numberOfPlayers">Number of players who must join the tournament and play a match in it in order for the tournament to be finished.</param>
-        /// <param name="totalPrize">Prize distributed among the top players according to the values from <paramref name="prizeDistribution"/>.</param>
-        /// <param name="coinId">ID of the coin to use.</param>
+        /// <param name="numberOfPlayers">Players who must play a match in the tournament for it to finish.</param>
         /// <param name="prizeDistribution">
-        /// Determines how <paramref name="totalPrize"/> will be distributed among the top players.
-        /// Numbers in this array should add up to ~1.
-        /// When the tournament ends, <paramref name="totalPrize"/> will be multiplied by the value from this array for
-        /// each place to calculate the reward for the player on that place on the final leaderboard.
-        /// If <see cref="Array.Length"/> of this array is less than <paramref name="numberOfPlayers"/>, rewards for the remaining places will default to 0.
-        /// If a null is passed, or the array is empty, the top scoring player will receive the full <paramref name="totalPrize"/>.
+        /// Share of <paramref name="totalPrize"/> for each leaderboard place, summing up to ~1. Missing places get 0.
+        /// Null or empty gives the whole prize to the top player.
         /// </param>
         [PublicAPI]
         public static CompetitivenessConfig RollingTournament(int numberOfPlayers, decimal totalPrize, Guid coinId, decimal[]? prizeDistribution = null)
@@ -50,10 +43,8 @@ namespace ElympicsPlayPad.Rooms.Models
             return new CompetitivenessConfig(coinId.ToString(), CompetitivenessType.RollingTournament, totalPrize, numberOfPlayers, prizeDistribution ?? Array.Empty<decimal>());
         }
 
-        /// <summary>Creates a configuration for a competitive match with a bet.</summary>
-        /// <param name="coinId">ID of the coin to use.</param>
-        /// <param name="amount">The amount that the player will be charged as a match entry fee.</param>
-        /// <remarks>The prize received by each player on the winning team will be equal to <paramref name="amount"/> minus commission.</remarks>
+        /// <param name="amount">The entry fee.</param>
+        /// <remarks>Each player on the winning team receives <paramref name="amount"/> minus commission.</remarks>
         [PublicAPI]
         public static CompetitivenessConfig Bet(Guid coinId, decimal amount) => new(coinId.ToString(), CompetitivenessType.Bet, amount, -1, Array.Empty<decimal>());
 

@@ -9,21 +9,16 @@ using MessagePack;
 
 namespace ElympicsPlayPad.Auth.Models.Internal
 {
-    /// <summary>Internal version of <see cref="ElympicsUser"/> used for communication with backend and PlayPad.</summary>
-    /// <remarks>This is the standard user data model which should always be used when sending data about a user to a game client.</remarks>
+    /// <summary>The wire form of <see cref="ElympicsUser"/>, used by the backend and PlayPad.</summary>
     [Serializable, MessagePackObject]
     public struct ElympicsUserDTO : IEquatable<ElympicsUserDTO>
     {
-        /// <summary>Globally-unique user ID.</summary>
         [Key(0)] public string userId;
 
-        /// <summary>User's current nickname.</summary>
         [Key(1)] public string nickname;
 
-        /// <summary>Current status of user's <see cref="nickname"/>.</summary>
         [Key(2)] public string nicknameType;
 
-        /// <summary>URL from which user's avatar image can be fetched.</summary>
         [Key(3)] public string avatarUrl;
 
         public ElympicsUserDTO(string userId, string nickname, string nicknameType, string avatarUrl)

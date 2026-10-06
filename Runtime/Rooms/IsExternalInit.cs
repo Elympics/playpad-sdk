@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 
-// Required for init-only setters in records:
-// https://docs.unity3d.com/2021.3/Documentation/Manual/CSharpCompiler.html#:~:text=Record%20support
+// Required for init-only setters. Elympics and Elympics.Core both expose theirs to this assembly (CS8356), so it needs its own.
 
 namespace System.Runtime.CompilerServices
 {

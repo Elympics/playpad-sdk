@@ -36,8 +36,7 @@ namespace ElympicsPlayPad.Rooms
         UniTask StartMatchmaking();
         UniTask CancelMatchmaking(CancellationToken ct = default);
 
-        /// Connects to the game server if there is a match available in the room.
-        /// <remarks>The method loads the gameplay scene in the non-additive mode.</remarks>
+        /// <summary>Launches the match available in the room through the lobby's match launcher.</summary>
         void PlayAvailableMatch();
 
         UniTask Leave();

@@ -26,8 +26,7 @@ namespace ElympicsPlayPad.Rooms
 
         public bool IsJoined => ThrowIfDisposedOrReturn(_isJoined);
 
-        /// <summary>Awaited before operation is sent to backend by <see cref="MarkYourselfReady"/>.</summary>
-        /// <remarks>This can be used to perform additional operations required before client can be set as ready.</remarks>
+        /// <summary>Awaited by <see cref="MarkYourselfReady"/> before the operation is sent, e.g. to ensure a deposit for a bet.</summary>
         public static Func<Room, CancellationToken, UniTask>? BeforeMarkYourselfReady;
 
         bool IRoom.IsJoined

@@ -74,20 +74,11 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             MatchLauncherMock.ClearSubstitute();
         }
 
-        /// <summary>
-        /// Emits the <see cref="IRoomsClient.RoomStateChanged"/> event for the current <see cref="IRoomsClient"/> mock (<see cref="RoomsClientMock"/>).
-        /// </summary>
-        /// <param name="updatedState">The state to be emitted.</param>
-        /// <param name="updateLastUpdateTime">Should the emitted room state have its last update time set to the current <see cref="Timer"/> value.</param>
+        /// <param name="updateLastUpdateTime">Stamps the state with the current <see cref="Timer"/> value.</param>
         protected void EmitRoomUpdate(RoomStateChangedDto updatedState, bool updateLastUpdateTime = true) =>
             RoomsClientMock.RoomStateChanged += Raise.Event<Action<RoomStateChangedDto>>(updateLastUpdateTime ? updatedState.WithLastUpdate(Timer++) : updatedState);
 
-        /// <summary>
-        /// Proceed with room being joined: from JoinedNoTracking to JoinedWithTracking.
-        /// This is done by emitting the first room state update message.
-        /// </summary>
-        /// <remarks>Emitted room state will have its last update time set to the current <see cref="Timer"/> value.</remarks>
-        /// <param name="roomState">Room state to be emitted. By default, <see cref="InitialRoomState"/> is used.</param>
+        /// <summary>Moves the joined room from JoinedNoTracking to JoinedWithTracking by emitting its first state update.</summary>
         protected void SetRoomAsTrackedWhenItGetsJoined(RoomStateChangedDto? roomState = null)
         {
             roomState ??= InitialRoomState;
