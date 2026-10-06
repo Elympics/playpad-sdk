@@ -3,7 +3,6 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.Communication.Mappers;
 using Elympics.Core.Logger;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
@@ -19,6 +18,8 @@ using ElympicsPlayPad.ExternalCommunicators.Utility;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.Web;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Rooms;
+using ElympicsPlayPad.Rooms.Mappers;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
@@ -68,12 +69,14 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [PublicAPI]
         public ISessionManager SessionManager = null!;
 
+        /// <summary>Elympics lobby: authentication, the lobby connection and Rooms.</summary>
+        [PublicAPI]
+        public IElympicsLobbyWrapper Lobby { get; private set; } = null!;
+
         private PlayPadCommunicatorInternal _communicatorInternal = null!;
         private PlayPadMessagingSystem _playPadMessagingSystem = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
-        private IElympicsLobbyWrapper _lobby = null!;
-
-        private IExternalSentryCommunicator? _sentry;
+        private WebGLExternalSentryCommunicator? _sentry;
         private IHeartbeatCommunicator? _heartbeat;
         private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(PlayPadCommunicator))
@@ -103,9 +106,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     throw new ArgumentNullException($"Couldn't find {nameof(PlayPadCommunicatorFactory)} component on gameObject {gameObject.name}");
                 _playPadMessagingSystem.Init(playpadCommunicationFactory);
 
-                _lobby = GetComponent<IElympicsLobbyWrapper>();
-                if (_lobby is null)
-                    throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
+                Lobby = GetComponent<IElympicsLobbyWrapper>() ?? throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
 
                 var gameConfig = ElympicsConfig.LoadCurrentElympicsGameConfig();
                 if (!gameConfig)
@@ -116,8 +117,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (sessionManager == null)
                     throw new ArgumentNullException(nameof(sessionManager), $"Couldn't find {nameof(sessionManager)} component on gameObject {gameObject.name}");
 
-                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, _lobby);
-                _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator, gameConfig!);
+                var launcher = ElympicsMatchLauncher.Instance;
+                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, Lobby);
+                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!, () => ElympicsMatchLauncher.Instance);
 
                 var authFactory = new AuthFactory();
                 authFactory.RegisterAuthProvider(GetComponent<IElympicsLobbyWrapper>(), LaunchMode.Lobby | LaunchMode.Gameplay);
@@ -135,18 +137,17 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     : new WebGLTournamentCommunicator(VirtualDepositCommunicator!, _playPadMessagingSystem);
                 GameStatusCommunicator = UseMockGameStatus
                     ? mockConfiguration!.customGameStatusCommunicator
-                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, _lobby, TournamentCommunicator!);
+                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, Lobby, TournamentCommunicator!, launcher);
                 ExternalUiCommunicator = UseMockExternalUi
                     ? mockConfiguration!.customExternalUiCommunicator
                     : new WebGLExternalUiCommunicator(_playPadMessagingSystem);
                 LeaderboardCommunicator = UseMockLeaderboard
                     ? mockConfiguration!.customLeaderboardCommunicator
                     : new WebGLLeaderboardCommunicator(_playPadMessagingSystem);
-                LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem);
+                LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem, _communicatorInternal);
                 Room.BeforeMarkYourselfReady = BeforeSetReady;
                 ExternalWebCommunicator = new WebGLWebCommunicator(_playPadMessagingSystem);
-                _sentry = new WebGLExternalSentryCommunicator(_playPadMessagingSystem);
-                LobbyRegister.PlayPadLobby = _communicatorInternal;
+                _sentry = new WebGLExternalSentryCommunicator(_playPadMessagingSystem, launcher);
                 Instance = this;
             }
             else
@@ -183,6 +184,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
             _heartbeat?.Dispose();
+            _sentry?.Dispose();
         }
 
         private bool UseMockAuth => useMockConfiguration

@@ -2,8 +2,8 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models.MyNamespace;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Tournament.Data;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Tournament

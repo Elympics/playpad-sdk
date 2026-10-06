@@ -1,6 +1,6 @@
 #nullable enable
 using System;
-using Elympics.Communication.Authentication.Models;
+using ElympicsPlayPad.Auth.Models;
 
 namespace ElympicsPlayPad.Leaderboard
 {

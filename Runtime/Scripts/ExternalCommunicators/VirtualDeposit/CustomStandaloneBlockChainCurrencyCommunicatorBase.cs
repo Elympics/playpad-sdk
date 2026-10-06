@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
+using ElympicsPlayPad.Lobby;
 using UnityEngine;
 
 #pragma warning disable 67 //An event was declared but never used in the class in which it was declared.

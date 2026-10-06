@@ -11,6 +11,7 @@ using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;

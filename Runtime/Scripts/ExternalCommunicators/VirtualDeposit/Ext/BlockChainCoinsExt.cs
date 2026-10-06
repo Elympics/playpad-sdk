@@ -1,13 +1,13 @@
 #nullable enable
 using System;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.Communication.Mappers;
 using Elympics.Core.Logger;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Rooms.Mappers;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 {

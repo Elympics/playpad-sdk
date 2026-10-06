@@ -1,5 +1,5 @@
 #nullable enable
-using Elympics;
+using ElympicsPlayPad.Lobby;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models
 {

@@ -2,8 +2,8 @@
 
 using System;
 using System.Globalization;
-using Elympics;
 using Elympics.Util;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Tournament.Data;

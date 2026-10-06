@@ -1,6 +1,6 @@
 #nullable enable
 using System;
-using Elympics;
+using ElympicsPlayPad.Lobby;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data

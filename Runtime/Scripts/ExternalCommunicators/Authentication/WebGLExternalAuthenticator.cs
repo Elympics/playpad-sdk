@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
-            return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
+            return new AuthData(Guid.Parse(result.userId), result.jwt, authType);
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
@@ -134,7 +134,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                         var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
                         var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
                         var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
-                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, authType);
                         AuthenticationUpdated?.Invoke(cached);
                         break;
                     }

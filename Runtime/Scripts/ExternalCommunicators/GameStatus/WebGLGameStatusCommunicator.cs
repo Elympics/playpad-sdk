@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
-using Elympics.Communication.Rooms.PublicModels;
 using Elympics.Core.Logger;
 using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
@@ -19,6 +18,8 @@ using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Rooms;
+using ElympicsPlayPad.Rooms.Models;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IElympicsLobbyWrapper _lobby;
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
+        private readonly IElympicsMatchLauncher _launcher;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(WebGLGameStatusCommunicator))
@@ -41,13 +43,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public WebGLGameStatusCommunicator(
             PlayPadMessagingSystem playPadMessagingSystem,
             IElympicsLobbyWrapper lobby,
-            IExternalTournamentCommunicator tournamentCommunicator)
+            IExternalTournamentCommunicator tournamentCommunicator,
+            IElympicsMatchLauncher launcher)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
             _lobby = lobby;
             _tournamentCommunicator = tournamentCommunicator;
-            _lobby.GameplaySceneMonitor.GameplayStarted += SendSystemInfoData;
+            _launcher = launcher;
+            _launcher.StateChanged += OnLauncherStateChanged;
             CrossAssemblyEventBroadcaster.AddObserver(this);
             _roomsManager = _lobby.RoomsManager;
         }
@@ -116,13 +120,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 
         }
 
+        private void OnLauncherStateChanged(MatchLauncherState state)
+        {
+            if (state == MatchLauncherState.Running)
+                SendSystemInfoData();
+        }
+
         private void SendSystemInfoData()
         {
-            var joinedRoom = _lobby.RoomsManager.CurrentRoom;
             var systemInfoDataMessage = new SystemInfoDataMessage
             {
-                userId = _lobby.AuthData!.UserId.ToString(),
-                matchId = joinedRoom?.State.MatchmakingData?.MatchData?.MatchId.ToString() ?? string.Empty,
+                userId = (LaunchedMatch.UserId ?? _lobby.AuthData?.UserId)?.ToString() ?? string.Empty,
+                matchId = LaunchedMatch.MatchId,
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData(),
             };
 
@@ -132,7 +141,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public void Dispose()
         {
             _playPadMessagingSystem.UnregisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
-            _lobby.GameplaySceneMonitor.GameplayStarted -= SendSystemInfoData;
+            _launcher.StateChanged -= OnLauncherStateChanged;
         }
         public void OnEvent(ElympicsStateChanged argument)
         {

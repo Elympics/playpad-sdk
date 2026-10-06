@@ -19,6 +19,7 @@ using ElympicsPlayPad.Session.Exceptions;
 using ElympicsPlayPad.Session.Strategies;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Utils;
+using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -113,12 +114,11 @@ namespace ElympicsPlayPad.Session
                 Debug.Log($"[CRITICAL] LaunchMode: {handshake.LaunchMode}, Int value: {(int)handshake.LaunchMode}");
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-#pragma warning disable CS0618 // Type or member is obsolete
+                var nickname = (_authProvider as IElympicsLobbyWrapper)?.ElympicsUser?.Nickname;
                 ElympicsLogger.State.SetUserId(authData.UserId);
                 ElympicsLogger.State.SetAuthType(authData.AuthType);
-                ElympicsLogger.State.SetNickname(authData.Nickname);
-#pragma warning restore CS0618 // Type or member is obsolete
-                logger.LogInfo($"Authentication succeeded: AuthType={authData.AuthType}, UserId={authData.UserId}, Nickname={authData.Nickname}");
+                ElympicsLogger.State.SetNickname(nickname);
+                logger.LogInfo($"Authentication succeeded: AuthType={authData.AuthType}, UserId={authData.UserId}, Nickname={nickname}");
                 await _initializationStrategy.InitializePostAuthenticationAsync(handshake, authData, _sessionManagerToken.Token);
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();

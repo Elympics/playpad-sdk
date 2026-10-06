@@ -1,10 +1,10 @@
 #nullable enable
 using System.Collections.Generic;
-using Elympics;
 using Elympics.AssemblyCommunicator.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Wrappers;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -38,9 +38,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 
         public void FlushRttBuffer()
         {
+            if (_rttBuffer.Count == 0)
+                return;
             var message = new NetworkStatusMessage
             {
-                matchId = LobbyRegister.GetMatchData()?.MatchId.ToString() ?? string.Empty,
+                matchId = LaunchedMatch.MatchId,
                 data = _rttBuffer,
                 receivedStats = _receivedStats,
             };

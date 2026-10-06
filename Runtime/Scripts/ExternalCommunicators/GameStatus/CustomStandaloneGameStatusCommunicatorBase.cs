@@ -3,8 +3,8 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+using ElympicsPlayPad.Rooms;
 using JetBrains.Annotations;
 using UnityEngine;
 

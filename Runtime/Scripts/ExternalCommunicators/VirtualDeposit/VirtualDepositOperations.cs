@@ -3,12 +3,13 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using Elympics.Util;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Rooms;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {

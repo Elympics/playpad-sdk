@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
-using Elympics.Models.Matchmaking;
 using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
 using ElympicsPlayPad.Protocol.Responses;
+using ElympicsPlayPad.Rooms;
+using ElympicsPlayPad.Rooms.Models;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 {
@@ -15,29 +16,22 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             return new LobbyInfo
             {
                 IsMatchReady = isMatchReady,
-                MatchData = isMatchReady ? MapToMatchmakingFinishedData(lobbyResponse) : null
+                MatchData = isMatchReady ? MapToMatchData(lobbyResponse) : null,
             };
         }
 
-        private static MatchmakingFinishedData MapToMatchmakingFinishedData(LobbyStatusResponse response)
+        private static RoomMatchData MapToMatchData(LobbyStatusResponse response)
         {
             var matchId = new Guid(response.matchId);
             var matchedPlayers = response.matchedPlayers?.Select(x => new Guid(x)).ToArray() ?? Array.Empty<Guid>();
             var gameEngineData = response.gameEngineData ?? Array.Empty<byte>();
             var matchmakerData = response.matchmakerData ?? Array.Empty<float>();
 
-            return new MatchmakingFinishedData(
+            return new RoomMatchData(
                 matchId,
-                response.userSecret,
+                new MatchDetails(matchedPlayers, response.tcpUdpServerAddress, response.webServerAddress, response.userSecret, gameEngineData, matchmakerData),
                 response.queueName,
-                response.regionName,
-                gameEngineData,
-                matchmakerData,
-                response.tcpUdpServerAddress,
-                response.webServerAddress,
-                matchedPlayers
-            );
+                response.regionName);
         }
-
     }
 }

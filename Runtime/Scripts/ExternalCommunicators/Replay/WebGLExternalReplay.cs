@@ -70,7 +70,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
         {
             if (_snapshotAnalysisRetriever == null)
                 throw new InvalidOperationException("No replay has been found.");
-            _lobbyWrapper.WatchReplay();
+            _lobbyWrapper.WatchReplay(_snapshotAnalysisRetriever);
         }
         SnapshotAnalysisRetriever IExternalReplayCommunicator.SnapshotRetriever() => _snapshotAnalysisRetriever;
         public void OnEvent(ElympicsStateChanged argument)

@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.ObjectModel;
-using Elympics;
-using Elympics.Communication.Authentication.Models;
+using ElympicsPlayPad.Auth.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament.Models;
+using ElympicsPlayPad.Lobby;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Tournament.Data
