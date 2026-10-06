@@ -3,13 +3,6 @@ const elympicsconnect = {
     handleSignTypedData: (eventName, params) => {
       window.dispatchReactUnityEvent(eventName, params);
     },
-
-    stringToBuffer: (text) => {
-      const bufferSize = lengthBytesUTF8(text) + 1;
-      const buffer = _malloc(bufferSize);
-      stringToUTF8(text, buffer, bufferSize);
-      return buffer;
-    },
   },
 
   // biome-ignore lint/complexity/useArrowFunction: <explanation>
@@ -17,24 +10,6 @@ const elympicsconnect = {
     const event = UTF8ToString(eventName);
     const messageStructure = UTF8ToString(json);
     requestHandler.handleSignTypedData(event, messageStructure);
-  },
-
-  // biome-ignore lint/complexity/useArrowFunction: <explanation>
-  ElympicsGetHref: function () {
-    try {
-      const href =
-        (typeof window !== "undefined" &&
-          window.unityGameOptions &&
-          typeof window.unityGameOptions.href === "string" &&
-          window.unityGameOptions.href) ||
-        "";
-      return requestHandler.stringToBuffer(href);
-    } catch (error) {
-      console.error(
-        `ElympicsGetHref failed, empty string will be returned. Error:\n${error}`,
-      );
-      return requestHandler.stringToBuffer("");
-    }
   },
 };
 
