@@ -1,0 +1,13 @@
+#nullable enable
+
+using System;
+using MessagePack;
+
+namespace ElympicsPlayPad.Lobby.InternalModels.Rooms
+{
+    [MessagePackObject]
+    public record RoomCoinDto(
+        [property: Key(0)] Guid CoinId,
+        [property: Key(1)] RoomChainDto Chain,
+        [property: Key(2)] RoomCurrencyDto Currency);
+}
