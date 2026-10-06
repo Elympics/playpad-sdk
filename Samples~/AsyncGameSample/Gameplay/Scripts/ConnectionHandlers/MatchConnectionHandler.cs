@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
-using ElympicsPlayPad.Lobby;
 using MatchTcpClients.Synchronizer;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Lobby;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -34,14 +36,18 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             if (disconnectionMask == null)
                 throw new NullReferenceException($"You need to provide {nameof(MatchDisconnectionMask)} for connection issues handling - ensure that it is assigned to the {nameof(MatchConnectionHandler)} component");
 
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
             if (PlayPadCommunicator.Instance != null)
                 PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost += OnConnectionLost;
+#endif
         }
 
         private void OnDestroy()
         {
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
             if (PlayPadCommunicator.Instance != null)
                 PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
+#endif
         }
 
         #region happy path
@@ -114,6 +120,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         #endregion
 
         #region failing paths
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         private void OnConnectionLost(ElympicsConnectionLostData lostData)
         {
             var data = lostData.DisconnectionData;
@@ -129,6 +136,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection($"Web socket disconnected: {data.Reason}. Check your Internet connection and reload the game.");
         }
+#endif
 
         public void OnConnectingFailed()
         {

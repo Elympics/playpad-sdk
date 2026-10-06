@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 #nullable enable
 
 using System;
@@ -452,7 +453,10 @@ namespace ElympicsPlayPad.Wrappers
             if (_launcher.State != MatchLauncherState.Idle)
                 throw new InvalidOperationException($"The match launcher is {_launcher.State}, so the match found in the room cannot be played.");
             _logger.WithMethodName().LogInfo("Play match.");
-            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _useWeb, matchData, AuthData!.UserId, ct));
+            var details = matchData.MatchDetails;
+            var match = new FoundMatch(matchData.MatchId, details.MatchedPlayersId, details.TcpUdpServerAddress, details.WebServerAddress, details.UserSecret,
+                details.GameEngineData, details.MatchmakerData, matchData.QueueName, matchData.RegionName);
+            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _useWeb, match, AuthData!.UserId, ct));
         }
 
         #endregion
@@ -617,3 +621,4 @@ namespace ElympicsPlayPad.Wrappers
         }
     }
 }
+#endif

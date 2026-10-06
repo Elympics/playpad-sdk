@@ -1,4 +1,5 @@
 #nullable enable
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -13,20 +14,26 @@ using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Serialization.Resolvers;
-using ElympicsPlayPad.Utility;
 using MessagePack;
 using MessagePack.Resolvers;
 using Plugins.Elympics.Plugins.ParrelSync;
-using UnityEngine;
 using LobbyRoutes = ElympicsPlayPad.Lobby.InternalModels.Routes;
+#endif
+using ElympicsPlayPad.Utility;
+using UnityEngine;
 
 namespace ElympicsPlayPad.Wrappers
 {
+    /// <remarks>WebGL builds keep the lobby only with ELYMPICS_PLAYPAD_KEEP_LOBBY. Without it this component is empty.</remarks>
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.LobbyWrapper)]
-    public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
+    public class DefaultElympicsLobbyWrapper : MonoBehaviour
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        , IElympicsLobbyWrapper
+#endif
     {
-        [Tooltip("Default value of " + nameof(ShouldLoadGameplaySceneAfterMatchmaking) + ". It can be changed at runtime.")]
+        [Tooltip("Default value of ShouldLoadGameplaySceneAfterMatchmaking. It can be changed at runtime.")]
         [SerializeField] private bool shouldLoadGameplaySceneAfterMatchmaking = true;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 
         private LobbyClient? _client;
         internal LobbyClient Client => _client ?? throw new InvalidOperationException($"{nameof(DefaultElympicsLobbyWrapper)} has not been initialized.");
@@ -140,5 +147,6 @@ namespace ElympicsPlayPad.Wrappers
         }
 
         private static string CreateNewClientSecret() => Guid.NewGuid().ToString();
+#endif
     }
 }

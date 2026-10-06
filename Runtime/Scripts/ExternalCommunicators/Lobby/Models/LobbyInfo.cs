@@ -1,11 +1,11 @@
 #nullable enable
-using ElympicsPlayPad.Rooms;
+using ElympicsPlayPad.Wrappers;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby.Models
 {
     public struct LobbyInfo
     {
         public bool IsMatchReady;
-        internal RoomMatchData? MatchData;
+        internal FoundMatch? MatchData;
     }
 }

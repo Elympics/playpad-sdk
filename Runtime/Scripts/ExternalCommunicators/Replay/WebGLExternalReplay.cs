@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.AssemblyCommunicator;
-using Elympics.AssemblyCommunicator.Events;
 using Elympics.Core.Logger;
 using Elympics.SnapshotAnalysis.Retrievers;
 using Elympics.SnapshotAnalysis.Serialization;
@@ -10,26 +10,40 @@ using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.WebMessages;
-using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Replay
 {
-    internal class WebGLExternalReplay : IExternalReplayCommunicator, IWebMessageReceiver, IElympicsObserver<ElympicsStateChanged>
+    internal class WebGLExternalReplay : IExternalReplayCommunicator, IWebMessageReceiver
     {
         public event Action ReplayRetrieved;
-        private readonly IElympicsLobbyWrapper _lobbyWrapper;
+        private readonly Action<SnapshotAnalysisRetriever> _watchReplay;
+        private bool _replayLaunched;
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(WebGLExternalReplay))
             .WithMonitoringEnabled();
         private byte[] _currentRawReplay;
         private SnapshotAnalysisRetriever _snapshotAnalysisRetriever;
-        public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, IElympicsLobbyWrapper lobbyWrapper)
+        /// <param name="watchReplay">Launches the replay. The lobby wrapper does it when it is compiled in, so its state is reported.</param>
+        public WebGLExternalReplay(PlayPadMessagingSystem playPadMessagingSystem, IElympicsMatchLauncher launcher, Action<SnapshotAnalysisRetriever> watchReplay)
         {
-            _lobbyWrapper = lobbyWrapper;
-            CrossAssemblyEventBroadcaster.AddObserver(this);
+            _watchReplay = watchReplay;
+            launcher.StateChanged += state =>
+            {
+                if (state != MatchLauncherState.Idle || !_replayLaunched)
+                    return;
+                _replayLaunched = false;
+                _snapshotAnalysisRetriever = null;
+            };
             playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.SnapshotReplay);
         }
+
+        public static void LaunchReplay(string gameId, SnapshotAnalysisRetriever retriever) =>
+            ElympicsMatchLauncher.Current!.LaunchSnapshotReplayAsync(gameId, retriever, null, CancellationToken.None).ContinueWith(result =>
+            {
+                if (!result.Success)
+                    ElympicsLogger.LogError(result.ToString());
+            }).Forget();
 
         public void OnWebMessage(WebMessage message)
         {
@@ -70,13 +84,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Replay
         {
             if (_snapshotAnalysisRetriever == null)
                 throw new InvalidOperationException("No replay has been found.");
-            _lobbyWrapper.WatchReplay(_snapshotAnalysisRetriever);
+            _replayLaunched = true;
+            _watchReplay(_snapshotAnalysisRetriever);
         }
         SnapshotAnalysisRetriever IExternalReplayCommunicator.SnapshotRetriever() => _snapshotAnalysisRetriever;
-        public void OnEvent(ElympicsStateChanged argument)
-        {
-            if (argument.PreviousState == ElympicsState.WatchReplay)
-                _snapshotAnalysisRetriever = null;
-        }
     }
 }

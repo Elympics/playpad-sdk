@@ -1,7 +1,9 @@
 using ElympicsPlayPad.ExternalCommunicators;
-using ElympicsPlayPad.Lobby;
 using TMPro;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Lobby;
+#endif
 
 public class DisconnectionPopup : MonoBehaviour
 {
@@ -14,19 +16,24 @@ public class DisconnectionPopup : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         if (PlayPadCommunicator.Instance != null)
         {
             PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
             PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost += OnConnectionLost;
         }
+#endif
     }
 
     private void OnDestroy()
     {
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         if (PlayPadCommunicator.Instance != null)
             PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
+#endif
     }
 
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
     private void OnConnectionLost(ElympicsConnectionLostData lostData)
     {
         var data = lostData.DisconnectionData;
@@ -43,4 +50,5 @@ public class DisconnectionPopup : MonoBehaviour
         disconnectionPopupObject.SetActive(true);
         errorText.text = disconnectedMessage;
     }
+#endif
 }

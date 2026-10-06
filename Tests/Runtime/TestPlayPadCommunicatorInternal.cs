@@ -7,8 +7,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using ElympicsPlayPad.Rooms;
-using ElympicsPlayPad.Rooms.Models;
 using ElympicsPlayPad.Wrappers;
 using NSubstitute;
 using NUnit.Framework;
@@ -50,10 +48,8 @@ namespace ElympicsPlayPad.Tests
             return sut;
         }
 
-        private static RoomMatchData Match(string tcpUdpAddress = TcpUdpAddress, string webAddress = WebAddress) => new(MatchId,
-            new MatchDetails(new[] { UserId, OtherPlayer }, tcpUdpAddress, webAddress, "user-secret", new byte[] { 1, 2 }, new[] { 0.5f }),
-            "queue",
-            "warsaw");
+        private static FoundMatch Match(string tcpUdpAddress = TcpUdpAddress, string webAddress = WebAddress) =>
+            new(MatchId, new[] { UserId, OtherPlayer }, tcpUdpAddress, webAddress, "user-secret", new byte[] { 1, 2 }, new[] { 0.5f }, "queue", "warsaw");
 
         [UnityTest]
         public IEnumerator WebRtcGameLaunchesOnlineWithTheWebAddress() => UniTask.ToCoroutine(async () =>

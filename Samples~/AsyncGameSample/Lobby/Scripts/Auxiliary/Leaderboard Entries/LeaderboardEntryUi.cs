@@ -43,7 +43,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void HighlightCurrentPlayer(Placement leaderboardPlacement)
         {
-            bool isCurrentPlayer = leaderboardPlacement.User.UserId == PlayPadCommunicator.Instance?.Lobby.AuthData?.UserId;
+            bool isCurrentPlayer = leaderboardPlacement.User.UserId == PlayPadCommunicator.Instance?.SessionManager.CurrentSession?.AuthData.UserId;
 
             if (isCurrentPlayer)
                 playerHighlighter.Highlight();

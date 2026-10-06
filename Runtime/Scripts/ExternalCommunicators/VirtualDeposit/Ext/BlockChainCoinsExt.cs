@@ -7,7 +7,6 @@ using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Models;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
-using ElympicsPlayPad.Rooms.Mappers;
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit.Ext
 {

@@ -19,9 +19,11 @@ using ElympicsPlayPad.Session.Exceptions;
 using ElympicsPlayPad.Session.Strategies;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Utils;
-using ElympicsPlayPad.Wrappers;
 using JetBrains.Annotations;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Wrappers;
+#endif
 
 namespace ElympicsPlayPad.Session
 {
@@ -114,7 +116,11 @@ namespace ElympicsPlayPad.Session
                 Debug.Log($"[CRITICAL] LaunchMode: {handshake.LaunchMode}, Int value: {(int)handshake.LaunchMode}");
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
                 var nickname = (_authProvider as IElympicsLobbyWrapper)?.ElympicsUser?.Nickname;
+#else
+                string? nickname = null;
+#endif
                 ElympicsLogger.State.SetUserId(authData.UserId);
                 ElympicsLogger.State.SetAuthType(authData.AuthType);
                 ElympicsLogger.State.SetNickname(nickname);

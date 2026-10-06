@@ -4,7 +4,9 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 using ElympicsPlayPad.Rooms;
+#endif
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -20,7 +22,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public abstract void ShowReconnectingScreen();
         public abstract void HideReconnectingScreen();
         public abstract UniTask<PlayStatusInfo> CanPlayGame(bool autoResolve, CancellationToken ct = default);
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         public abstract UniTask<IRoom> PlayGame(PlayGameConfig queueName, CancellationToken ct = default);
+#endif
         [Obsolete("Replaced by new automatic RTT reporting system.", false)]
         public virtual void RttUpdated(TimeSpan rtt) { }
     }

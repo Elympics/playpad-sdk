@@ -15,4 +15,7 @@ trap 'rm -rf "$SCRATCH"' EXIT
 OBJ="$SCRATCH/obj/"
 command -v cygpath >/dev/null && OBJ="$(cygpath -w "$OBJ")"
 export BaseIntermediateOutputPath="$OBJ"
-mpc -i "$HOST/ElympicsPlayPad.Lobby.csproj" -o "$PACKAGE/Runtime/Plugins/MessagePackGenerated.cs" -r PlayPadGeneratedResolver -n ElympicsPlayPad.Serialization
+OUT="$PACKAGE/Runtime/Plugins/MessagePackGenerated.cs"
+mpc -i "$HOST/ElympicsPlayPad.Lobby.csproj" -o "$OUT" -r PlayPadGeneratedResolver -n ElympicsPlayPad.Serialization
+# The lobby DTOs exist only where ElympicsPlayPad.Lobby is compiled (see its asmdef defineConstraints).
+{ printf '#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY\r\n'; cat "$OUT"; printf '#endif\r\n'; } > "$OUT.tmp" && mv "$OUT.tmp" "$OUT"

@@ -4,10 +4,12 @@ using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
 using UnityEngine.Assertions;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Rooms;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -77,26 +79,31 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             currentPlayButtonView.UpdatePlayButton(info);
         }
 
-        private void PlayTournament()
-        {
-            UniTask<IRoom> roomTask = PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
-            PlayGameAsync(roomTask).Forget();
-        }
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        private void PlayTournament() => PlayGameAsync(PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue })).Forget();
 
-        private void PlayTraining()
-        {
-            UniTask<IRoom> roomTask = PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue);
-            PlayGameAsync(roomTask).Forget();
-        }
+        private void PlayTraining() => PlayGameAsync(PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue)).Forget();
+#else
+        // Without the lobby, the web page matchmakes and both buttons play the match it found.
+        private void PlayTournament() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
 
-        private async UniTask PlayGameAsync(UniTask<IRoom> roomTask)
+        private void PlayTraining() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
+
+        private static UniTask PlayWebLobbyMatch()
+        {
+            PlayPadCommunicator.Instance!.LobbyCommunicator!.PlayMatch();
+            return UniTask.CompletedTask;
+        }
+#endif
+
+        private async UniTask PlayGameAsync(UniTask matchTask)
         {
             Assert.IsNotNull(MatchConnectingMask.Instance);
             MatchConnectingMask.Instance.ShowOrUpdate(ConnectingSubText);
 
             try
             {
-                _ = await roomTask;
+                await matchTask;
             }
             catch (Exception e)
             {

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 #nullable enable
 
 using System;
@@ -78,3 +79,4 @@ namespace ElympicsPlayPad.Wrappers.Connection
             throw new ElympicsException("Connecting canceled because user is not authenticated.");
     }
 }
+#endif

@@ -7,7 +7,7 @@ using Elympics.Core.Logger;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace ElympicsPlayPad.Rooms.Mappers
+namespace ElympicsPlayPad.Lobby
 {
     internal static class CoinIcons
     {

@@ -1,9 +1,11 @@
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
-using ElympicsPlayPad.Rooms.Models;
 using ElympicsPlayPad.Session;
 using UnityEngine;
 using UnityEngine.Assertions;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Rooms.Models;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -58,10 +60,12 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not
         private void RejoinIfHasOngoingMatch()
         {
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
             var currentRoom = PlayPadCommunicator.Instance?.Lobby.RoomsManager.CurrentRoom;
 
             if (currentRoom?.State.MatchmakingData?.MatchData?.State == MatchState.Running)
                 currentRoom.PlayAvailableMatch();
+#endif
         }
 
         private void OnDestroy()

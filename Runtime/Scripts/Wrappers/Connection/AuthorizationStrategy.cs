@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 #nullable enable
 
 using System;
@@ -97,3 +98,4 @@ namespace ElympicsPlayPad.Wrappers.Connection
         }
     }
 }
+#endif

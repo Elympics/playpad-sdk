@@ -3,7 +3,6 @@ using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
@@ -26,7 +25,7 @@ namespace ElympicsPlayPad
             _launcher = launcher;
         }
 
-        public UniTask<ElympicsLaunchResult> PlayMatchInternal(RoomMatchData matchData)
+        public UniTask<ElympicsLaunchResult> PlayMatchInternal(FoundMatch matchData)
         {
             var userId = AuthData?.UserId ?? throw new InvalidOperationException("Cannot play a match before authentication.");
             return MatchLaunching.LaunchAsync(_launcher(), _gameId, _useWeb, matchData, userId);

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 #nullable enable
 using System;
 using System.Collections.Generic;
@@ -49,3 +50,4 @@ namespace ElympicsPlayPad.Wrappers
         internal void WatchReplay(SnapshotAnalysisRetriever retriever);
     }
 }
+#endif

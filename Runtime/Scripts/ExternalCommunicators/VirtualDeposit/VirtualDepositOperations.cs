@@ -9,12 +9,15 @@ using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Requests;
 using ElympicsPlayPad.Protocol.Responses;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 using ElympicsPlayPad.Rooms;
+#endif
 
 namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
 {
     internal static class VirtualDepositOperations
     {
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         public static async UniTask<SignProofOfEntryResult> SignProofOfEntry(PlayPadMessagingSystem jsCommunicator, IRoom room, CancellationToken ct)
         {
             var betDetails = room.State.MatchmakingData?.BetDetails;
@@ -30,6 +33,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.VirtualDeposit
             var response = await jsCommunicator.SendRequestMessage<SignProofOfEntryRequest, ResultPayloadResponse>(RequestResponseMessageTypes.SignProofOfEntry, request, ct);
             return new SignProofOfEntryResult(response.success, response.error);
         }
+#endif
 
         public static async UniTask<EnsureDepositInfo> EnsureVirtualDeposit(PlayPadMessagingSystem jsCommunicator, decimal amount, CoinInfo coinInfo, CancellationToken ct = default)
         {
