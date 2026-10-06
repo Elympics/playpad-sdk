@@ -41,6 +41,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         /// <summary>Ends the match: the match launcher returns to the boot scene, which is the lobby scene.</summary>
         [UsedImplicitly] // by BackToLobbyButton
-        public void ReturnToLobby() => ElympicsMatchLauncher.Instance.AbortMatchAsync().Forget();
+        public void ReturnToLobby() => ElympicsMatchLauncher.Instance.ReturnToBootAsync().Forget();
     }
 }
