@@ -13,6 +13,7 @@ using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Serialization.Resolvers;
+using ElympicsPlayPad.Utility;
 using MessagePack;
 using MessagePack.Resolvers;
 using Plugins.Elympics.Plugins.ParrelSync;
@@ -21,6 +22,7 @@ using LobbyRoutes = ElympicsPlayPad.Lobby.InternalModels.Routes;
 
 namespace ElympicsPlayPad.Wrappers
 {
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.LobbyWrapper)]
     public class DefaultElympicsLobbyWrapper : MonoBehaviour, IElympicsLobbyWrapper
     {
         [Tooltip("Default value of " + nameof(ShouldLoadGameplaySceneAfterMatchmaking) + ". It can be changed at runtime.")]
