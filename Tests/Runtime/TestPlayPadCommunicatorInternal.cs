@@ -117,6 +117,21 @@ namespace ElympicsPlayPad.Tests
             Assert.That(LaunchedMatch.MatchId, Is.Empty);
         });
 
+        [UnityTest]
+        public IEnumerator LaunchWhileAnotherMatchRunsKeepsThatMatchRecorded() => UniTask.ToCoroutine(async () =>
+        {
+            var runningMatch = Guid.NewGuid();
+            LaunchedMatch.Set(runningMatch, OtherPlayer);
+            _ = _launcher.State.Returns(MatchLauncherState.Running);
+
+            var result = await CreateAuthenticated(useWeb: true).PlayMatchInternal(Match());
+
+            Assert.That(result.Code, Is.EqualTo(ElympicsLaunchErrorCode.Busy));
+            Assert.That(LaunchedMatch.MatchId, Is.EqualTo(runningMatch.ToString()));
+            Assert.That(LaunchedMatch.UserId, Is.EqualTo(OtherPlayer));
+            _ = _launcher.DidNotReceive().LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+        });
+
         [Test]
         public void PlayingBeforeAuthenticationThrows()
         {

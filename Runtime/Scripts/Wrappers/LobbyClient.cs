@@ -381,6 +381,7 @@ namespace ElympicsPlayPad.Wrappers
             switch (_connectionState)
             {
                 case ElympicsState.Connected:
+                    ThrowIfLaunched(nameof(IMatchLauncher.StartMatchmaking));
                     await room.StartMatchmakingInternal();
                     SetConnectionState(ElympicsState.Matchmaking);
                     break;
@@ -448,8 +449,8 @@ namespace ElympicsPlayPad.Wrappers
         {
             if (_connectionState != ElympicsState.Connected || _launch != LaunchKind.None)
                 throw new ElympicsException(ErrorMessage(nameof(IMatchLauncher.PlayMatch)));
-            if (_launcher.IsCurrentlyInMatch)
-                throw new InvalidOperationException("A match is already running.");
+            if (_launcher.State != MatchLauncherState.Idle)
+                throw new InvalidOperationException($"The match launcher is {_launcher.State}, so the match found in the room cannot be played.");
             _logger.WithMethodName().LogInfo("Play match.");
             BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _useWeb, matchData, AuthData!.UserId, ct));
         }
@@ -493,7 +494,7 @@ namespace ElympicsPlayPad.Wrappers
             if (result.Success)
                 return;
             logger.LogError(result.ToString());
-            // A failed launch that was accepted ends at Idle; a rejected one never left it.
+            // A failed launch that was accepted ends at Idle; a rejected one never left it (PlayMatch only launches from Idle).
             if (_launcher.State == MatchLauncherState.Idle)
                 EndLaunch();
         }

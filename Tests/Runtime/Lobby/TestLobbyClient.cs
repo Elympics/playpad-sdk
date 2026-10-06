@@ -296,6 +296,31 @@ namespace ElympicsPlayPad.Tests.Lobby
             Assert.That(_sut.State, Is.EqualTo(ElympicsState.PlayingMatch));
         });
 
+        [UnityTest]
+        public IEnumerator MatchmakingDuringAMatchIsRefused() => UniTask.ToCoroutine(async () =>
+        {
+            await Connect();
+            ((IMatchLauncher)_sut).PlayMatch(Match());
+            var room = Substitute.For<IRoom>();
+
+            _ = await AsyncAsserts.AssertThrowsAsync<ElympicsException>(((IMatchLauncher)_sut).StartMatchmaking(room));
+
+            _ = room.DidNotReceive().StartMatchmakingInternal();
+            Assert.That(_sut.State, Is.EqualTo(ElympicsState.PlayingMatch));
+        });
+
+        [UnityTest]
+        public IEnumerator RoomsMatchIsRefusedWhileTheLauncherIsUnloading() => UniTask.ToCoroutine(async () =>
+        {
+            await Connect();
+            _ = _launcher.State.Returns(MatchLauncherState.Unloading);
+
+            _ = Assert.Throws<InvalidOperationException>(() => ((IMatchLauncher)_sut).PlayMatch(Match()));
+
+            Assert.That(_sut.State, Is.EqualTo(ElympicsState.Connected));
+            _ = _launcher.DidNotReceive().LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+        });
+
         [Test]
         public void ReplayIsWatchedWithoutALobbyConnection()
         {

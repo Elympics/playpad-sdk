@@ -35,6 +35,10 @@ namespace ElympicsPlayPad.Wrappers
         public static async UniTask<ElympicsLaunchResult> LaunchAsync(IElympicsMatchLauncher launcher, string gameId, bool useWeb, RoomMatchData match, Guid userId,
             CancellationToken ct = default)
         {
+            // Recording the match below would overwrite the one the launcher is still running.
+            if (launcher.State != MatchLauncherState.Idle)
+                return ElympicsLaunchResult.Failed(string.Empty, ElympicsLaunchErrorCode.Busy, $"A match is already {launcher.State}.");
+
             var details = match.MatchDetails;
             ElympicsLogger.State.SetMatchId(match.MatchId.ToString());
             ElympicsLogger.State.SetQueue(match.QueueName);
@@ -53,8 +57,7 @@ namespace ElympicsPlayPad.Wrappers
                 result = await launcher.LaunchOnlineAsync(gameId, data, ct: ct);
             }
 
-            // A busy launcher keeps running the match it already has.
-            if (!result.Success && result.Code != ElympicsLaunchErrorCode.Busy)
+            if (!result.Success)
                 LaunchedMatch.Clear();
             return result;
         }
