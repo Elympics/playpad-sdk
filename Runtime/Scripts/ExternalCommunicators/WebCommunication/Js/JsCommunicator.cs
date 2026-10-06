@@ -38,10 +38,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             WebMessageReceived?.Invoke(messageObject);
         }
 
+        [UsedImplicitly]
         public void HandleWebRequest(string messageObject)
         {
             Debug.Log($"From JS: handle web request {messageObject}");
-            WebMessageReceived?.Invoke(messageObject);
+            WebRequestMessageReceived?.Invoke(messageObject);
         }
 
         public void SendRequestMessage(string messageType, string jsonMessage) => DispatchMessage(messageType, jsonMessage);

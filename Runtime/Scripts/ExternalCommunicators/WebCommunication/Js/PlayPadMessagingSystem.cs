@@ -21,12 +21,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private int _requestCounter;
         private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
-        public void Init(PlayPadCommunicatorFactory factory)
+        public void Init(PlayPadCommunicatorFactory factory) => Init(factory.GetPlayPadCommunicator());
+
+        internal void Init(IPlayPadCommunicator communicator)
         {
             _messageFactory = new PlayPadMessageFactory();
             _dispatcher = new RequestMessageDispatcher();
-            playpadCommunicator = factory.GetPlayPadCommunicator();
+            playpadCommunicator = communicator;
             playpadCommunicator.WebMessageReceived += OnWebMessageReceived;
+            // Web requests have no handler of their own yet, so they are dispatched like web messages.
+            playpadCommunicator.WebRequestMessageReceived += OnWebMessageReceived;
             playpadCommunicator.ResponseMessageReceived += OnResponseMessageReceived;
         }
 
@@ -83,6 +87,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             playpadCommunicator.Dispose();
             playpadCommunicator.WebMessageReceived -= OnWebMessageReceived;
+            playpadCommunicator.WebRequestMessageReceived -= OnWebMessageReceived;
             playpadCommunicator.ResponseMessageReceived -= OnResponseMessageReceived;
 
         }
