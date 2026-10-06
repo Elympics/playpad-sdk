@@ -12,6 +12,7 @@ using ElympicsPlayPad.Auth.Models;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Rooms;
+using ElympicsPlayPad.Serialization.Resolvers;
 using MessagePack;
 using MessagePack.Resolvers;
 using Plugins.Elympics.Plugins.ParrelSync;
@@ -79,9 +80,10 @@ namespace ElympicsPlayPad.Wrappers
 
         private void OnDestroy() => _client?.Dispose();
 
-        /// <summary>Ordered like core's <see cref="ResolverRegistrator"/>.</summary>
+        /// <summary>PlayPad's lobby formatters first, then core's resolvers ordered like <see cref="ResolverRegistrator"/>.</summary>
         internal static MessagePackSerializerOptions CreateSerializerOptions() =>
             MessagePackSerializerOptions.Standard.WithResolver(CompositeResolver.Create(
+                PlayPadGeneratedResolver.Instance,
                 GeneratedResolver.Instance,
                 AttributeFormatterResolver.Instance,
                 BuiltinResolver.Instance,
