@@ -25,7 +25,6 @@ using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace ElympicsPlayPad.Tests
 {
@@ -77,9 +76,10 @@ namespace ElympicsPlayPad.Tests
         public IEnumerator SetUp()
         {
             yield return LoadTestScene();
-            yield return WaitUntilOrFail(() => Object.FindObjectOfType<SessionManager>() != null, nameof(SessionManager));
-            _sut = Object.FindObjectOfType<SessionManager>();
+            yield return WaitUntilOrFail(() => PlayPadCommunicator.Instance != null, nameof(PlayPadCommunicator));
+            // From the second test on, the scene's communicator is a duplicate of the surviving one and is about to be destroyed.
             _communicator = PlayPadCommunicator.Instance;
+            _sut = _communicator!.GetComponent<SessionManager>();
             Assert.NotNull(_communicator);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.ExternalAuthenticatorFieldName, AuthMock);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.GameStatusCommunicatorFieldName, GameMock);
