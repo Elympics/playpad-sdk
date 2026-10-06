@@ -7,6 +7,9 @@
         "UniTask",
         "MessagePack",
         "ElympicsPlayPad",
+        "ElympicsPlayPad.Auth",
+        "ElympicsPlayPad.Lobby",
+        "ElympicsPlayPad.Rooms",
         "SmartContractService",
         "AssemblyCommunicator",
         "Elympics.Core"

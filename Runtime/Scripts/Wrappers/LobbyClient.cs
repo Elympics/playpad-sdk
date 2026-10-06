@@ -74,6 +74,7 @@ namespace ElympicsPlayPad.Wrappers
         private readonly IElympicsMatchLauncher _launcher;
         private readonly ReplayLauncher _launchReplay;
         private readonly ElympicsGameConfig _gameConfig;
+        private readonly bool _useWeb;
         private readonly string _lobbyUrl;
         private SessionConnectionFactory? _sessionConnectionFactory;
 
@@ -88,6 +89,7 @@ namespace ElympicsPlayPad.Wrappers
             IElympicsMatchLauncher launcher,
             ReplayLauncher launchReplay,
             ElympicsGameConfig gameConfig,
+            bool useWeb,
             string lobbyUrl,
             Func<IWebSocketSessionController, WebSocketSession> createSession)
         {
@@ -97,6 +99,7 @@ namespace ElympicsPlayPad.Wrappers
             _launcher = launcher;
             _launchReplay = launchReplay;
             _gameConfig = gameConfig;
+            _useWeb = useWeb;
             _lobbyUrl = lobbyUrl;
             WebSocketSession = createSession(this);
             var roomsClient = new RoomsClient
@@ -448,7 +451,7 @@ namespace ElympicsPlayPad.Wrappers
             if (_launcher.IsCurrentlyInMatch)
                 throw new InvalidOperationException("A match is already running.");
             _logger.WithMethodName().LogInfo("Play match.");
-            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig, matchData, AuthData!.UserId, ct));
+            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _useWeb, matchData, AuthData!.UserId, ct));
         }
 
         #endregion

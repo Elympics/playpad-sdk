@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
@@ -17,6 +16,7 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
+using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
@@ -110,7 +110,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             var currentPlayStatus = new PlayStatusInfo
             {
@@ -152,7 +152,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
@@ -183,7 +183,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();

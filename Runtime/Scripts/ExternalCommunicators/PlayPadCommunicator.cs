@@ -119,7 +119,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
                 var launcher = ElympicsMatchLauncher.Instance;
                 ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, Lobby);
-                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!, () => ElympicsMatchLauncher.Instance);
+                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!.GameId, gameConfig.UseWeb, () => ElympicsMatchLauncher.Instance);
 
                 var authFactory = new AuthFactory();
                 authFactory.RegisterAuthProvider(GetComponent<IElympicsLobbyWrapper>(), LaunchMode.Lobby | LaunchMode.Gameplay);

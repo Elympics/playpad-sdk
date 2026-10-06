@@ -31,7 +31,8 @@ namespace ElympicsPlayPad.Wrappers
     internal static class MatchLaunching
     {
         /// <summary>A match without game server addresses is a single-player match.</summary>
-        public static async UniTask<ElympicsLaunchResult> LaunchAsync(IElympicsMatchLauncher launcher, ElympicsGameConfig gameConfig, RoomMatchData match, Guid userId,
+        /// <param name="useWeb">Usually <see cref="ElympicsGameConfig.UseWeb"/>: picks the WebRTC or the TCP/UDP game server address.</param>
+        public static async UniTask<ElympicsLaunchResult> LaunchAsync(IElympicsMatchLauncher launcher, string gameId, bool useWeb, RoomMatchData match, Guid userId,
             CancellationToken ct = default)
         {
             var details = match.MatchDetails;
@@ -42,14 +43,14 @@ namespace ElympicsPlayPad.Wrappers
 
             ElympicsLaunchResult result;
             if (string.IsNullOrEmpty(details.WebServerAddress) && string.IsNullOrEmpty(details.TcpUdpServerAddress))
-                result = await launcher.LaunchSinglePlayerAsync(gameConfig.GameId,
+                result = await launcher.LaunchSinglePlayerAsync(gameId,
                     new SinglePlayerLaunchData(match.MatchId, userId, match.QueueName, match.RegionName, details.GameEngineData, details.MatchmakerData), ct: ct);
             else
             {
-                var useTcpUdp = !gameConfig.UseWeb;
+                var useTcpUdp = !useWeb;
                 var data = new OnlineLaunchData(useTcpUdp ? details.TcpUdpServerAddress : details.WebServerAddress, useTcpUdp, match.MatchId, details.UserSecret, userId,
                     details.MatchedPlayersId, match.RegionName, details.GameEngineData, details.MatchmakerData);
-                result = await launcher.LaunchOnlineAsync(gameConfig.GameId, data, ct: ct);
+                result = await launcher.LaunchOnlineAsync(gameId, data, ct: ct);
             }
 
             // A busy launcher keeps running the match it already has.

@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
+using Elympics.SnapshotAnalysis.Retrievers;
+using ElympicsPlayPad.Auth.Models;
+using ElympicsPlayPad.Lobby;
+using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 
@@ -10,9 +16,15 @@ namespace ElympicsPlayPad.Tests
 {
     internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {
-        public event Action<ElympicsState, ElympicsState> ElympicsStateUpdated;
-        public IGameplaySceneMonitor GameplaySceneMonitor { get; } = new MockGameplaySceneMonitor();
+        public event Action<ElympicsConnectionData> ElympicsConnectionEstablished;
+        public event Action<ElympicsConnectionLostData> ElympicsConnectionLost;
+        public ElympicsState State => IsAuthenticated ? ElympicsState.Connected : ElympicsState.Disconnected;
         public IRoomsManager RoomsManager { get; }
+        public ElympicsUser? ElympicsUser => null;
+        public string CurrentRegion { get; private set; } = string.Empty;
+        public IReadOnlyCollection<string> AvailableRegions => null;
+        public IReadOnlyCollection<CoinInfo> AvailableCoins => null;
+        public bool ShouldLoadGameplaySceneAfterMatchmaking { get; set; }
 
         public AuthData AuthData { get; private set; }
 
@@ -46,12 +58,15 @@ namespace ElympicsPlayPad.Tests
             AuthData = null;
             _mockWebSocket?.ToggleConnection(false);
         }
-        public void WatchReplay() => throw new NotImplementedException();
+        void IElympicsLobbyWrapper.WatchReplay(SnapshotAnalysisRetriever retriever) => throw new NotImplementedException();
+        public UniTask ConnectToElympicsAsync(ConnectionData data) => throw new NotImplementedException();
+        public UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => throw new NotImplementedException();
         public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
         {
             ElympicsLogger.State.SetUserId(data.UserId);
             ElympicsLogger.State.SetAuthType(data.AuthType);
             ElympicsLogger.State.SetRegion(region);
+            CurrentRegion = region;
             AuthData = data;
             _mockWebSocket = new MockWebSocket();
             _mockWebSocket.ToggleConnection(true);
@@ -61,19 +76,8 @@ namespace ElympicsPlayPad.Tests
 
     public class MockWebSocket : IWebSocketSession
     {
-        public event Action Connected;
-        public event Action<DisconnectionData> Disconnected;
         public bool IsConnected { get; private set; }
 
         public void ToggleConnection(bool connected) => IsConnected = connected;
-    }
-
-    public class MockGameplaySceneMonitor : IGameplaySceneMonitor
-    {
-        public void Dispose()
-        { }
-        public bool IsCurrentlyInMatch { get; }
-        public event Action GameplayStarted;
-        public event Action GameplayFinished;
     }
 }

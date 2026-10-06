@@ -69,6 +69,7 @@ namespace ElympicsPlayPad.Wrappers
                 ElympicsMatchLauncher.Instance,
                 (gameId, retriever, ct) => ElympicsMatchLauncher.Current!.LaunchSnapshotReplayAsync(gameId, retriever, null, ct),
                 gameConfig,
+                gameConfig.UseWeb,
                 lobbyUrl,
                 controller => new WebSocketSession(controller, MainThreadDispatcher.Instance, serializerOptions))
             {
