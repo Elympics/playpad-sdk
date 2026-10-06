@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Elympics.Communication.Authentication.Models;
-using UnityEngine;
-using ElympicsPlayPad.Leaderboard;
+using ElympicsPlayPad.Auth.Models;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
+using ElympicsPlayPad.Leaderboard;
 using TMPro;
+using UnityEngine;
 
 #nullable enable
 
@@ -46,9 +46,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             var placementsCount = placements?.Length;
 
             // Needed in case there are less than 6 positions sent by server, but the user is last place.
-            int lastPlacementPosition = 0;
+            var lastPlacementPosition = 0;
 
-            for (int i = 0; i < displayedEntries.Count; i++)
+            for (var i = 0; i < displayedEntries.Count; i++)
             {
                 if (i < placementsCount)
                 {
@@ -61,7 +61,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                         // Check if index + 1 is within list
                         if (i + 1 < placementsCount)
                         {
-                            if (!ArePlacementsConsecutive(placements![i], placements![i + 1])) separator.SetActive(true);
+                            if (!ArePlacementsConsecutive(placements![i], placements![i + 1]))
+                                separator.SetActive(true);
                         }
                     }
                 }
@@ -69,7 +70,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 {
                     lastPlacementPosition++;
 
-                    var emptyCell = new Placement(lastPlacementPosition, 0, "","", null, new ElympicsUser());
+                    var emptyCell = new Placement(lastPlacementPosition, 0, "", "", null, new ElympicsUser());
                     displayedEntries[i].SetValues(emptyCell);
                 }
             }

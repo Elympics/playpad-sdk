@@ -1,14 +1,14 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
+using Elympics;
 using JetBrains.Annotations;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
     public class EndGameView : MonoBehaviour
     {
-        [SerializeField] private string lobbySceneName = "AsyncGameLobbyScene";
         [SerializeField] private TextMeshProUGUI currentScoreText, tournamentBestScoreText, allTimeBestScoreText;
         [SerializeField] private Image tournamentBestScoreRibbon, allTimeBestScoreRibbon;
 
@@ -39,10 +39,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         }
 
 
+        /// <summary>Ends the match: the match launcher returns to the boot scene, which is the lobby scene.</summary>
         [UsedImplicitly] // by BackToLobbyButton
-        public void ReturnToLobby()
-        {
-            SceneManager.LoadScene(lobbySceneName);
-        }
+        public void ReturnToLobby() => ElympicsMatchLauncher.Instance.AbortMatchAsync().Forget();
     }
 }

@@ -1,6 +1,6 @@
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.Rooms.Models;
 using ElympicsPlayPad.Session;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -17,12 +17,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private GameObject authenticationInProgressScreen;
 
         private SessionManager _sessionManager;
-        private IMatchLauncher _matchLauncher;
 
         private void Start()
         {
             _sessionManager = FindObjectOfType<SessionManager>();
-            _matchLauncher = ElympicsLobbyClient.Instance;
             Assert.IsNotNull(_sessionManager);
 
             OnLobbySceneLoaded().Forget();
@@ -34,7 +32,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             _sessionManager.FinishSessionInfoUpdate += SetAuthenticationScreenInactive;
             _sessionManager.FinishSessionInfoUpdate += RejoinIfHasOngoingMatch;
 
-            bool shouldHideSplashScreen = false;
+            var shouldHideSplashScreen = false;
 
             if (!_sessionManager.ConnectedWithPlayPad)
             {
@@ -60,13 +58,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not
         private void RejoinIfHasOngoingMatch()
         {
-            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
+            var currentRoom = PlayPadCommunicator.Instance?.Lobby.RoomsManager.CurrentRoom;
 
-            if (currentRoom != null && currentRoom.State.MatchmakingData!.MatchData!.State == Elympics.Rooms.Models.MatchState.Running)
-            {
-                var matchmakingData = currentRoom.State.MatchmakingData;
-                _matchLauncher.PlayMatch(new Elympics.Models.Matchmaking.MatchmakingFinishedData(matchmakingData.MatchData.MatchId, matchmakingData.MatchData.MatchDetails, matchmakingData.QueueName, ElympicsLobbyClient.Instance.CurrentRegion));
-            }
+            if (currentRoom?.State.MatchmakingData?.MatchData?.State == MatchState.Running)
+                currentRoom.PlayAvailableMatch();
         }
 
         private void OnDestroy()

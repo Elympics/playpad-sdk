@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using TMPro;
 using ElympicsPlayPad.Leaderboard;
-using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
 
@@ -43,7 +43,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void HighlightCurrentPlayer(Placement leaderboardPlacement)
         {
-            bool isCurrentPlayer = leaderboardPlacement.User.UserId.Equals(ElympicsLobbyClient.Instance.UserGuid.ToString());
+            bool isCurrentPlayer = leaderboardPlacement.User.UserId == PlayPadCommunicator.Instance?.Lobby.AuthData?.UserId;
 
             if (isCurrentPlayer)
                 playerHighlighter.Highlight();

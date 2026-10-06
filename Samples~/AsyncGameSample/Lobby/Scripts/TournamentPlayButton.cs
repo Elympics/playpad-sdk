@@ -1,13 +1,13 @@
-using UnityEngine;
+using System;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using System;
-using UnityEngine.Assertions;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
+using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Tournament.Data;
+using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void OnStart()
         {
             //Subscribe callbacks for play button & train button, each play button will handle it as needed
-            for (int i = 0; i < playButtonViews.Length; i++)
+            for (var i = 0; i < playButtonViews.Length; i++)
             {
                 playButtonViews[i].SubscribePlayButtonCallback(PlayTournament, PlayTraining);
                 playButtonViews[i].AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
@@ -63,7 +63,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void UpdateTournamentView(TournamentInfo info)
         {
             //Check and select new current play button view & enable / disable all play buttons depending on tournament type
-            for (int i = 0; i < playButtonViews.Length; i++)
+            for (var i = 0; i < playButtonViews.Length; i++)
             {
                 playButtonViews[i].OnTournamentViewUpdated(info);
 
@@ -85,7 +85,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void PlayTraining()
         {
-            UniTask<IRoom> roomTask = ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
+            UniTask<IRoom> roomTask = PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue);
             PlayGameAsync(roomTask).Forget();
         }
 
