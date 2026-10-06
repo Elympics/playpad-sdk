@@ -24,8 +24,6 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -78,8 +76,8 @@ namespace ElympicsPlayPad.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            SceneManager.LoadScene(SceneName);
-            yield return new WaitUntil(() => Object.FindObjectOfType<SessionManager>() != null);
+            yield return LoadTestScene();
+            yield return WaitUntilOrFail(() => Object.FindObjectOfType<SessionManager>() != null, nameof(SessionManager));
             _sut = Object.FindObjectOfType<SessionManager>();
             _communicator = PlayPadCommunicator.Instance;
             Assert.NotNull(_communicator);
