@@ -17,7 +17,8 @@ namespace ElympicsPlayPad.Editor.Build
         private const string DefaultQueue = "solo";
         private const string DefaultEnvironment = "prod";
 
-        private const string ElympicsTemplateName = "PROJECT:ElympicsPlayPad";
+        /// <summary>How <see cref="PlayerSettings.WebGL.template"/> names the template installed by <see cref="PlayPadWebGLTemplateInstaller"/>.</summary>
+        private const string ElympicsTemplateName = "PROJECT:" + PlayPadWebGLTemplateInstaller.TemplateName;
 
         private static string GetEnvOrDefault(string envVarName, string defaultValue)
         {
