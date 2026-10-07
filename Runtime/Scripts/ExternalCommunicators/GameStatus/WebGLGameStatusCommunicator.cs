@@ -16,6 +16,7 @@ using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
+using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 using System.Collections.Generic;
@@ -23,7 +24,6 @@ using Elympics.Rooms.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Rooms.Models;
-using ElympicsPlayPad.Wrappers;
 #endif
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
