@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
@@ -50,7 +51,13 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             TournamentCommunicator.TournamentUpdated += UpdateTournamentView;
-            UpdateTournamentView(TournamentCommunicator.CurrentTournament.Value);
+            UpdateTournamentView(TournamentCommunicator.CurrentTournament ?? default);
+
+            if (PlaysWithoutTournament)
+            {
+                UpdatePlayButton(new PlayStatusInfo { PlayStatus = PlayStatus.Play, LabelInfo = "Play" });
+                return;
+            }
 
             PlayStatusCommunicator.PlayStatusUpdated += UpdatePlayButton;
             UpdatePlayButton(PlayStatusCommunicator.CurrentPlayStatus);
@@ -80,10 +87,19 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         }
 
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-        private void PlayTournament() => PlayGameAsync(PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue })).Forget();
+        // The web page blocks play when it finds no tournament, so without the Tournament feature the sample matchmakes by itself.
+        private static bool PlaysWithoutTournament => PlayPadCommunicator.Instance!.SessionManager.CurrentSession?.Features.HasTournament() != true;
 
-        private void PlayTraining() => PlayGameAsync(PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue)).Forget();
+        private void PlayTournament() => PlayGameAsync(PlaysWithoutTournament
+            ? StartQuickMatch()
+            : PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue })).Forget();
+
+        private void PlayTraining() => PlayGameAsync(StartQuickMatch()).Forget();
+
+        private UniTask<IRoom> StartQuickMatch() => PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue);
 #else
+        private static bool PlaysWithoutTournament => false;
+
         // Without the lobby, the web page matchmakes and both buttons play the match it found.
         private void PlayTournament() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
 
