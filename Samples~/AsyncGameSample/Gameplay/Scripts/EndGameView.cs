@@ -1,5 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -17,8 +19,12 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private string tournamentBestScoreStringFormat = "Tournament Best Score: {0}";
         [SerializeField] private string allTimeBestScoreStringFormat = "All Time Best Score: {0}";
 
+        private int shownPoints;
+
         public void Show(int points)
         {
+            shownPoints = points;
+
             // Display the current score
             currentScoreText.text = string.Format(currentScoreStringFormat, points);
 
@@ -39,8 +45,16 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         }
 
 
-        /// <summary>Ends the match: the match launcher returns to the boot scene, which is the lobby scene.</summary>
+        /// <summary>
+        /// Ends the match: the match launcher returns to the boot scene, which is the lobby scene.
+        /// A web page that matchmakes gets the score first, and it may tear the game down on that.
+        /// </summary>
         [UsedImplicitly] // by BackToLobbyButton
-        public void ReturnToLobby() => ElympicsMatchLauncher.Instance.ReturnToBootAsync().Forget();
+        public void ReturnToLobby()
+        {
+            if (TournamentPlayButton.HostMatchmakes)
+                PlayPadCommunicator.Instance!.LobbyCommunicator!.Quit(new QuitArgs { Score = shownPoints });
+            ElympicsMatchLauncher.Instance.ReturnToBootAsync().Forget();
+        }
     }
 }

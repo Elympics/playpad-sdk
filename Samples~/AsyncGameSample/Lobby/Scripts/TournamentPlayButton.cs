@@ -4,6 +4,7 @@ using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
+using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
@@ -29,6 +30,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private PlayButtonsViewBase[] playButtonViews;
 
         private PlayButtonsViewBase currentPlayButtonView;
+        private bool hostMatchRequested;
+
+        /// <summary>Without its own lobby (LaunchMode Gameplay), PlayPad gets the match from the web page, which also owns the Play button.</summary>
+        public static bool HostMatchmakes => PlayPadCommunicator.Instance!.SessionManager.CurrentSession?.LaunchMode.HasLobby() != true;
 
         private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
         private IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance.TournamentCommunicator;
@@ -53,6 +58,12 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             TournamentCommunicator.TournamentUpdated += UpdateTournamentView;
             UpdateTournamentView(TournamentCommunicator.CurrentTournament ?? default);
 
+            if (HostMatchmakes)
+            {
+                PlayHostMatchWhenReady();
+                return;
+            }
+
             if (PlaysWithoutTournament)
             {
                 UpdatePlayButton(new PlayStatusInfo { PlayStatus = PlayStatus.Play, LabelInfo = "Play" });
@@ -67,6 +78,33 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             PlayStatusCommunicator.PlayStatusUpdated -= UpdatePlayButton;
             TournamentCommunicator.TournamentUpdated -= UpdateTournamentView;
+            if (PlayPadCommunicator.Instance?.LobbyCommunicator is { } lobby)
+                lobby.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
+        }
+
+        // Like the server-client template's LaunchModeResolver: play the page's match once, as soon as it's ready.
+        private void PlayHostMatchWhenReady()
+        {
+            var lobby = PlayPadCommunicator.Instance!.LobbyCommunicator!;
+            if (lobby.Lobby.IsMatchReady)
+                PlayHostMatch();
+            else
+                lobby.OnLobbyInfoUpdated += OnHostLobbyInfoUpdated;
+        }
+
+        private void OnHostLobbyInfoUpdated(LobbyInfo info)
+        {
+            if (info.IsMatchReady)
+                PlayHostMatch();
+        }
+
+        private void PlayHostMatch()
+        {
+            if (hostMatchRequested)
+                return;
+            hostMatchRequested = true;
+            PlayPadCommunicator.Instance!.LobbyCommunicator!.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
+            PlayGameAsync(PlayWebLobbyMatch()).Forget();
         }
 
         private void UpdateTournamentView(TournamentInfo info)
@@ -78,6 +116,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
                 if (playButtonViews[i].ShouldUseThisPlayButtonView(info))
                     currentPlayButtonView = playButtonViews[i];
+
+                if (HostMatchmakes)
+                    playButtonViews[i].gameObject.SetActive(false);
             }
         }
 
@@ -104,13 +145,13 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void PlayTournament() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
 
         private void PlayTraining() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
+#endif
 
         private static UniTask PlayWebLobbyMatch()
         {
             PlayPadCommunicator.Instance!.LobbyCommunicator!.PlayMatch();
             return UniTask.CompletedTask;
         }
-#endif
 
         private async UniTask PlayGameAsync(UniTask matchTask)
         {
