@@ -24,6 +24,8 @@ namespace ElympicsPlayPad
             _launcher = launcher;
         }
 
+        public IElympicsMatchLauncher Launcher => _launcher();
+
         public UniTask<ElympicsLaunchResult> PlayMatchInternal(FoundMatch matchData)
         {
             var userId = AuthData?.UserId ?? throw new InvalidOperationException("Cannot play a match before authentication.");
