@@ -33,7 +33,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private bool hostMatchRequested;
 
         /// <summary>Without its own lobby (LaunchMode Gameplay), PlayPad gets the match from the web page, which also owns the Play button.</summary>
-        public static bool HostMatchmakes => PlayPadCommunicator.Instance!.SessionManager.CurrentSession?.LaunchMode.HasLobby() != true;
+        public static bool HostMatchmakes => PlayPadCommunicator.Instance?.SessionManager.CurrentSession is { } session && !session.LaunchMode.HasLobby();
 
         private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
         private IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance.TournamentCommunicator;

@@ -53,7 +53,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void ReturnToLobby()
         {
             if (TournamentPlayButton.HostMatchmakes)
-                PlayPadCommunicator.Instance!.LobbyCommunicator!.Quit(new QuitArgs { Score = shownPoints });
+                PlayPadCommunicator.Instance!.LobbyCommunicator?.Quit(new QuitArgs { Score = shownPoints });
             ElympicsMatchLauncher.Instance.ReturnToBootAsync().Forget();
         }
     }
