@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.Tests
         private PlayPadCommunicator _communicator;
         private static readonly IExternalAuthenticator AuthMock = Substitute.For<IExternalAuthenticator>();
         private static readonly IExternalGameStatusCommunicator GameMock = Substitute.For<IExternalGameStatusCommunicator>();
-        private static readonly IExternalBlockChainCurrencyCommunicator VirtualDepositMock = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
+        private static readonly IExternalCoinCommunicator CoinMock = Substitute.For<IExternalCoinCommunicator>();
         private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
         private static readonly IPlayPadMessagingSystem PlaypadCommunicatorMock = Substitute.For<IPlayPadMessagingSystem>();
         public override string SceneName => "ElympicsSessionManagerTestScene";
@@ -83,10 +83,10 @@ namespace ElympicsPlayPad.Tests
             Assert.NotNull(_communicator);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.ExternalAuthenticatorFieldName, AuthMock);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.GameStatusCommunicatorFieldName, GameMock);
-            MockExternalCommunicator(_communicator, PlayPadCommunicator.VirtualDepositCommunicatorFieldName, VirtualDepositMock);
+            MockExternalCommunicator(_communicator, PlayPadCommunicator.CoinCommunicatorFieldName, CoinMock);
             MockIPlaypadCommunicator(_sut, PlaypadCommunicatorMock);
             _ = PlaypadCommunicatorMock.Connect().Returns(UniTask.CompletedTask);
-            _ = VirtualDepositMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(x =>
+            _ = CoinMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(x =>
             {
                 var toReturn = new Dictionary<Guid, CoinInfo>();
                 return UniTask.FromResult((IReadOnlyDictionary<Guid, CoinInfo>)toReturn);

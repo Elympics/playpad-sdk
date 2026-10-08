@@ -18,18 +18,18 @@ namespace ElympicsPlayPad.Session.Strategies
         private readonly IExternalGameStatusCommunicator _gameStatusCommunicator;
         private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IExternalLeaderboardCommunicator _leaderboardCommunicator;
-        private readonly IExternalBlockChainCurrencyCommunicator? _virtualDepositCommunicator;
+        private readonly IExternalCoinCommunicator? _coinCommunicator;
 
         public SessionManagerPlayPadInitializationStrategy(
             IExternalGameStatusCommunicator gameStatusCommunicator,
             IExternalTournamentCommunicator tournamentCommunicator,
             IExternalLeaderboardCommunicator leaderboardCommunicator,
-            IExternalBlockChainCurrencyCommunicator? virtualDepositCommunicator)
+            IExternalCoinCommunicator? coinCommunicator)
         {
             _gameStatusCommunicator = gameStatusCommunicator;
             _tournamentCommunicator = tournamentCommunicator;
             _leaderboardCommunicator = leaderboardCommunicator;
-            _virtualDepositCommunicator = virtualDepositCommunicator;
+            _coinCommunicator = coinCommunicator;
         }
 
         public override async UniTask InitializePostAuthenticationAsync(
@@ -50,18 +50,14 @@ namespace ElympicsPlayPad.Session.Strategies
 
             _ = await _gameStatusCommunicator.CanPlayGame(false, ct);
 
-            if (_virtualDepositCommunicator != null)
-                _ = await _virtualDepositCommunicator.GetElympicsCoins(ct);
+            if (_coinCommunicator != null)
+                _ = await _coinCommunicator.GetElympicsCoins(ct);
 
             if (handshake.FeatureAccess.HasLeaderboard())
                 _ = await _leaderboardCommunicator.FetchLeaderboard(ct);
 
             if (handshake.FeatureAccess.HasUserHighScore())
                 _ = await _leaderboardCommunicator.FetchUserHighScore(ct);
-
-            if (handshake.FeatureAccess.HasVirtualDeposit())
-                if (_virtualDepositCommunicator != null)
-                    _ = await _virtualDepositCommunicator.GetVirtualDeposit(ct);
 
             logger.LogInfo($"PlayPad post-authentication initialization completed.");
         }

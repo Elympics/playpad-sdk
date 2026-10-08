@@ -22,14 +22,14 @@ namespace ElympicsPlayPad.Tests.Runtime
         [UnityTest]
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_NullResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
-            var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
+            var coinCommunicator = Substitute.For<IExternalCoinCommunicator>();
             var jsCommunicator = Substitute.For<IPlayPadMessagingSystem>();
             _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = null,
                 }));
-            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(coinCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -39,14 +39,14 @@ namespace ElympicsPlayPad.Tests.Runtime
         [UnityTest]
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_EmptyResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
-            var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
+            var coinCommunicator = Substitute.For<IExternalCoinCommunicator>();
             var jsCommunicator = Substitute.For<IPlayPadMessagingSystem>();
             _ = jsCommunicator.SendRequestMessage<GetRollingTournamentHistoryRequest, GetRollingTournamentHistoryResponse>(null!, null, CancellationToken.None)
                 .ReturnsForAnyArgs(UniTask.FromResult(new GetRollingTournamentHistoryResponse
                 {
                     entries = Array.Empty<GetRollingTournamentHistoryResponse.HistoryEntry>(),
                 }));
-            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(coinCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -56,8 +56,8 @@ namespace ElympicsPlayPad.Tests.Runtime
         [UnityTest]
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_TestResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
-            var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
-            _ = blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
+            var coinCommunicator = Substitute.For<IExternalCoinCommunicator>();
+            _ = coinCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
             {
                 { Guid.Parse("6b3676f7-6de2-4c43-bd23-581a9444445a"), new CoinInfo() },
             });
@@ -92,7 +92,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                         },
                     },
                 }));
-            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(coinCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 
@@ -102,8 +102,8 @@ namespace ElympicsPlayPad.Tests.Runtime
         [UnityTest]
         public IEnumerator WebGLTournamentCommunicator_GetRollingTournamentHistory_ModeratelyEmptyResponseShouldResultInNoArgumentNullExceptions() => UniTask.ToCoroutine(async () =>
         {
-            var blockChainCurrencyCommunicator = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
-            _ = blockChainCurrencyCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
+            var coinCommunicator = Substitute.For<IExternalCoinCommunicator>();
+            _ = coinCommunicator.ElympicsCoins.Returns(new Dictionary<Guid, CoinInfo>
             {
                 { Guid.Empty, new CoinInfo() },
             });
@@ -130,7 +130,7 @@ namespace ElympicsPlayPad.Tests.Runtime
                         },
                     },
                 }));
-            var communicator = new WebGLTournamentCommunicator(blockChainCurrencyCommunicator, jsCommunicator);
+            var communicator = new WebGLTournamentCommunicator(coinCommunicator, jsCommunicator);
 
             var result = await communicator.GetRollingTournamentHistory(uint.MaxValue);
 

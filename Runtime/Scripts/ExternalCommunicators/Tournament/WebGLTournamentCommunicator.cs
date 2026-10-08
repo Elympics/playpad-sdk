@@ -28,15 +28,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         public event Action<TournamentInfo>? TournamentUpdated;
         public TournamentInfo? CurrentTournament { get; private set; }
 
-        private readonly IExternalBlockChainCurrencyCommunicator _blockChainCurrencyCommunicator;
+        private readonly IExternalCoinCommunicator _coinCommunicator;
         private readonly IPlayPadMessagingSystem _playPadMessagingSystem;
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(WebGLTournamentCommunicator))
             .WithMonitoringEnabled();
 
-        public WebGLTournamentCommunicator(IExternalBlockChainCurrencyCommunicator blockChainCurrencyCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
+        public WebGLTournamentCommunicator(IExternalCoinCommunicator coinCommunicator, IPlayPadMessagingSystem playPadMessagingSystem)
         {
-            _blockChainCurrencyCommunicator = blockChainCurrencyCommunicator;
+            _coinCommunicator = coinCommunicator;
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.TournamentUpdated);
         }
@@ -49,8 +49,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
         }
         public async UniTask<TournamentFeeInfo?> GetRollingTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
-            if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
-                throw new NullReferenceException($"Can't request fee when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
+            if (_coinCommunicator.ElympicsCoins is null)
+                throw new NullReferenceException($"Can't request fee when {_coinCommunicator.ElympicsCoins} is null.");
 
             if (requestData.Length == 0)
                 return null;
@@ -75,7 +75,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
             for (var i = 0; i < response.rollings.Length; i++)
             {
                 var coinId = requestData[i].CoinInfo.Id;
-                if (!_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo))
+                if (!_coinCommunicator.ElympicsCoins.TryGetValue(coinId, out var coinInfo))
                     throw new ElympicsException("Couldn't find coinInfo.");
                 feesInfo[i] = response.rollings[i].ToTournamentFeeInfo(coinInfo);
             }
@@ -88,8 +88,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         public async UniTask<RollingTournamentHistory> GetRollingTournamentHistory(uint maxCount, uint skip = 0, CancellationToken ct = default)
         {
-            if (_blockChainCurrencyCommunicator.ElympicsCoins is null)
-                throw new NullReferenceException($"Can't request rolling tournament history when {_blockChainCurrencyCommunicator.ElympicsCoins} is null.");
+            if (_coinCommunicator.ElympicsCoins is null)
+                throw new NullReferenceException($"Can't request rolling tournament history when {_coinCommunicator.ElympicsCoins} is null.");
             if (maxCount <= 0)
                 return new RollingTournamentHistory(Array.Empty<RollingTournamentHistoryEntry>());
 
@@ -279,10 +279,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Tournament
 
         private async UniTask<CoinInfo> FetchCoinForHistoryMatch(Guid coinId)
         {
-            if (_blockChainCurrencyCommunicator.ElympicsCoins.TryGetValue(coinId, out var coin))
+            if (_coinCommunicator.ElympicsCoins.TryGetValue(coinId, out var coin))
                 return coin;
 
-            return await _blockChainCurrencyCommunicator.GetCoinInfo(coinId, CancellationToken.None);
+            return await _coinCommunicator.GetCoinInfo(coinId, CancellationToken.None);
         }
     }
 }

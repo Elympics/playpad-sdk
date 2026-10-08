@@ -53,7 +53,7 @@ namespace ElympicsPlayPad.Session
         private static IExternalGameStatusCommunicator GameStatusCommunicator => PlayPadCommunicator.Instance!.GameStatusCommunicator!;
         private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
         private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
-        private static IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
+        private static IExternalCoinCommunicator? CoinCommunicator => PlayPadCommunicator.Instance!.CoinCommunicator;
         private static IExternalLobbyCommunicator LobbyCommunicator => PlayPadCommunicator.Instance!.LobbyCommunicator!;
 
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
@@ -81,7 +81,7 @@ namespace ElympicsPlayPad.Session
                     GameStatusCommunicator,
                     TournamentCommunicator,
                     LeaderboardCommunicator,
-                    VirtualDepositCommunicator);
+                    CoinCommunicator);
 
             throw new SessionmanagerException($"Unknown launchMode: {launchMode}");
         }

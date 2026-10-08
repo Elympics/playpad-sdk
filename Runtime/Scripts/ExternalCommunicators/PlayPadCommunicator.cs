@@ -59,7 +59,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         public IExternalReplayCommunicator? ReplayCommunicator;
 
         [PublicAPI]
-        public IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator;
+        public IExternalCoinCommunicator? CoinCommunicator;
 
         [PublicAPI]
         public IExternalWebCommunicator? ExternalWebCommunicator;
@@ -144,9 +144,10 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 ExternalAuthenticator = UseMockAuth
                     ? mockConfiguration!.customAuthenticatorCommunicator
                     : new WebGLExternalAuthenticator(_playPadMessagingSystem, sessionManager, _heartbeat);
+                CoinCommunicator = new WebGLCoinCommunicator(_playPadMessagingSystem);
                 TournamentCommunicator = UseMockTournament
                     ? mockConfiguration!.customTournamentCommunicator
-                    : new WebGLTournamentCommunicator(VirtualDepositCommunicator!, _playPadMessagingSystem);
+                    : new WebGLTournamentCommunicator(CoinCommunicator, _playPadMessagingSystem);
                 GameStatusCommunicator = UseMockGameStatus
                     ? mockConfiguration!.customGameStatusCommunicator
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
@@ -217,8 +218,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
             && mockConfiguration
             && mockConfiguration!.useCustomStandaloneTournamentCommunicator
             && mockConfiguration!.customTournamentCommunicator
-            && CanMockPlayPad
-            && VirtualDepositCommunicator != null;
+            && CanMockPlayPad;
 
         private bool UseMockGameStatus => useMockConfiguration
             && mockConfiguration
@@ -249,7 +249,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         internal const string ExternalAuthenticatorFieldName = nameof(ExternalAuthenticator);
         internal const string TournamentCommunicatorFieldName = nameof(TournamentCommunicator);
         internal const string GameStatusCommunicatorFieldName = nameof(GameStatusCommunicator);
-        internal const string VirtualDepositCommunicatorFieldName = nameof(VirtualDepositCommunicator);
+        internal const string CoinCommunicatorFieldName = nameof(CoinCommunicator);
 
         #endregion
     }

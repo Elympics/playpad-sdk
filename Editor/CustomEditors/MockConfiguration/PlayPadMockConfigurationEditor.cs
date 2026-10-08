@@ -4,7 +4,6 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -71,12 +70,6 @@ namespace ElympicsPlayPad.Editor.MockConfiguration
                 root,
                 "customExternalUiCommunicator",
                 "useCustomStandaloneExternalUiCommunicator");
-
-            // Bind BlockChain Currency Communicator
-            BindCommunicatorRow<CustomStandaloneBlockChainCurrencyCommunicatorBase>(
-                root,
-                "customBlockChainCurrencyCommunicator",
-                "useCustomStandaloneBlockChainCurrencyCommunicator");
         }
 
         private void BindCommunicatorRow<T>(VisualElement root, string objectFieldName, string toggleName) where T : Object
