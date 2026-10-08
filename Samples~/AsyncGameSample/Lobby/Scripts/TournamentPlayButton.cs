@@ -5,8 +5,6 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
 using UnityEngine.Assertions;
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
@@ -29,14 +27,13 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private Sprite playBlockedSprite;
         [SerializeField] private PlayButtonsViewBase[] playButtonViews;
 
-        private PlayButtonsViewBase currentPlayButtonView;
-        private bool hostMatchRequested;
+        private PlayButtonsViewBase _currentPlayButtonView;
+        private bool _hostMatchRequested;
 
         /// <summary>Without its own lobby (LaunchMode Gameplay), PlayPad gets the match from the web page, which also owns the Play button.</summary>
         public static bool HostMatchmakes => PlayPadCommunicator.Instance?.SessionManager.CurrentSession is { } session && !session.LaunchMode.HasLobby();
 
-        private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
-        private IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance.TournamentCommunicator;
+        private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance?.GameStatusCommunicator;
 
         private void Awake()
         {
@@ -49,14 +46,11 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         public void OnStart()
         {
             //Subscribe callbacks for play button & train button, each play button will handle it as needed
-            for (var i = 0; i < playButtonViews.Length; i++)
+            foreach (var view in playButtonViews)
             {
-                playButtonViews[i].SubscribePlayButtonCallback(PlayTournament, PlayTraining);
-                playButtonViews[i].AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
+                view.SubscribePlayButtonCallback(PlayTournament, PlayTraining);
+                view.AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
             }
-
-            TournamentCommunicator.TournamentUpdated += UpdateTournamentView;
-            UpdateTournamentView(TournamentCommunicator.CurrentTournament ?? default);
 
             if (HostMatchmakes)
             {
@@ -77,7 +71,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void OnDestroy()
         {
             PlayStatusCommunicator.PlayStatusUpdated -= UpdatePlayButton;
-            TournamentCommunicator.TournamentUpdated -= UpdateTournamentView;
             if (PlayPadCommunicator.Instance?.LobbyCommunicator is { } lobby)
                 lobby.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
         }
@@ -100,32 +93,14 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void PlayHostMatch()
         {
-            if (hostMatchRequested)
+            if (_hostMatchRequested)
                 return;
-            hostMatchRequested = true;
+            _hostMatchRequested = true;
             PlayPadCommunicator.Instance!.LobbyCommunicator!.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
             PlayGameAsync(PlayWebLobbyMatch()).Forget();
         }
 
-        private void UpdateTournamentView(TournamentInfo info)
-        {
-            //Check and select new current play button view & enable / disable all play buttons depending on tournament type
-            for (var i = 0; i < playButtonViews.Length; i++)
-            {
-                playButtonViews[i].OnTournamentViewUpdated(info);
-
-                if (playButtonViews[i].ShouldUseThisPlayButtonView(info))
-                    currentPlayButtonView = playButtonViews[i];
-
-                if (HostMatchmakes)
-                    playButtonViews[i].gameObject.SetActive(false);
-            }
-        }
-
-        private void UpdatePlayButton(PlayStatusInfo info)
-        {
-            currentPlayButtonView.UpdatePlayButton(info);
-        }
+        private void UpdatePlayButton(PlayStatusInfo info) => _currentPlayButtonView.UpdatePlayButton(info);
 
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         // The web page blocks play when it finds no tournament, so without the Tournament feature the sample matchmakes by itself.
@@ -165,9 +140,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             catch (Exception e)
             {
                 if (PlayStatusCommunicator.CurrentPlayStatus.PlayStatus == PlayStatus.UserActionRequired)
-                {
                     Debug.Log($"[PlayGameAsync]: {e.Message}");
-                }
                 else
                 {
                     Debug.LogError($"[PlayGameAsync]: {e}");

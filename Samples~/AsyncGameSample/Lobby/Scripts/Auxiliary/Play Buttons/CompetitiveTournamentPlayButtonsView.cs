@@ -1,4 +1,3 @@
-using ElympicsPlayPad.Tournament.Data;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -9,23 +8,11 @@ namespace ElympicsPlayPad.Samples.AsyncGame
     {
         [SerializeField] private Button trainButton;
 
-        public override void SubscribePlayButtonCallback(UnityAction OnClickTournamentPlay, UnityAction OnClickTrainingPlay)
+        public override void SubscribePlayButtonCallback(UnityAction onClickTournamentPlay, UnityAction onClickTrainingPlay)
         {
-            base.SubscribePlayButtonCallback(OnClickTournamentPlay, OnClickTrainingPlay);
+            base.SubscribePlayButtonCallback(onClickTournamentPlay, onClickTrainingPlay);
 
-            trainButton.onClick.AddListener(OnClickTrainingPlay);
-        }
-
-        public override void OnTournamentViewUpdated(TournamentInfo info)
-        {
-            bool shouldShow = ShouldUseThisPlayButtonView(info);
-            gameObject.SetActive(shouldShow);
-        }
-
-        public override bool ShouldUseThisPlayButtonView(TournamentInfo info)
-        {
-            //Only show this play button if is competitive tournament
-            return info.IsCompetitive();
+            trainButton.onClick.AddListener(onClickTrainingPlay);
         }
 
         protected override void RemoveCallbacks()

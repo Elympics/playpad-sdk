@@ -43,20 +43,18 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             // Put here any further lobby scene configuration and UI adjustments
-            tournamentView.OnStart();
-            leaderboardView.OnStart();
-            allTimeHighScoreView.OnStart();
+            TournamentView.OnStart();
             tournamentPlayButton.OnStart();
             ElympicsBestScoreManager.OnStart();
 
             if (shouldHideSplashScreen)
-                PlayPadCommunicator.Instance.GameStatusCommunicator?.HideSplashScreen();
+                PlayPadCommunicator.Instance?.GameStatusCommunicator?.HideSplashScreen();
         }
 
         private void SetAuthenticationScreenActive() => authenticationInProgressScreen.SetActive(true);
         private void SetAuthenticationScreenInactive() => authenticationInProgressScreen.SetActive(false);
 
-        // If the game dependens on local state too much, making the game rejoinable won't be possible
+        // If the game depends on local state too much, making the game rejoinable won't be possible
         // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not
         private void RejoinIfHasOngoingMatch()
         {

@@ -21,9 +21,7 @@ using UnityEngine;
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
 using System.Collections.Generic;
 using Elympics.Rooms.Models;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.Rooms;
-using ElympicsPlayPad.Rooms.Models;
 #endif
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
@@ -34,7 +32,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public event Action<PlayStatusInfo>? PlayStatusUpdated;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-        private readonly IExternalTournamentCommunicator _tournamentCommunicator;
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
 #endif
@@ -47,7 +44,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             PlayPadMessagingSystem playPadMessagingSystem,
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
             IElympicsLobbyWrapper lobby,
-            IExternalTournamentCommunicator tournamentCommunicator,
 #endif
             ElympicsMatchLauncher launcher)
         {
@@ -57,7 +53,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             _launcher.StateChanged += OnLauncherStateChanged;
             CrossAssemblyEventBroadcaster.AddObserver(this);
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-            _tournamentCommunicator = tournamentCommunicator;
             _roomsManager = lobby.RoomsManager;
 #endif
         }
@@ -89,17 +84,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             if (config.CustomMatchmakingData != null)
                 _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
 
-            CompetitivenessConfig? tournamentDetails = null;
-
-            if (_tournamentCommunicator.CurrentTournament.HasValue)
-                tournamentDetails = CompetitivenessConfig.GlobalTournament(_tournamentCommunicator.CurrentTournament.Value.Id);
-
             return await _roomsManager.StartQuickMatch(config.QueueName,
                 config.GameEngineData,
                 config.MatchmakerData,
                 config.CustomRoomData,
                 _joinedCustomMatchmakingData,
-                competitivenessConfig: tournamentDetails,
                 ct: ct);
         }
 #endif

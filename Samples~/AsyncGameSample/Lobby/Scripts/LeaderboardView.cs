@@ -1,8 +1,4 @@
 using System.Collections.Generic;
-using ElympicsPlayPad.Auth.Models;
-using ElympicsPlayPad.ExternalCommunicators;
-using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
-using ElympicsPlayPad.Leaderboard;
 using TMPro;
 using UnityEngine;
 
@@ -13,69 +9,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
     public class LeaderboardView : MonoBehaviour
     {
         // Should reference exactly 6 entries
-        [SerializeField] private List<LeaderboardEntryUi> displayedEntries;
+        [SerializeField] private List<LeaderboardEntryUi>? displayedEntries;
 
-        [SerializeField] private TextMeshProUGUI numberOfParticipants;
+        [SerializeField] private TextMeshProUGUI? numberOfParticipants;
 
-        [SerializeField] private GameObject separator;
-
-        private IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
-
-        public void OnStart()
-        {
-            LeaderboardCommunicator.LeaderboardUpdated += UpdateLeaderboardView;
-
-            UpdateLeaderboardView(LeaderboardCommunicator.Leaderboard ?? default);
-        }
-
-        private void OnDestroy()
-        {
-            LeaderboardCommunicator.LeaderboardUpdated -= UpdateLeaderboardView;
-        }
-
-        private void UpdateLeaderboardView(LeaderboardStatusInfo info)
-        {
-            DisplayLeaderboardEntries(info.Placements);
-            numberOfParticipants.text = info.Participants.ToString();
-        }
-
-        private void DisplayLeaderboardEntries(Placement[]? placements)
-        {
-            separator.SetActive(false);
-
-            var placementsCount = placements?.Length;
-
-            // Needed in case there are less than 6 positions sent by server, but the user is last place.
-            var lastPlacementPosition = 0;
-
-            for (var i = 0; i < displayedEntries.Count; i++)
-            {
-                if (i < placementsCount)
-                {
-                    displayedEntries[i].SetValues(placements![i]);
-                    lastPlacementPosition = placements![i].Position;
-
-                    // Only check if seperator is not active
-                    if (!separator.activeSelf)
-                    {
-                        // Check if index + 1 is within list
-                        if (i + 1 < placementsCount)
-                        {
-                            if (!ArePlacementsConsecutive(placements![i], placements![i + 1]))
-                                separator.SetActive(true);
-                        }
-                    }
-                }
-                else
-                {
-                    lastPlacementPosition++;
-
-                    var emptyCell = new Placement(lastPlacementPosition, 0, "", "", null, new ElympicsUser());
-                    displayedEntries[i].SetValues(emptyCell);
-                }
-            }
-        }
-
-        private static bool ArePlacementsConsecutive(Placement placement, Placement nextPlacement) => nextPlacement.Position - placement.Position == 1;
+        [SerializeField] private GameObject? separator;
     }
 }

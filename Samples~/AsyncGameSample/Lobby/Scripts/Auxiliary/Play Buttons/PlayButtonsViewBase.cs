@@ -1,5 +1,4 @@
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using ElympicsPlayPad.Tournament.Data;
 using System;
 using TMPro;
 using UnityEngine;
@@ -16,61 +15,51 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         /// <summary>
         /// These sprites will be determined by the playpad PlayStatusInfo and should be changed.
-        /// These are currently assigned in TournamentPlayButton via the inspector to avoid assigning the in each different play button view, 
-        /// but if you want different sprites for each play button please override the UpdatePlayButton() method and add your own sprites to the new PlayButtonsViewBase child class
+        /// These are currently assigned in TournamentPlayButton via the inspector to avoid assigning the in each different play button view,
+        /// but if you want different sprites for each play button please override the UpdatePlayButton() method.
+        /// Then, add your own sprites to the new PlayButtonsViewBase child class.
         /// </summary>
-        private Sprite playAvailableSprite, userActionRequiredSprite, playBlockedSprite;
+        private Sprite _playAvailableSprite, _userActionRequiredSprite, _playBlockedSprite;
 
         /// <summary>
-        /// OnDestroy Monobehaviour will be called for all buttons, each button should override the RemoveCallbacks method to handle itself correctly OnDestroy
+        /// OnDestroy MonoBehaviour will be called for all buttons, each button should override the RemoveCallbacks method to handle itself correctly OnDestroy
         /// </summary>
-        private void OnDestroy()
-        {
-            RemoveCallbacks();
-        }
-
-        public abstract void OnTournamentViewUpdated(TournamentInfo info);
-
-        /// <summary>
-        /// Method to check if this specific PlayButtonView should be shown, this will also be used to determine which play button is currently selected <br></br>
-        /// IMPORTANT: These conditions should be exclusive to avoid selecting multiple play buttons.
-        /// </summary>
-        public abstract bool ShouldUseThisPlayButtonView(TournamentInfo info);
+        private void OnDestroy() => RemoveCallbacks();
 
         /// <summary>
         /// Subscribe all buttons to the correct action. Example: OnClickTournamentPlay should be used by all PlayButtons, whereas OnClickTrainingPlay should only be used by Train buttons
         /// </summary>
-        public virtual void SubscribePlayButtonCallback(UnityAction OnClickTournamentPlay, UnityAction OnClickTrainingPlay)
+        public virtual void SubscribePlayButtonCallback(UnityAction onClickTournamentPlay, UnityAction onClickTrainingPlay)
         {
             //Remove all listeners first
             RemoveCallbacks();
 
-            playButton.onClick.AddListener(OnClickTournamentPlay);
+            playButton.onClick.AddListener(onClickTournamentPlay);
         }
 
-        public virtual void AssignPlayButtonSprites(Sprite playAvailableSprite, Sprite userActionRequiredSprite, Sprite playBlockedSprite)
+        public void AssignPlayButtonSprites(Sprite playAvailableSprite, Sprite userActionRequiredSprite, Sprite playBlockedSprite)
         {
-            this.playAvailableSprite = playAvailableSprite;
-            this.userActionRequiredSprite = userActionRequiredSprite;
-            this.playBlockedSprite = playBlockedSprite;
+            _playAvailableSprite = playAvailableSprite;
+            _userActionRequiredSprite = userActionRequiredSprite;
+            _playBlockedSprite = playBlockedSprite;
         }
 
-        public virtual void UpdatePlayButton(PlayStatusInfo info)
+        public void UpdatePlayButton(PlayStatusInfo info)
         {
             playButtonText.text = info.LabelInfo;
 
             switch (info.PlayStatus)
             {
                 case PlayStatus.Play:
-                    playButtonImage.sprite = playAvailableSprite;
+                    playButtonImage.sprite = _playAvailableSprite;
                     playButton.interactable = true;
                     break;
                 case PlayStatus.UserActionRequired:
-                    playButtonImage.sprite = userActionRequiredSprite;
+                    playButtonImage.sprite = _userActionRequiredSprite;
                     playButton.interactable = true;
                     break;
                 case PlayStatus.Blocked:
-                    playButtonImage.sprite = playBlockedSprite;
+                    playButtonImage.sprite = _playBlockedSprite;
                     playButton.interactable = false;
                     break;
                 default:
@@ -79,11 +68,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         }
 
         /// <summary>
-        /// This method should be overriden by the derived classes in order to correctly remove the callbacks from the appropiate buttons.
+        /// This method should be overriden by the derived classes in order to correctly remove the callbacks from the appropriate buttons.
         /// </summary>
-        protected virtual void RemoveCallbacks()
-        {
-            playButton.onClick.RemoveAllListeners();
-        }
+        protected virtual void RemoveCallbacks() => playButton.onClick.RemoveAllListeners();
     }
 }

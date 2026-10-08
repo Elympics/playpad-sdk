@@ -43,7 +43,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             TimerState.Upcoming => _startDate - DateTimeOffset.Now,
             TimerState.Ongoing => _endDate - DateTimeOffset.Now,
-            TimerState.Finished => DateTimeOffset.Now - _endDate
+            TimerState.Finished => DateTimeOffset.Now - _endDate,
+            _ => throw new ArgumentOutOfRangeException(nameof(timerState), timerState, null)
         };
 
         /// <summary>

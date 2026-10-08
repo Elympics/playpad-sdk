@@ -1,8 +1,6 @@
 #nullable enable
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
-using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -46,18 +44,6 @@ namespace ElympicsPlayPad.Editor.MockConfiguration
                 root,
                 "customAuthenticatorCommunicator",
                 "useStandaloneAuthenticationCommunicator");
-
-            // Bind Leaderboard Communicator
-            BindCommunicatorRow<CustomStandaloneLeaderboardCommunicatorBase>(
-                root,
-                "customLeaderboardCommunicator",
-                "useCustomStandaloneLeaderboardCommunicator");
-
-            // Bind Tournament Communicator
-            BindCommunicatorRow<CustomStandaloneTournamentCommunicatorBase>(
-                root,
-                "customTournamentCommunicator",
-                "useCustomStandaloneTournamentCommunicator");
 
             // Bind Game Status Communicator
             BindCommunicatorRow<CustomStandaloneGameStatusCommunicatorBase>(
