@@ -6,7 +6,6 @@ using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
 using Elympics.Core.Logger;
-using ElympicsPlayPad.ExternalCommunicators.GameStatus.Exceptions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -18,11 +17,6 @@ using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Wrappers;
 using UnityEngine;
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-using System.Collections.Generic;
-using Elympics.Rooms.Models;
-using ElympicsPlayPad.Rooms;
-#endif
 
 namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
 {
@@ -31,30 +25,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         public PlayStatusInfo CurrentPlayStatus { get; private set; }
         public event Action<PlayStatusInfo>? PlayStatusUpdated;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-        private readonly IRoomsManager _roomsManager;
-        private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
-#endif
         private readonly ElympicsMatchLauncher _launcher;
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(WebGLGameStatusCommunicator))
             .WithMonitoringEnabled();
 
-        public WebGLGameStatusCommunicator(
-            PlayPadMessagingSystem playPadMessagingSystem,
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-            IElympicsLobbyWrapper lobby,
-#endif
-            ElympicsMatchLauncher launcher)
+        public WebGLGameStatusCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsMatchLauncher launcher)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
             _launcher = launcher;
             _launcher.StateChanged += OnLauncherStateChanged;
             CrossAssemblyEventBroadcaster.AddObserver(this);
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-            _roomsManager = lobby.RoomsManager;
-#endif
         }
 
         public void HideSplashScreen() => _playPadMessagingSystem.SendVoidMessage<EmptyPayload>(VoidMessageTypes.HideSplashScreen);
@@ -72,26 +54,6 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             CurrentPlayStatus = response.ToPlayStateInfo();
             return CurrentPlayStatus;
         }
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-        public async UniTask<IRoom> PlayGame(PlayGameConfig config, CancellationToken ct = default)
-        {
-            var info = await CanPlayGame(true, ct);
-            if (info.PlayStatus != 0)
-                throw new GameStatusException($"Can't start game. ErrorCode: {info.PlayStatus} Reason: {info.LabelInfo}");
-
-            _joinedCustomMatchmakingData.Clear();
-
-            if (config.CustomMatchmakingData != null)
-                _joinedCustomMatchmakingData.AddRange(config.CustomMatchmakingData);
-
-            return await _roomsManager.StartQuickMatch(config.QueueName,
-                config.GameEngineData,
-                config.MatchmakerData,
-                config.CustomRoomData,
-                _joinedCustomMatchmakingData,
-                ct: ct);
-        }
-#endif
 
         public void OnWebMessage(WebMessage message)
         {

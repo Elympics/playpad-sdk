@@ -116,11 +116,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
                     : new WebGLExternalAuthenticator(_playPadMessagingSystem, sessionManager, _heartbeat);
                 GameStatusCommunicator = UseMockGameStatus
                     ? mockConfiguration!.customGameStatusCommunicator
-#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
-                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, Lobby, launcher);
-#else
                     : new WebGLGameStatusCommunicator(_playPadMessagingSystem, launcher);
-#endif
                 ExternalUiCommunicator = UseMockExternalUi
                     ? mockConfiguration!.customExternalUiCommunicator
                     : new WebGLExternalUiCommunicator(_playPadMessagingSystem);

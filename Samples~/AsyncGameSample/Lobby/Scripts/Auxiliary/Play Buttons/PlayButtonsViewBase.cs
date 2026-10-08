@@ -27,14 +27,14 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private void OnDestroy() => RemoveCallbacks();
 
         /// <summary>
-        /// Subscribe all buttons to the correct action. Example: OnClickTournamentPlay should be used by all PlayButtons, whereas OnClickTrainingPlay should only be used by Train buttons
+        /// Subscribe play button to the play action.
         /// </summary>
-        public virtual void SubscribePlayButtonCallback(UnityAction onClickTournamentPlay, UnityAction onClickTrainingPlay)
+        public void SubscribePlayButtonCallback(UnityAction onClickPlay)
         {
             //Remove all listeners first
             RemoveCallbacks();
 
-            playButton.onClick.AddListener(onClickTournamentPlay);
+            playButton.onClick.AddListener(onClickPlay);
         }
 
         public void AssignPlayButtonSprites(Sprite playAvailableSprite, Sprite userActionRequiredSprite, Sprite playBlockedSprite)
