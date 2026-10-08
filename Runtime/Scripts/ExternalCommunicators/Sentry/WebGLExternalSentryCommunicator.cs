@@ -14,16 +14,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
     {
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
-        private readonly IElympicsMatchLauncher _launcher;
+        private readonly ElympicsMatchLauncher _launcher;
         private MatchLauncherState _launcherState;
 
-        public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem, IElympicsMatchLauncher launcher)
+        public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsMatchLauncher launcher)
         {
             _launcher = launcher;
             _launcherState = launcher.State;
             _launcher.StateChanged += OnLauncherStateChanged;
             _playPadMessagingSystem = playPadMessagingSystem;
-            _rttReporter = new WebGLRoundTripTimeReporter(32, _playPadMessagingSystem);
+            _rttReporter = new WebGLRoundTripTimeReporter(32, _playPadMessagingSystem, launcher);
             CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ReceivedStatsUpdated>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsStateChanged>(this);

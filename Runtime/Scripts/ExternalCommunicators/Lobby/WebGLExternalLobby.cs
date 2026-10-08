@@ -11,11 +11,12 @@ using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Wrappers;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Lobby
 {
-    internal class WebGLExternalLobby : IExternalLobbyCommunicator, IWebMessageReceiver
+    internal class WebGLExternalLobby : IExternalLobbyCommunicator, IWebMessageReceiver, IDisposable
     {
         public event Action<LobbyInfo>? OnLobbyInfoUpdated;
         public LobbyInfo Lobby { get; private set; }
@@ -78,11 +79,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             var launcher = _communicatorInternal.Launcher;
             launcher.MatchEnded -= OnMatchEnded;
             launcher.MatchEnded += OnMatchEnded;
-            _communicatorInternal.PlayMatchInternal(Lobby.MatchData!).ContinueWith(result =>
-            {
-                if (!result.Success)
-                    logger.LogError(result.ToString());
-            }).Forget(e => logger.LogException(e));
+            _communicatorInternal.PlayMatchInternal(Lobby.MatchData!).ForgetLoggingFailure(logger);
         }
 
         private void OnMatchEnded(ElympicsMatchEndedInfo info)
@@ -124,5 +121,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             logger.LogInfo("Handling lobby status update.");
             OnLobbyInfoUpdated?.Invoke(Lobby);
         }
+
+        public void Dispose() => _communicatorInternal.Launcher.MatchEnded -= OnMatchEnded;
     }
 }

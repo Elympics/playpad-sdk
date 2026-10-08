@@ -24,7 +24,7 @@ namespace ElympicsPlayPad.Tests
         private static readonly Guid OtherPlayer = new("10000000-0000-0000-0000-000000000002");
         private static readonly Guid MatchId = new("20000000-0000-0000-0000-000000000001");
 
-        private IElympicsMatchLauncher _launcher = null!;
+        private ElympicsMatchLauncher _launcher = null!;
         private OnlineLaunchData? _onlineData;
         private SinglePlayerLaunchData? _singlePlayerData;
 
@@ -33,17 +33,16 @@ namespace ElympicsPlayPad.Tests
         {
             _onlineData = null;
             _singlePlayerData = null;
-            _launcher = Substitute.For<IElympicsMatchLauncher>();
+            _launcher = Substitute.For<ElympicsMatchLauncher>();
             _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Do<OnlineLaunchData>(data => _onlineData = data), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
                 .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
             _ = _launcher.LaunchSinglePlayerAsync(Arg.Any<string>(), Arg.Do<SinglePlayerLaunchData?>(data => _singlePlayerData = data), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
                 .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
-            LaunchedMatch.Clear();
         }
 
         private PlayPadCommunicatorInternal CreateAuthenticated(bool useWeb)
         {
-            var sut = new PlayPadCommunicatorInternal(GameId, useWeb, () => _launcher);
+            var sut = new PlayPadCommunicatorInternal(GameId, useWeb, _launcher);
             sut.Authenticate(new AuthData(UserId, "jwt", AuthType.ClientSecret), "warsaw", false).Forget();
             return sut;
         }
@@ -92,46 +91,33 @@ namespace ElympicsPlayPad.Tests
             Assert.That(_singlePlayerData.QueueName, Is.EqualTo("queue"));
         });
 
-        [UnityTest]
-        public IEnumerator LaunchRecordsTheMatchForPlayPadReports() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void LaunchedMatchReportsTheLauncherMatch()
         {
-            _ = await CreateAuthenticated(useWeb: true).PlayMatchInternal(Match());
+            Assert.That(LaunchedMatch.MatchId(_launcher), Is.Empty);
+            Assert.That(LaunchedMatch.UserId(_launcher), Is.Null);
 
-            Assert.That(LaunchedMatch.MatchId, Is.EqualTo(MatchId.ToString()));
-            Assert.That(LaunchedMatch.UserId, Is.EqualTo(UserId));
-        });
+            _ = _launcher.ActiveLaunchData.Returns(new SinglePlayerLaunchData(MatchId, UserId));
 
-        [UnityTest]
-        public IEnumerator RejectedLaunchForgetsTheMatch() => UniTask.ToCoroutine(async () =>
-        {
-            _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(UniTask.FromResult(ElympicsLaunchResult.Failed("launch", ElympicsLaunchErrorCode.InvalidPayload, "invalid")));
-
-            var result = await CreateAuthenticated(useWeb: true).PlayMatchInternal(Match());
-
-            Assert.That(result.Success, Is.False);
-            Assert.That(LaunchedMatch.MatchId, Is.Empty);
-        });
+            Assert.That(LaunchedMatch.MatchId(_launcher), Is.EqualTo(MatchId.ToString()));
+            Assert.That(LaunchedMatch.UserId(_launcher), Is.EqualTo(UserId));
+        }
 
         [UnityTest]
-        public IEnumerator LaunchWhileAnotherMatchRunsKeepsThatMatchRecorded() => UniTask.ToCoroutine(async () =>
+        public IEnumerator LaunchWhileAnotherMatchRunsIsBusy() => UniTask.ToCoroutine(async () =>
         {
-            var runningMatch = Guid.NewGuid();
-            LaunchedMatch.Set(runningMatch, OtherPlayer);
             _ = _launcher.State.Returns(MatchLauncherState.Running);
 
             var result = await CreateAuthenticated(useWeb: true).PlayMatchInternal(Match());
 
             Assert.That(result.Code, Is.EqualTo(ElympicsLaunchErrorCode.Busy));
-            Assert.That(LaunchedMatch.MatchId, Is.EqualTo(runningMatch.ToString()));
-            Assert.That(LaunchedMatch.UserId, Is.EqualTo(OtherPlayer));
             _ = _launcher.DidNotReceive().LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
         });
 
         [Test]
         public void PlayingBeforeAuthenticationThrows()
         {
-            var sut = new PlayPadCommunicatorInternal(GameId, true, () => _launcher);
+            var sut = new PlayPadCommunicatorInternal(GameId, true, _launcher);
 
             _ = Assert.Throws<InvalidOperationException>(() => sut.PlayMatchInternal(Match()));
             Assert.That(_launcher.ReceivedCalls().Any(), Is.False);

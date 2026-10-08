@@ -36,7 +36,7 @@ namespace ElympicsPlayPad.Tests.Lobby
         private static readonly Guid MatchId = new("20000000-0000-0000-0000-000000000001");
 
         private IAuthClient _auth = null!;
-        private IElympicsMatchLauncher _launcher = null!;
+        private ElympicsMatchLauncher _launcher = null!;
         private IWebSocket _ws = null!;
         private ElympicsGameConfig _game = null!;
         private LobbyClient _sut = null!;
@@ -62,10 +62,11 @@ namespace ElympicsPlayPad.Tests.Lobby
 
             _game = ScriptableObject.CreateInstance<ElympicsGameConfig>();
             _game.gameId = Guid.NewGuid().ToString();
+            JsonUtility.FromJsonOverwrite("{\"useWeb\":true}", _game);
             _auth = Substitute.For<IAuthClient>().CreateSuccessIAuthClient(UserId);
             var regions = Substitute.For<IAvailableRegionRetriever>();
             _ = regions.GetAvailableRegions().Returns(_ => UniTask.FromResult(new List<string> { Region }));
-            _launcher = Substitute.For<IElympicsMatchLauncher>();
+            _launcher = Substitute.For<ElympicsMatchLauncher>();
             _ = _launcher.State.Returns(MatchLauncherState.Idle);
             _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
                 .Returns(_ => _launchResult.Task);
@@ -75,13 +76,15 @@ namespace ElympicsPlayPad.Tests.Lobby
                 .SetShowAuthMessage(UserId, Nickname, string.Empty);
             var dispatcher = AsyncEventsDispatcherMockSetup.CreateMockAsyncEventsDispatcher();
 
-            _sut = new LobbyClient(_auth, "client-secret", regions, _launcher,
-                (_, retriever, _) =>
+            _ = _launcher.LaunchSnapshotReplayAsync(Arg.Any<string>(), Arg.Any<SnapshotReplayLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
+                .Returns(call =>
                 {
-                    _replays.Add(retriever);
+                    _replays.Add(call.ArgAt<SnapshotReplayLaunchData>(1).Preloaded!);
                     return _launchResult.Task;
-                },
-                _game, true, "wss://lobby.example/lobby",
+                });
+
+            _sut = new LobbyClient(_auth, "client-secret", regions, _launcher,
+                _game, "wss://lobby.example/lobby",
                 controller => new WebSocketSession(controller, dispatcher, LobbyTestSerialization.Options, (_, _) => _ws));
             _sut.ElympicsConnectionEstablished += _established.Add;
             _sut.ElympicsConnectionLost += _lost.Add;

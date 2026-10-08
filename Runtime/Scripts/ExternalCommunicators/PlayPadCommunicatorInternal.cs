@@ -15,21 +15,20 @@ namespace ElympicsPlayPad
         public AuthData? AuthData { get; private set; }
         private readonly string _gameId;
         private readonly bool _useWeb;
-        private readonly Func<IElympicsMatchLauncher> _launcher;
 
-        public PlayPadCommunicatorInternal(string gameId, bool useWeb, Func<IElympicsMatchLauncher> launcher)
+        public PlayPadCommunicatorInternal(string gameId, bool useWeb, ElympicsMatchLauncher launcher)
         {
             _gameId = gameId;
             _useWeb = useWeb;
-            _launcher = launcher;
+            Launcher = launcher;
         }
 
-        public IElympicsMatchLauncher Launcher => _launcher();
+        public ElympicsMatchLauncher Launcher { get; }
 
         public UniTask<ElympicsLaunchResult> PlayMatchInternal(FoundMatch matchData)
         {
             var userId = AuthData?.UserId ?? throw new InvalidOperationException("Cannot play a match before authentication.");
-            return MatchLaunching.LaunchAsync(_launcher(), _gameId, _useWeb, matchData, userId);
+            return MatchLaunching.LaunchAsync(Launcher, _gameId, _useWeb, matchData, userId);
         }
 
         public UniTask Authenticate(AuthData cachedData, string region, bool autoRetry)

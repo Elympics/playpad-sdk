@@ -6,7 +6,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using Elympics.Resolvers;
 using Elympics.SnapshotAnalysis.Retrievers;
 using ElympicsPlayPad.Auth;
 using ElympicsPlayPad.Auth.Models;
@@ -76,9 +75,7 @@ namespace ElympicsPlayPad.Wrappers
                 GetOrCreateClientSecret(),
                 new DefaultRegionRetriever(),
                 ElympicsMatchLauncher.Instance,
-                (gameId, retriever, ct) => ElympicsMatchLauncher.Current!.LaunchSnapshotReplayAsync(gameId, retriever, null, ct),
                 gameConfig,
-                gameConfig.UseWeb,
                 lobbyUrl,
                 controller => new WebSocketSession(controller, MainThreadDispatcher.Instance, serializerOptions))
             {
@@ -90,15 +87,9 @@ namespace ElympicsPlayPad.Wrappers
 
         private void OnDestroy() => _client?.Dispose();
 
-        /// <summary>PlayPad's lobby formatters first, then core's resolvers ordered like <see cref="ResolverRegistrator"/>.</summary>
+        /// <summary>PlayPad's lobby formatters first, then core's resolvers registered by <see cref="ResolverRegistrator"/>.</summary>
         internal static MessagePackSerializerOptions CreateSerializerOptions() =>
-            MessagePackSerializerOptions.Standard.WithResolver(CompositeResolver.Create(
-                PlayPadGeneratedResolver.Instance,
-                GeneratedResolver.Instance,
-                AttributeFormatterResolver.Instance,
-                BuiltinResolver.Instance,
-                PrimitiveObjectResolver.Instance,
-                MissingTypesResolver.Instance));
+            MessagePackSerializerOptions.Standard.WithResolver(CompositeResolver.Create(PlayPadGeneratedResolver.Instance, StaticCompositeResolver.Instance));
 
         public UniTask ConnectToElympicsAsync(ConnectionData data) => Client.ConnectToElympicsAsync(data);
 

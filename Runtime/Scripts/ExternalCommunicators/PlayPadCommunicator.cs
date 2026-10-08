@@ -127,9 +127,9 @@ namespace ElympicsPlayPad.ExternalCommunicators
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
                 ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, launcher, retriever => Lobby.WatchReplay(retriever));
 #else
-                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, launcher, retriever => WebGLExternalReplay.LaunchReplay(gameConfig.GameId, retriever));
+                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, launcher, retriever => WebGLExternalReplay.LaunchReplay(launcher, gameConfig.GameId, retriever));
 #endif
-                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!.GameId, gameConfig.UseWeb, () => ElympicsMatchLauncher.Instance);
+                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!.GameId, gameConfig.UseWeb, launcher);
 
                 var authFactory = new AuthFactory();
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
@@ -206,6 +206,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
             GameStatusCommunicator?.Dispose();
             _heartbeat?.Dispose();
             _sentry?.Dispose();
+            (ReplayCommunicator as IDisposable)?.Dispose();
+            (LobbyCommunicator as IDisposable)?.Dispose();
         }
 
         private bool UseMockAuth => useMockConfiguration

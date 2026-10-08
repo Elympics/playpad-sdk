@@ -12,7 +12,6 @@ using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
-using ElympicsPlayPad.Wrappers;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
@@ -27,19 +26,18 @@ namespace ElympicsPlayPad.Tests
         private static readonly Guid MatchId = new("20000000-0000-0000-0000-000000000001");
         private static readonly Guid OtherMatchId = new("20000000-0000-0000-0000-000000000002");
 
-        private IElympicsMatchLauncher _launcher = null!;
+        private ElympicsMatchLauncher _launcher = null!;
         private WebGLExternalLobby _sut = null!;
         private List<LobbyInfo> _updates = null!;
 
         [SetUp]
         public void SetUp()
         {
-            _launcher = Substitute.For<IElympicsMatchLauncher>();
+            _launcher = Substitute.For<ElympicsMatchLauncher>();
             _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
                 .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
-            LaunchedMatch.Clear();
 
-            var communicatorInternal = new PlayPadCommunicatorInternal(GameId, true, () => _launcher);
+            var communicatorInternal = new PlayPadCommunicatorInternal(GameId, true, _launcher);
             communicatorInternal.Authenticate(new AuthData(UserId, "jwt", AuthType.ClientSecret), "warsaw", false).Forget();
             _sut = new WebGLExternalLobby(Substitute.For<IPlayPadMessagingSystem>(), communicatorInternal);
             _updates = new List<LobbyInfo>();

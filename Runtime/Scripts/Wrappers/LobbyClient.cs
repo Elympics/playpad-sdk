@@ -28,7 +28,7 @@ namespace ElympicsPlayPad.Wrappers
 {
     /// <summary>
     /// Authentication, the lobby WebSocket and Rooms of <see cref="DefaultElympicsLobbyWrapper"/>. Matches found in Rooms and replays
-    /// are launched through <see cref="IElympicsMatchLauncher"/>.
+    /// are launched through <see cref="ElympicsMatchLauncher"/>.
     /// </summary>
     /// <remarks>
     /// <see cref="State"/> combines the connection state with the wrapper's own launches: while a match or replay launched here runs,
@@ -37,8 +37,6 @@ namespace ElympicsPlayPad.Wrappers
     /// </remarks>
     internal sealed class LobbyClient : IMatchLauncher, ICoinSource, IWebSocketSessionController, IDisposable
     {
-        internal delegate UniTask<ElympicsLaunchResult> ReplayLauncher(string gameId, SnapshotAnalysisRetriever retriever, CancellationToken ct);
-
         public event Action<ElympicsConnectionData>? ElympicsConnectionEstablished;
         public event Action<ElympicsConnectionLostData>? ElympicsConnectionLost;
 
@@ -72,10 +70,8 @@ namespace ElympicsPlayPad.Wrappers
         private readonly IAuthClient _auth;
         private readonly string _clientSecret;
         private readonly IAvailableRegionRetriever _regionRetriever;
-        private readonly IElympicsMatchLauncher _launcher;
-        private readonly ReplayLauncher _launchReplay;
+        private readonly ElympicsMatchLauncher _launcher;
         private readonly ElympicsGameConfig _gameConfig;
-        private readonly bool _useWeb;
         private readonly string _lobbyUrl;
         private SessionConnectionFactory? _sessionConnectionFactory;
 
@@ -87,10 +83,8 @@ namespace ElympicsPlayPad.Wrappers
             IAuthClient auth,
             string clientSecret,
             IAvailableRegionRetriever regionRetriever,
-            IElympicsMatchLauncher launcher,
-            ReplayLauncher launchReplay,
+            ElympicsMatchLauncher launcher,
             ElympicsGameConfig gameConfig,
-            bool useWeb,
             string lobbyUrl,
             Func<IWebSocketSessionController, WebSocketSession> createSession)
         {
@@ -98,9 +92,7 @@ namespace ElympicsPlayPad.Wrappers
             _clientSecret = clientSecret;
             _regionRetriever = regionRetriever;
             _launcher = launcher;
-            _launchReplay = launchReplay;
             _gameConfig = gameConfig;
-            _useWeb = useWeb;
             _lobbyUrl = lobbyUrl;
             WebSocketSession = createSession(this);
             var roomsClient = new RoomsClient
@@ -456,7 +448,7 @@ namespace ElympicsPlayPad.Wrappers
             var details = matchData.MatchDetails;
             var match = new FoundMatch(matchData.MatchId, details.MatchedPlayersId, details.TcpUdpServerAddress, details.WebServerAddress, details.UserSecret,
                 details.GameEngineData, details.MatchmakerData, matchData.QueueName, matchData.RegionName);
-            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _useWeb, match, AuthData!.UserId, ct));
+            BeginLaunch(LaunchKind.Match, ct => MatchLaunching.LaunchAsync(_launcher, _gameConfig.GameId, _gameConfig.UseWeb, match, AuthData!.UserId, ct));
         }
 
         #endregion
@@ -467,7 +459,7 @@ namespace ElympicsPlayPad.Wrappers
         {
             if (_launch != LaunchKind.None || _connectionState is ElympicsState.Connecting or ElympicsState.Reconnecting or ElympicsState.Matchmaking)
                 throw new ElympicsException(ErrorMessage(nameof(WatchReplay)));
-            BeginLaunch(LaunchKind.Replay, ct => _launchReplay(_gameConfig.GameId, retriever, ct));
+            BeginLaunch(LaunchKind.Replay, ct => _launcher.LaunchSnapshotReplayAsync(_gameConfig.GameId, retriever, ct: ct));
         }
 
         #endregion
@@ -506,10 +498,7 @@ namespace ElympicsPlayPad.Wrappers
         private void OnLauncherStateChanged(MatchLauncherState state)
         {
             if (state == MatchLauncherState.Idle)
-            {
-                LaunchedMatch.Clear();
                 EndLaunch();
-            }
         }
 
         private void EndLaunch()

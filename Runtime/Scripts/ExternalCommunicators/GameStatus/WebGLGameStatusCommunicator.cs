@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         private readonly IRoomsManager _roomsManager;
         private readonly Dictionary<string, string> _joinedCustomMatchmakingData = new();
 #endif
-        private readonly IElympicsMatchLauncher _launcher;
+        private readonly ElympicsMatchLauncher _launcher;
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
             .WithClass(typeof(WebGLGameStatusCommunicator))
             .WithMonitoringEnabled();
@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
             IElympicsLobbyWrapper lobby,
             IExternalTournamentCommunicator tournamentCommunicator,
 #endif
-            IElympicsMatchLauncher launcher)
+            ElympicsMatchLauncher launcher)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.PlayStatusUpdated);
@@ -138,8 +138,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.GameStatus
         {
             var systemInfoDataMessage = new SystemInfoDataMessage
             {
-                userId = LaunchedMatch.UserId?.ToString() ?? string.Empty,
-                matchId = LaunchedMatch.MatchId,
+                userId = LaunchedMatch.UserId(_launcher)?.ToString() ?? string.Empty,
+                matchId = LaunchedMatch.MatchId(_launcher),
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData(),
             };
 
