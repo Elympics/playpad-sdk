@@ -2,7 +2,7 @@ using System;
 
 namespace ElympicsPlayPad.Tests.Lobby.Rooms
 {
-    public class DiscreteTimer
+    internal class DiscreteTimer
     {
         public TimeSpan Interval { private get; init; } = TimeSpan.FromSeconds(1);
         public DateTime Time { get; private set; } = DateTime.UtcNow;

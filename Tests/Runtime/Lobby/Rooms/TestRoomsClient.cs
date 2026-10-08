@@ -37,7 +37,7 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         private static readonly string TestHostNickname = "Nickname_" + TestHostGuid;
 
         [SetUp]
-        public void ResetMocks()
+        protected void ResetMocks()
         {
             ((IRoomsClient)RoomsClient).ResetState();
             ((IRoomsClient)RoomsClient).ClearSession();

@@ -47,7 +47,7 @@ namespace ElympicsPlayPad.Tests.Lobby
         private record UnknownOperation : LobbyOperation;
 
         [OneTimeSetUp]
-        public void OneTimeSetUp()
+        protected void OneTimeSetUp()
         {
             _ = LobbySerializer.Serialize(Arg.Any<IToLobby>()).Returns(x =>
             {
@@ -63,7 +63,7 @@ namespace ElympicsPlayPad.Tests.Lobby
         }
 
         [SetUp]
-        public void ResetMocks() => cts = new();
+        protected void ResetMocks() => cts = new CancellationTokenSource();
 
         [UnityTest]
         public IEnumerator HappyPathConnectionScenarioShouldSucceed() => UniTask.ToCoroutine(async () =>
@@ -445,8 +445,9 @@ namespace ElympicsPlayPad.Tests.Lobby
 
             Assert.That(Thread.CurrentThread.ManagedThreadId, Is.EqualTo(mainThreadId));
         });
+
         [TearDown]
-        public void CleanUp()
+        protected void CleanUp()
         {
             ElympicsLogger.LogInfo($"{nameof(TestWebSocketSession)} Cleanup");
             WebSocketMock.ClearSubstitute();

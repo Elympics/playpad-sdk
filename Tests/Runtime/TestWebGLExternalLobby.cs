@@ -31,7 +31,7 @@ namespace ElympicsPlayPad.Tests
         private List<LobbyInfo> _updates = null!;
 
         [SetUp]
-        public void SetUp()
+        protected void SetUp()
         {
             _launcher = Substitute.For<ElympicsMatchLauncher>();
             _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())

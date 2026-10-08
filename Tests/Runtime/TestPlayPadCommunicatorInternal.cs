@@ -29,7 +29,7 @@ namespace ElympicsPlayPad.Tests
         private SinglePlayerLaunchData? _singlePlayerData;
 
         [SetUp]
-        public void SetUp()
+        protected void SetUp()
         {
             _onlineData = null;
             _singlePlayerData = null;

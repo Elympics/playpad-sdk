@@ -16,10 +16,10 @@ namespace ElympicsPlayPad.Tests
         private GameObject _gameObject = null!;
 
         [SetUp]
-        public void SetUp() => _gameObject = new GameObject(nameof(WebRequestRoutingTests));
+        protected void SetUp() => _gameObject = new GameObject(nameof(WebRequestRoutingTests));
 
         [TearDown]
-        public void TearDown() => UnityEngine.Object.DestroyImmediate(_gameObject);
+        protected void TearDown() => UnityEngine.Object.DestroyImmediate(_gameObject);
 
         [Test]
         public void JsWebRequestIsRaisedAsWebRequest()

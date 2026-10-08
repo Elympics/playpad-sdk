@@ -49,10 +49,10 @@ namespace ElympicsPlayPad.Tests.Lobby
         public void OnEvent(ElympicsStateChanged argument) => _states.Add(argument.NewState);
 
         [OneTimeSetUp]
-        public void Observe() => CrossAssemblyEventBroadcaster.AddObserver(this);
+        protected void Observe() => CrossAssemblyEventBroadcaster.AddObserver(this);
 
         [SetUp]
-        public void SetUp()
+        protected void SetUp()
         {
             _states.Clear();
             _established.Clear();
@@ -91,7 +91,7 @@ namespace ElympicsPlayPad.Tests.Lobby
         }
 
         [TearDown]
-        public void TearDown()
+        protected void TearDown()
         {
             LogAssert.ignoreFailingMessages = false;
             _sut.Dispose();

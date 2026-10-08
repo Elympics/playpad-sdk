@@ -14,17 +14,18 @@ using UnityEngine.TestTools;
 
 namespace ElympicsPlayPad.Tests
 {
-    public class RequestMessageDispatcherTests : ElympicsMonoBaseTest
+    public class RequestMessageDispatcherTests : ElympicsMonoProviderBaseTest
     {
         private RequestMessageDispatcher _sut;
         private int _ticketCounter;
 
         protected override string SceneName => "ElympicsEmptyTestScene";
-        protected override bool RequiresElympicsConfig => false;
+        protected override bool RequiresTestConfig => false;
 
         [OneTimeSetUp]
-        public new void Setup()
+        protected override void OneTimeSetUp()
         {
+            base.OneTimeSetUp();
             _sut = new RequestMessageDispatcher();
         }
 
@@ -48,14 +49,14 @@ namespace ElympicsPlayPad.Tests
             _sut.RegisterTicket(ticket);
             var response = GenerateHandshakeResponse(ticket, 0);
             _sut.OnResponseObjectReceived(response);
-            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
+            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, CancellationToken.None);
             _ = await task;
             Assert.AreEqual(0, _sut.TicketStatus.Count);
 
         });
 
-        [UnityTest]
-        public IEnumerator Test_Request_DoubleResponse_LogError() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void Test_Request_DoubleResponse_LogError()
         {
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
@@ -63,18 +64,18 @@ namespace ElympicsPlayPad.Tests
             _sut.OnResponseObjectReceived(response);
             LogAssert.Expect(LogType.Error, new Regex("Status map already contains response"));
             _sut.OnResponseObjectReceived(response);
-        });
+        }
 
 
-        [UnityTest]
-        public IEnumerator Test_Response_WithoutTicket() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void Test_Response_WithoutTicket()
         {
             LogAssert.Expect(LogType.Error, new Regex("Did not found ticketStatus"));
             var response = GenerateHandshakeResponse(0, 0);
             _sut.OnResponseObjectReceived(response);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
 
-        });
+        }
 
         [UnityTest]
         public IEnumerator Test_Request_UserCancelled() => UniTask.ToCoroutine(async () =>
@@ -105,7 +106,7 @@ namespace ElympicsPlayPad.Tests
         {
             var ticket = _ticketCounter++;
             _sut.RegisterTicket(ticket);
-            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, default);
+            var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, CancellationToken.None);
             var response = GenerateHandshakeResponse(ticket, 1);
             _sut.OnResponseObjectReceived(response);
             var exceptionThrown = false;
@@ -180,7 +181,7 @@ namespace ElympicsPlayPad.Tests
             _sut.RegisterTicket(ticket);
             LogAssert.Expect(LogType.Exception, new Regex("Request reached timeout"));
             var task = _sut.RequestUniTaskOrThrow<HandshakeResponse>(ticket, cts.Token);
-            await UniTask.Delay(TimeSpan.FromMilliseconds(20));
+            await UniTask.Delay(TimeSpan.FromMilliseconds(20), cancellationToken: cts.Token);
             var exceptionThrown = false;
             try
             {
@@ -195,19 +196,19 @@ namespace ElympicsPlayPad.Tests
             var response = GenerateHandshakeResponse(ticket, 0);
             _sut.OnResponseObjectReceived(response);
             Assert.AreEqual(0, _sut.TicketStatus.Count);
+            cts.Cancel();
             cts.Dispose();
-
         });
 
         [TearDown]
-        public void Cleanup()
+        protected void Cleanup()
         {
             _ticketCounter = 0;
             _ = _sut.SetTimeoutLenght(TimeSpan.FromSeconds(10 * 60));
             _sut.Reset();
         }
 
-        public string GenerateHandshakeResponse(int ticket, int status)
+        private static string GenerateHandshakeResponse(int ticket, int status)
         {
             var handshakeResponse = GetHandshakeResponse();
             var response = new ResponseMessage

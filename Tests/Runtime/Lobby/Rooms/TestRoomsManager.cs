@@ -58,14 +58,14 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
         }
 
         [SetUp]
-        public void SetUp()
+        protected void SetUp()
         {
             _tearDownCts = new CancellationTokenSource();
             InitializeRoomsManager();
         }
 
         [TearDown]
-        public void Reset()
+        protected void Reset()
         {
             _tearDownCts.Cancel();
             ((IRoomsManager)RoomsManager).Reset();

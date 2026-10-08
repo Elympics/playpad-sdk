@@ -28,7 +28,7 @@ using UnityEngine.TestTools;
 
 namespace ElympicsPlayPad.Tests
 {
-    public class SessionManagerTests : ElympicsMonoBaseTest
+    public class SessionManagerTests : ElympicsMonoProviderBaseTest
     {
         private SessionManager _sut;
         private PlayPadCommunicator _communicator;
@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.Tests
         private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
         private static readonly IPlayPadMessagingSystem PlaypadCommunicatorMock = Substitute.For<IPlayPadMessagingSystem>();
         protected override string SceneName => "ElympicsSessionManagerTestScene";
-        protected override bool RequiresElympicsConfig => true;
+        protected override bool RequiresTestConfig => true;
 
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         private const string DefaultEnvironment = "Dev";
@@ -69,10 +69,14 @@ namespace ElympicsPlayPad.Tests
         private string _jwtEncoded;
 
         [OneTimeSetUp]
-        public void OneTimeSetup() => _jwtEncoded = EncodeJwtFromJson(FakeJwt);
+        protected override void OneTimeSetUp()
+        {
+            base.OneTimeSetUp();
+            _jwtEncoded = EncodeJwtFromJson(FakeJwt);
+        }
 
         [UnitySetUp]
-        public IEnumerator SetUp()
+        protected IEnumerator SetUp()
         {
             yield return LoadTestScene();
             yield return WaitUntilOrFail(() => PlayPadCommunicator.Instance != null, nameof(PlayPadCommunicator));
@@ -240,7 +244,7 @@ namespace ElympicsPlayPad.Tests
         }
 
         [TearDown]
-        public void ResetSut()
+        protected void ResetSut()
         {
             AuthMock.ClearSubstitute();
             GameMock.ClearSubstitute();

@@ -3,6 +3,7 @@
 using System.Collections;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.Tests.Runtime.Mocks;
 using ElympicsPlayPad.Wrappers;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,13 +12,15 @@ using UnityEngine.TestTools;
 
 namespace ElympicsPlayPad.Tests
 {
-    public class PlayPadCommunicatorPrefabTests
+    public class PlayPadCommunicatorPrefabTests : ElympicsTestConfigProviderBase
     {
         private const string PrefabPath = "Packages/com.daftmobile.elympics-playpad/Runtime/Prefabs/PlayPadCommunicator.prefab";
         private GameObject? _instance;
 
+        protected override bool RequiresTestConfig => true;
+
         [UnitySetUp]
-        public IEnumerator RemoveSurvivingCommunicator()
+        protected IEnumerator RemoveSurvivingCommunicator()
         {
             if (PlayPadCommunicator.Instance != null)
                 Object.Destroy(PlayPadCommunicator.Instance.gameObject);
@@ -26,7 +29,7 @@ namespace ElympicsPlayPad.Tests
         }
 
         [TearDown]
-        public void TearDown()
+        protected void TearDown()
         {
             if (_instance != null)
                 Object.Destroy(_instance);
