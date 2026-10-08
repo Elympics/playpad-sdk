@@ -37,11 +37,10 @@ namespace ElympicsPlayPad.Tests
         private static readonly IExternalCoinCommunicator CoinMock = Substitute.For<IExternalCoinCommunicator>();
         private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
         private static readonly IPlayPadMessagingSystem PlaypadCommunicatorMock = Substitute.For<IPlayPadMessagingSystem>();
-        public override string SceneName => "ElympicsSessionManagerTestScene";
-        public override bool RequiresElympicsConfig => true;
+        protected override string SceneName => "ElympicsSessionManagerTestScene";
+        protected override bool RequiresElympicsConfig => true;
 
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        private const string Nickname = "nickname";
         private const string DefaultEnvironment = "Dev";
         private const string DefaultClosestRegion = "warsaw";
 
@@ -86,11 +85,8 @@ namespace ElympicsPlayPad.Tests
             MockExternalCommunicator(_communicator, PlayPadCommunicator.CoinCommunicatorFieldName, CoinMock);
             MockIPlaypadCommunicator(_sut, PlaypadCommunicatorMock);
             _ = PlaypadCommunicatorMock.Connect().Returns(UniTask.CompletedTask);
-            _ = CoinMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(x =>
-            {
-                var toReturn = new Dictionary<Guid, CoinInfo>();
-                return UniTask.FromResult((IReadOnlyDictionary<Guid, CoinInfo>)toReturn);
-            });
+            _ = CoinMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(_ =>
+                UniTask.FromResult<IReadOnlyDictionary<Guid, CoinInfo>>(new Dictionary<Guid, CoinInfo>()));
             Assert.NotNull(_sut);
             _sut.Reset();
         }

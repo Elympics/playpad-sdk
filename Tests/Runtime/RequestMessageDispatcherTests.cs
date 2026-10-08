@@ -19,8 +19,8 @@ namespace ElympicsPlayPad.Tests
         private RequestMessageDispatcher _sut;
         private int _ticketCounter;
 
-        public override string SceneName => "ElympicsEmptyTestScene";
-        public override bool RequiresElympicsConfig => false;
+        protected override string SceneName => "ElympicsEmptyTestScene";
+        protected override bool RequiresElympicsConfig => false;
 
         [OneTimeSetUp]
         public new void Setup()
