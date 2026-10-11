@@ -3,10 +3,10 @@
 using System;
 using System.Collections;
 using System.Linq;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
+using ElympicsPlayPad.Tests.Lobby.Common.MockSetup;
 using ElympicsPlayPad.Wrappers;
 using NSubstitute;
 using NUnit.Framework;
@@ -33,12 +33,20 @@ namespace ElympicsPlayPad.Tests
         {
             _onlineData = null;
             _singlePlayerData = null;
-            _launcher = Substitute.For<ElympicsMatchLauncher>();
-            _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Do<OnlineLaunchData>(data => _onlineData = data), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
-            _ = _launcher.LaunchSinglePlayerAsync(Arg.Any<string>(), Arg.Do<SinglePlayerLaunchData?>(data => _singlePlayerData = data), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
+            _launcher = Substitute.For<ElympicsMatchLauncher>()
+                .SetupLaunch<OnlineLaunchData>(data =>
+                {
+                    _onlineData = data;
+                    return Succeeded();
+                })
+                .SetupLaunch<SinglePlayerLaunchData>(data =>
+                {
+                    _singlePlayerData = data;
+                    return Succeeded();
+                });
         }
+
+        private static UniTask<ElympicsLaunchResult> Succeeded() => UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString()));
 
         private PlayPadCommunicatorInternal CreateAuthenticated(bool useWeb)
         {
@@ -66,7 +74,7 @@ namespace ElympicsPlayPad.Tests
             Assert.That(_onlineData.RegionName, Is.EqualTo("warsaw"));
             Assert.That(_onlineData.GameEngineData, Is.EqualTo(new byte[] { 1, 2 }));
             Assert.That(_onlineData.MatchmakerData, Is.EqualTo(new[] { 0.5f }));
-            _ = _launcher.Received(1).LaunchOnlineAsync(GameId, Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.ReceivedLaunch<OnlineLaunchData>(1, GameId);
         });
 
         [UnityTest]
@@ -111,7 +119,7 @@ namespace ElympicsPlayPad.Tests
             var result = await CreateAuthenticated(useWeb: true).PlayMatchInternal(Match());
 
             Assert.That(result.Code, Is.EqualTo(ElympicsLaunchErrorCode.Busy));
-            _ = _launcher.DidNotReceive().LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.DidNotReceiveLaunch<OnlineLaunchData>();
         });
 
         [Test]

@@ -66,22 +66,19 @@ namespace ElympicsPlayPad.Tests.Lobby
             _auth = Substitute.For<IAuthClient>().CreateSuccessIAuthClient(UserId);
             var regions = Substitute.For<IAvailableRegionRetriever>();
             _ = regions.GetAvailableRegions().Returns(_ => UniTask.FromResult(new List<string> { Region }));
-            _launcher = Substitute.For<ElympicsMatchLauncher>();
+            _launcher = Substitute.For<ElympicsMatchLauncher>()
+                .SetupLaunch<OnlineLaunchData>(_ => _launchResult.Task)
+                .SetupLaunch<SnapshotReplayLaunchData>(data =>
+                {
+                    _replays.Add(data.Preloaded!);
+                    return _launchResult.Task;
+                });
             _ = _launcher.State.Returns(MatchLauncherState.Idle);
-            _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(_ => _launchResult.Task);
             _ws = Substitute.For<IWebSocket>()
                 .SetupOpenCloseDefaultBehaviour()
                 .SetupJoinLobby(false, UserId, Nickname, string.Empty)
                 .SetShowAuthMessage(UserId, Nickname, string.Empty);
             var dispatcher = AsyncEventsDispatcherMockSetup.CreateMockAsyncEventsDispatcher();
-
-            _ = _launcher.LaunchSnapshotReplayAsync(Arg.Any<string>(), Arg.Any<SnapshotReplayLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(call =>
-                {
-                    _replays.Add(call.ArgAt<SnapshotReplayLaunchData>(1).Preloaded!);
-                    return _launchResult.Task;
-                });
 
             _sut = new LobbyClient(_auth, "client-secret", regions, _launcher,
                 _game, "wss://lobby.example/lobby",
@@ -242,9 +239,8 @@ namespace ElympicsPlayPad.Tests.Lobby
             ((IMatchLauncher)_sut).PlayMatch(Match());
 
             Assert.That(_sut.State, Is.EqualTo(ElympicsState.PlayingMatch));
-            _ = _launcher.Received(1).LaunchOnlineAsync(_game.GameId,
-                Arg.Is<OnlineLaunchData>(data => data.MatchId == MatchId && data.UserId == UserId && data.ServerAddress == "https://gs.example/match"),
-                Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.ReceivedLaunch<OnlineLaunchData>(1, _game.GameId,
+                data => data.MatchId == MatchId && data.UserId == UserId && data.ServerAddress == "https://gs.example/match");
 
             _ = _launchResult.TrySetResult(ElympicsLaunchResult.Succeeded("launch", _game.GameId, MatchId.ToString()));
             await UniTask.Yield();
@@ -321,7 +317,7 @@ namespace ElympicsPlayPad.Tests.Lobby
             _ = Assert.Throws<InvalidOperationException>(() => ((IMatchLauncher)_sut).PlayMatch(Match()));
 
             Assert.That(_sut.State, Is.EqualTo(ElympicsState.Connected));
-            _ = _launcher.DidNotReceive().LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.DidNotReceiveLaunch<OnlineLaunchData>();
         });
 
         [Test]

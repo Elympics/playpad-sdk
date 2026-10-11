@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -12,6 +11,7 @@ using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.WebMessages;
+using ElympicsPlayPad.Tests.Lobby.Common.MockSetup;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
@@ -33,9 +33,8 @@ namespace ElympicsPlayPad.Tests
         [SetUp]
         protected void SetUp()
         {
-            _launcher = Substitute.For<ElympicsMatchLauncher>();
-            _ = _launcher.LaunchOnlineAsync(Arg.Any<string>(), Arg.Any<OnlineLaunchData>(), Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>())
-                .Returns(UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
+            _launcher = Substitute.For<ElympicsMatchLauncher>()
+                .SetupLaunch<OnlineLaunchData>(_ => UniTask.FromResult(ElympicsLaunchResult.Succeeded("launch", GameId, MatchId.ToString())));
 
             var communicatorInternal = new PlayPadCommunicatorInternal(GameId, true, _launcher);
             communicatorInternal.Authenticate(new AuthData(UserId, "jwt", AuthType.ClientSecret), "warsaw", false).Forget();
@@ -87,8 +86,7 @@ namespace ElympicsPlayPad.Tests
             _sut.PlayMatch();
 
             Assert.That(_sut.Lobby.IsMatchReady, Is.True);
-            _ = _launcher.Received(2).LaunchOnlineAsync(GameId, Arg.Is<OnlineLaunchData>(data => data.MatchId == MatchId),
-                Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.ReceivedLaunch<OnlineLaunchData>(2, GameId, data => data.MatchId == MatchId);
         }
 
         [Test]
@@ -112,8 +110,7 @@ namespace ElympicsPlayPad.Tests
             ReceiveReadyMatch(OtherMatchId);
             _sut.PlayMatch();
 
-            _ = _launcher.Received(1).LaunchOnlineAsync(GameId, Arg.Is<OnlineLaunchData>(data => data.MatchId == OtherMatchId),
-                Arg.Any<ElympicsLaunchOptions?>(), Arg.Any<CancellationToken>());
+            _launcher.ReceivedLaunch<OnlineLaunchData>(1, GameId, data => data.MatchId == OtherMatchId);
         }
     }
 }
