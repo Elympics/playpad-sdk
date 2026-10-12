@@ -54,15 +54,12 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 return;
             }
 
+            // The page blocks play when the game has no tournament, so its play status doesn't apply to the sample's own quick match.
             UpdatePlayButton(new PlayStatusInfo { PlayStatus = PlayStatus.Play, LabelInfo = "Play" });
-
-            PlayStatusCommunicator.PlayStatusUpdated += UpdatePlayButton;
-            UpdatePlayButton(PlayStatusCommunicator.CurrentPlayStatus);
         }
 
         private void OnDestroy()
         {
-            PlayStatusCommunicator.PlayStatusUpdated -= UpdatePlayButton;
             if (PlayPadCommunicator.Instance?.LobbyCommunicator is { } lobby)
                 lobby.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
         }
