@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Elympics;
 using ElympicsPlayPad.Auth.Models;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ namespace ElympicsPlayPad.Auth
             if (split.Length != 3)
                 throw new ArgumentException("Token must consist from 3 delimited by dot parts");
 
-            var payloadData = split[1].Base64UrlDecode();
+            var payloadData = Base64Url.Decode(split[1]);
             var data = Encoding.UTF8.GetString(payloadData);
             var payload = JsonUtility.FromJson<JwtTokenPayload>(data);
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() > payload.exp;

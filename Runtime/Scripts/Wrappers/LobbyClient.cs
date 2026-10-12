@@ -376,7 +376,9 @@ namespace ElympicsPlayPad.Wrappers
                 case ElympicsState.Connected:
                     ThrowIfLaunched(nameof(IMatchLauncher.StartMatchmaking));
                     await room.StartMatchmakingInternal();
-                    SetConnectionState(ElympicsState.Matchmaking);
+                    // A reconnect may have started meanwhile; it sets the state once it ends.
+                    if (_connectionState == ElympicsState.Connected)
+                        SetConnectionState(ElympicsState.Matchmaking);
                     break;
                 case ElympicsState.Disconnected:
                     _logger.WithMethodName().LogError(ErrorMessage(nameof(IMatchLauncher.StartMatchmaking)));
@@ -404,13 +406,15 @@ namespace ElympicsPlayPad.Wrappers
             {
                 _matchmakingCancelRequested = true;
                 await room.CancelMatchmakingInternal(ct);
-                SetConnectionState(ElympicsState.Connected);
+                if (_connectionState == ElympicsState.Matchmaking)
+                    SetConnectionState(ElympicsState.Connected);
             }
             catch (LobbyOperationException e) when (e.Kind == ErrorKind.RoomAlreadyInMatchedState)
             { }
             catch (LobbyOperationException)
             {
-                SetConnectionState(ElympicsState.Connected);
+                if (_connectionState == ElympicsState.Matchmaking)
+                    SetConnectionState(ElympicsState.Connected);
                 throw;
             }
             finally
@@ -521,9 +525,6 @@ namespace ElympicsPlayPad.Wrappers
 
         #region ICoinSource
 
-        async UniTask<RollingsResponseDto?> ICoinSource.GetRollTournamentsFeeInternal(TournamentFeeRequestInfo[] requestData, CancellationToken ct) =>
-            await GetRollTournamentsFeeInternal(requestData, ct);
-
         public async UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default)
         {
             if (requestData.Length == 0)
@@ -553,7 +554,7 @@ namespace ElympicsPlayPad.Wrappers
             return new TournamentFeeInfo { Fees = fees };
         }
 
-        private async UniTask<RollingsResponseDto?> GetRollTournamentsFeeInternal(TournamentFeeRequestInfo[] requestData, CancellationToken ct)
+        public async UniTask<RollingsResponseDto?> GetRollTournamentsFeeInternal(TournamentFeeRequestInfo[] requestData, CancellationToken ct)
         {
             var request = new RequestRollingsDto(
                 GameId: Guid.Parse(_gameConfig.GameId),

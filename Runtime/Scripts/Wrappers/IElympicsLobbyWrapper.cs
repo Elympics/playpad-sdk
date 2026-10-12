@@ -43,8 +43,6 @@ namespace ElympicsPlayPad.Wrappers
 
         UniTask ConnectToElympicsAsync(ConnectionData data);
 
-        UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region);
-
         UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default);
 
         internal void WatchReplay(SnapshotAnalysisRetriever retriever);

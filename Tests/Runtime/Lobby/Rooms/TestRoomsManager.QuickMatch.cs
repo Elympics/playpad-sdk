@@ -17,7 +17,6 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using static ElympicsPlayPad.Tests.Lobby.Common.AsyncAsserts;
-using MatchmakingState = ElympicsPlayPad.Rooms.Models.MatchmakingState;
 
 #nullable enable
 

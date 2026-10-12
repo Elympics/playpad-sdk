@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using Elympics.SnapshotAnalysis.Retrievers;
 using ElympicsPlayPad.Auth.Models;
@@ -61,17 +60,6 @@ namespace ElympicsPlayPad.Tests
         void IElympicsLobbyWrapper.WatchReplay(SnapshotAnalysisRetriever retriever) => throw new NotImplementedException();
         public UniTask ConnectToElympicsAsync(ConnectionData data) => throw new NotImplementedException();
         public UniTask<TournamentFeeInfo?> GetRollTournamentsFee(TournamentFeeRequestInfo[] requestData, CancellationToken ct = default) => throw new NotImplementedException();
-        public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region)
-        {
-            ElympicsLogger.State.SetUserId(data.UserId);
-            ElympicsLogger.State.SetAuthType(data.AuthType);
-            ElympicsLogger.State.SetRegion(region);
-            CurrentRegion = region;
-            AuthData = data;
-            _mockWebSocket = new MockWebSocket();
-            _mockWebSocket.ToggleConnection(true);
-            return UniTask.CompletedTask;
-        }
     }
 
     public class MockWebSocket : IWebSocketSession

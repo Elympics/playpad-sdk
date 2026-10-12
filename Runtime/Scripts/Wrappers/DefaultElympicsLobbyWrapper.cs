@@ -93,13 +93,6 @@ namespace ElympicsPlayPad.Wrappers
 
         public UniTask ConnectToElympicsAsync(ConnectionData data) => Client.ConnectToElympicsAsync(data);
 
-        public UniTask ConnectStandaloneEditorToElympicsAsync(AuthData data, string region) =>
-            Client.ConnectToElympicsAsync(new ConnectionData
-            {
-                AuthType = AuthType.ClientSecret,
-                Region = new RegionData(region),
-            });
-
         public UniTask Authenticate(AuthData authData, string region, bool autoRetry) =>
             Client.ConnectToElympicsAsync(new ConnectionData
             {

@@ -7,6 +7,5 @@ namespace ElympicsPlayPad.Utility
         public const int LobbyWrapper = -10025;
         public const int ExternalCommunicator = -10000;
         public const int SessionManager = -9975;
-        public const int DefaultSmartContractServiceWrapper = -9960;
     }
 }

@@ -72,6 +72,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
         {
             if (!Lobby.IsMatchReady)
                 throw new InvalidOperationException("Cannot play match: Lobby is null or match is not ready.");
+            if (_communicatorInternal.AuthData == null)
+                throw new InvalidOperationException("Cannot play a match before authentication.");
             var logger = _logger.WithMethodName();
             logger.LogInfo("Play Match.");
             // The host sends a match once and never clears it, so a finished match must not be played again.

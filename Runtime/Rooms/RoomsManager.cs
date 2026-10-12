@@ -10,7 +10,6 @@ using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms.FromRooms;
 using ElympicsPlayPad.Rooms.Models;
-using MatchmakingState = ElympicsPlayPad.Rooms.Models.MatchmakingState;
 
 #nullable enable
 

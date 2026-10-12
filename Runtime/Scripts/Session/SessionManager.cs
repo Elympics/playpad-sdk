@@ -225,7 +225,7 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private async UniTask AuthWithCached(AuthData cachedData, string? region, bool autoRetry = false)
+        private async UniTask AuthWithCached(AuthData cachedData, string? region)
         {
             if (_authProvider is null)
                 throw new InvalidOperationException($"{nameof(_authProvider)} is null");
@@ -235,7 +235,7 @@ namespace ElympicsPlayPad.Session
                     _authProvider.SignOut();
 
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
-                await _authProvider.Authenticate(cachedData, region, autoRetry);
+                await _authProvider.Authenticate(cachedData, region);
             }
             catch (Exception e)
             {
