@@ -123,6 +123,18 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &273174177 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 922023894591716850, guid: 77e8b2d3f26dfa7458728569e1224f8a,
+    type: 3}
+  m_PrefabInstance: {fileID: 590496612}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7660f498b0a43b74e90a77535e1a11bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &553759500
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,7 +200,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &590496612
 PrefabInstance:
@@ -557,6 +569,16 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2752178716628912080, guid: 77e8b2d3f26dfa7458728569e1224f8a,
+        type: 3}
+      propertyPath: playButtonViews.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2752178716628912080, guid: 77e8b2d3f26dfa7458728569e1224f8a,
+        type: 3}
+      propertyPath: playButtonViews.Array.data[0]
+      value: 
+      objectReference: {fileID: 273174177}
     - target: {fileID: 3081051420451590108, guid: 77e8b2d3f26dfa7458728569e1224f8a,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1212,7 +1234,7 @@ PrefabInstance:
     - target: {fileID: 773821390082990744, guid: 915e03586cf042848bb2b1552a123930,
         type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 773821390082990744, guid: 915e03586cf042848bb2b1552a123930,
         type: 3}
@@ -1371,7 +1393,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1014795160
 GameObject:
