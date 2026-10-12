@@ -25,9 +25,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private Sprite playAvailableSprite;
         [SerializeField] private Sprite userActionRequiredSprite;
         [SerializeField] private Sprite playBlockedSprite;
-        [SerializeField] private PlayButtonsViewBase[] playButtonViews;
+        [SerializeField] private PlayButtonsViewBase playButtonView;
 
-        private PlayButtonsViewBase _currentPlayButtonView;
         private bool _hostMatchRequested;
 
         /// <summary>Without its own lobby (LaunchMode Gameplay), PlayPad gets the match from the web page, which also owns the Play button.</summary>
@@ -45,12 +44,9 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         public void OnStart()
         {
-            //Subscribe callbacks for play button & train button, each play button will handle it as needed
-            foreach (var view in playButtonViews)
-            {
-                view.SubscribePlayButtonCallback(PlayTournament);
-                view.AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
-            }
+            //Subscribe callbacks for play button
+            playButtonView.SubscribePlayButtonCallback(PlayTournament);
+            playButtonView.AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
 
             if (HostMatchmakes)
             {
@@ -96,7 +92,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             PlayGameAsync(PlayWebLobbyMatch()).Forget();
         }
 
-        private void UpdatePlayButton(PlayStatusInfo info) => _currentPlayButtonView.UpdatePlayButton(info);
+        private void UpdatePlayButton(PlayStatusInfo info) => playButtonView.UpdatePlayButton(info);
 
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
         private void PlayTournament() => PlayGameAsync(StartQuickMatch()).Forget();
