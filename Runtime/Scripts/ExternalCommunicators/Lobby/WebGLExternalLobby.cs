@@ -49,7 +49,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
                     ElympicsLogger.State.SetMatchId(Lobby.MatchData!.MatchId.ToString());
                 else
                     ElympicsLogger.State.ClearRoom();
-                logger.LogInfo("Lobby status recieved.");
+                logger.LogInfo("Lobby status received.");
                 return Lobby;
             }
             catch (Exception e)
