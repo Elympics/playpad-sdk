@@ -10,18 +10,17 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
-using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators.Lobby;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session.Exceptions;
 using ElympicsPlayPad.Session.Strategies;
 using ElympicsPlayPad.Utility;
 using ElympicsPlayPad.Utils;
 using JetBrains.Annotations;
-using SCS;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Wrappers;
+#endif
 
 namespace ElympicsPlayPad.Session
 {
@@ -43,15 +42,12 @@ namespace ElympicsPlayPad.Session
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
 
         private static SessionManager? instance;
-        private string _region = null!;
-        private ISessionManagerAuthProvider _authProvider = null!;
-        private AuthFactory _authFactory = null!;
-        private SessionManagerInitializationStrategy _initializationStrategy = null!;
+        private string? _region;
+        private ISessionManagerAuthProvider? _authProvider;
+        private AuthFactory? _authFactory;
+        private SessionManagerInitializationStrategy? _initializationStrategy;
         private static IExternalAuthenticator ExternalAuthenticator => PlayPadCommunicator.Instance!.ExternalAuthenticator!;
         private static IExternalGameStatusCommunicator GameStatusCommunicator => PlayPadCommunicator.Instance!.GameStatusCommunicator!;
-        private static IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance!.TournamentCommunicator!;
-        private static IExternalLeaderboardCommunicator LeaderboardCommunicator => PlayPadCommunicator.Instance!.LeaderboardCommunicator!;
-        private static IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator => PlayPadCommunicator.Instance!.VirtualDepositCommunicator;
         private static IExternalLobbyCommunicator LobbyCommunicator => PlayPadCommunicator.Instance!.LobbyCommunicator!;
 
         private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
@@ -60,9 +56,9 @@ namespace ElympicsPlayPad.Session
 
         private AuthData? _newAuthDataRequest;
         private string? _newRegionChange;
-        private IPlayPadMessagingSystem _playpadMessagingSystem = null!;
+        private IPlayPadMessagingSystem? _playpadMessagingSystem;
 
-        private CancellationTokenSource _sessionManagerToken = new();
+        private readonly CancellationTokenSource _sessionManagerToken = new();
 
         internal void Init(AuthFactory authFactory, IPlayPadMessagingSystem playPadCommunicator)
         {
@@ -75,11 +71,7 @@ namespace ElympicsPlayPad.Session
             if (launchMode.HasOnlyGamePlay())
                 return new SessionManagerPlatformInitializationStrategy(LobbyCommunicator, GameStatusCommunicator);
             if (launchMode.HasLobby())
-                return new SessionManagerPlayPadInitializationStrategy(
-                    GameStatusCommunicator,
-                    TournamentCommunicator,
-                    LeaderboardCommunicator,
-                    VirtualDepositCommunicator);
+                return new SessionManagerPlayPadInitializationStrategy(GameStatusCommunicator);
 
             throw new SessionmanagerException($"Unknown launchMode: {launchMode}");
         }
@@ -100,9 +92,8 @@ namespace ElympicsPlayPad.Session
                 ExternalAuthenticator.AuthenticationUpdated += OnAuthDataChanged;
                 ExternalAuthenticator.RegionUpdated += OnRegionUpdated;
 
-                if (SmartContractService.Instance != null)
-                    await SmartContractService.Instance.Initialize();
-                await _playpadMessagingSystem.Connect();
+                if (_playpadMessagingSystem is not null)
+                    await _playpadMessagingSystem.Connect();
                 StartSessionInfoUpdate?.Invoke();
                 var handshake = await SetupHandshake();
                 ElympicsLogger.State.SetRegion(handshake.ClosestRegion);
@@ -111,17 +102,20 @@ namespace ElympicsPlayPad.Session
                 ElympicsLogger.State.SetPlayPadFeatureAccess(handshake.FeatureAccess.ToString());
                 logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
                 _initializationStrategy = CreateInitializationStrategy(handshake.LaunchMode);
-                _authProvider = _authFactory.GetAuthProvider(handshake.LaunchMode);
-                Debug.Log($"[CRITICAL] Auth provider: {_authProvider.GetType().FullName}");
+                _authProvider = _authFactory?.GetAuthProvider(handshake.LaunchMode);
+                Debug.Log($"[CRITICAL] Auth provider: {_authProvider?.GetType().FullName}");
                 Debug.Log($"[CRITICAL] LaunchMode: {handshake.LaunchMode}, Int value: {(int)handshake.LaunchMode}");
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
-#pragma warning disable CS0618 // Type or member is obsolete
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+                var nickname = (_authProvider as IElympicsLobbyWrapper)?.ElympicsUser?.Nickname;
+#else
+                string? nickname = null;
+#endif
                 ElympicsLogger.State.SetUserId(authData.UserId);
                 ElympicsLogger.State.SetAuthType(authData.AuthType);
-                ElympicsLogger.State.SetNickname(authData.Nickname);
-#pragma warning restore CS0618 // Type or member is obsolete
-                logger.LogInfo($"Authentication succeeded: AuthType={authData.AuthType}, UserId={authData.UserId}, Nickname={authData.Nickname}");
+                ElympicsLogger.State.SetNickname(nickname);
+                logger.LogInfo($"Authentication succeeded: AuthType={authData.AuthType}, UserId={authData.UserId}, Nickname={nickname}");
                 await _initializationStrategy.InitializePostAuthenticationAsync(handshake, authData, _sessionManagerToken.Token);
                 SetupSession(handshake, _region, authData);
                 FinishSessionInfoUpdate?.Invoke();
@@ -149,7 +143,7 @@ namespace ElympicsPlayPad.Session
             var result = await ExternalAuthenticator.Authenticate() ?? throw logger.LogExceptionAndReturn(new SessionManagerAuthException($"External authenticator did not return AuthData."));
             try
             {
-                await AuthWithCached(result, _region, false);
+                await AuthWithCached(result, _region);
                 return result;
             }
             catch (Exception e)
@@ -174,7 +168,7 @@ namespace ElympicsPlayPad.Session
                 handshake.LaunchMode);
         }
 
-        private void SetupSession(AuthData authData, string region, SessionInfo currentSession)
+        private void SetupSession(AuthData authData, string? region, SessionInfo currentSession)
         {
             ThrowIfCurrentSessionNull("Something went wrong. There should be existing current session");
 
@@ -231,15 +225,17 @@ namespace ElympicsPlayPad.Session
             }
         }
 
-        private async UniTask AuthWithCached(AuthData cachedData, string region, bool autoRetry)
+        private async UniTask AuthWithCached(AuthData cachedData, string? region)
         {
+            if (_authProvider is null)
+                throw new InvalidOperationException($"{nameof(_authProvider)} is null");
             try
             {
                 if (_authProvider.IsAuthenticated)
                     _authProvider.SignOut();
 
                 Debug.Log($"CachedData is {cachedData.AuthType}.");
-                await _authProvider.Authenticate(cachedData, region, autoRetry);
+                await _authProvider.Authenticate(cachedData, region);
             }
             catch (Exception e)
             {
@@ -262,7 +258,7 @@ namespace ElympicsPlayPad.Session
             ThrowIfCurrentSessionNull("No initial authentication was performed. Can't re-authenticate.");
             try
             {
-                await AuthWithCached(data, _region, false);
+                await AuthWithCached(data, _region);
                 SetupSession(data, _region, CurrentSession!.Value);
             }
             finally
@@ -281,7 +277,7 @@ namespace ElympicsPlayPad.Session
             StartSessionInfoUpdate?.Invoke();
             try
             {
-                await AuthWithCached(CurrentSession!.Value.AuthData, _region, false);
+                await AuthWithCached(CurrentSession!.Value.AuthData, _region);
                 SetupSession(CurrentSession.Value.AuthData, _region, CurrentSession.Value);
             }
             finally
@@ -305,11 +301,11 @@ namespace ElympicsPlayPad.Session
                     _newRegionChange = null;
 
                     if (currentAuthData != null && !string.IsNullOrEmpty(currentRegion))
-                        await OnAuthChangedWithRegionAsync(currentAuthData, currentRegion!);
+                        await OnAuthChangedWithRegionAsync(currentAuthData, currentRegion);
                     else if (currentAuthData != null)
                         await OnAuthDataChangedAsync(currentAuthData);
                     else if (!string.IsNullOrEmpty(currentRegion))
-                        await OnRegionUpdatedAsync(currentRegion!);
+                        await OnRegionUpdatedAsync(currentRegion);
                 }
                 catch (Exception e)
                 {

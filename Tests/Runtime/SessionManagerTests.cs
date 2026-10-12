@@ -1,12 +1,10 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
@@ -14,8 +12,6 @@ using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Tests.Runtime.Mocks;
@@ -24,27 +20,21 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace ElympicsPlayPad.Tests
 {
-    public class SessionManagerTests : ElympicsMonoBaseTest
+    public class SessionManagerTests : ElympicsMonoProviderBaseTest
     {
         private SessionManager _sut;
         private PlayPadCommunicator _communicator;
         private static readonly IExternalAuthenticator AuthMock = Substitute.For<IExternalAuthenticator>();
         private static readonly IExternalGameStatusCommunicator GameMock = Substitute.For<IExternalGameStatusCommunicator>();
-        private static readonly IExternalBlockChainCurrencyCommunicator VirtualDepositMock = Substitute.For<IExternalBlockChainCurrencyCommunicator>();
-        private static readonly IExternalTournamentCommunicator TournamentMock = Substitute.For<IExternalTournamentCommunicator>();
         private static readonly IPlayPadMessagingSystem PlaypadCommunicatorMock = Substitute.For<IPlayPadMessagingSystem>();
-        public override string SceneName => "ElympicsSessionManagerTestScene";
-        public override bool RequiresElympicsConfig => true;
+        protected override string SceneName => "ElympicsSessionManagerTestScene";
+        protected override bool RequiresTestConfig => true;
 
         private static readonly Guid UserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        private const string Nickname = "nickname";
         private const string DefaultEnvironment = "Dev";
         private const string DefaultClosestRegion = "warsaw";
 
@@ -73,26 +63,25 @@ namespace ElympicsPlayPad.Tests
         private string _jwtEncoded;
 
         [OneTimeSetUp]
-        public void OneTimeSetup() => _jwtEncoded = EncodeJwtFromJson(FakeJwt);
+        protected override void OneTimeSetUp()
+        {
+            base.OneTimeSetUp();
+            _jwtEncoded = EncodeJwtFromJson(FakeJwt);
+        }
 
         [UnitySetUp]
-        public IEnumerator SetUp()
+        protected IEnumerator SetUp()
         {
-            SceneManager.LoadScene(SceneName);
-            yield return new WaitUntil(() => Object.FindObjectOfType<SessionManager>() != null);
-            _sut = Object.FindObjectOfType<SessionManager>();
+            yield return LoadTestScene();
+            yield return WaitUntilOrFail(() => PlayPadCommunicator.Instance != null, nameof(PlayPadCommunicator));
+            // From the second test on, the scene's communicator is a duplicate of the surviving one and is about to be destroyed.
             _communicator = PlayPadCommunicator.Instance;
+            _sut = _communicator!.GetComponent<SessionManager>();
             Assert.NotNull(_communicator);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.ExternalAuthenticatorFieldName, AuthMock);
             MockExternalCommunicator(_communicator, PlayPadCommunicator.GameStatusCommunicatorFieldName, GameMock);
-            MockExternalCommunicator(_communicator, PlayPadCommunicator.VirtualDepositCommunicatorFieldName, VirtualDepositMock);
             MockIPlaypadCommunicator(_sut, PlaypadCommunicatorMock);
             _ = PlaypadCommunicatorMock.Connect().Returns(UniTask.CompletedTask);
-            _ = VirtualDepositMock.GetElympicsCoins(Arg.Any<CancellationToken>()).Returns(x =>
-            {
-                var toReturn = new Dictionary<Guid, CoinInfo>();
-                return UniTask.FromResult((IReadOnlyDictionary<Guid, CoinInfo>)toReturn);
-            });
             Assert.NotNull(_sut);
             _sut.Reset();
         }
@@ -110,7 +99,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             var currentPlayStatus = new PlayStatusInfo
             {
@@ -152,7 +141,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
@@ -183,7 +172,7 @@ namespace ElympicsPlayPad.Tests
                     new UserPrefsInfo(new[] { "en" }),
                     LaunchMode.Lobby | LaunchMode.Gameplay)));
 
-            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, Nickname, AuthType.ClientSecret)));
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
 
             // Test
             await _sut.AuthenticateFromExternalAndConnect();
@@ -246,14 +235,12 @@ namespace ElympicsPlayPad.Tests
         }
 
         [TearDown]
-        public void ResetSut()
+        protected void ResetSut()
         {
             AuthMock.ClearSubstitute();
             GameMock.ClearSubstitute();
-            TournamentMock.ClearSubstitute();
             AuthMock.ClearSubstitute();
             GameMock.ClearSubstitute();
-            TournamentMock.ClearSubstitute();
             _sut.Reset();
         }
     }

@@ -21,16 +21,20 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private int _requestCounter;
         private readonly Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new();
 
-        public void Init(PlayPadCommunicatorFactory factory)
+        public void Init(PlayPadCommunicatorFactory factory) => Init(factory.GetPlayPadCommunicator());
+
+        internal void Init(IPlayPadCommunicator communicator)
         {
             _messageFactory = new PlayPadMessageFactory();
             _dispatcher = new RequestMessageDispatcher();
-            playpadCommunicator = factory.GetPlayPadCommunicator();
+            playpadCommunicator = communicator;
             playpadCommunicator.WebMessageReceived += OnWebMessageReceived;
+            // Web requests have no handler of their own yet, so they are dispatched like web messages.
+            playpadCommunicator.WebRequestMessageReceived += OnWebMessageReceived;
             playpadCommunicator.ResponseMessageReceived += OnResponseMessageReceived;
         }
 
-        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct)
+        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput? payload, CancellationToken ct, TimeSpan? timeout = null)
             where TInput : struct
             where TReturn : struct
         {
@@ -38,7 +42,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             ++_requestCounter;
             var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, payload);
             ElympicsLogger.LogInfo($"Send Request {messageType} message: {message}");
-            _dispatcher.RegisterTicket(ticket);
+            _dispatcher.RegisterTicket(ticket, messageType, timeout);
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.HandleMessage, message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
         }
@@ -83,6 +87,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             playpadCommunicator.Dispose();
             playpadCommunicator.WebMessageReceived -= OnWebMessageReceived;
+            playpadCommunicator.WebRequestMessageReceived -= OnWebMessageReceived;
             playpadCommunicator.ResponseMessageReceived -= OnResponseMessageReceived;
 
         }

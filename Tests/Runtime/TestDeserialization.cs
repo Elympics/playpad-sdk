@@ -2,7 +2,6 @@ using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using ElympicsPlayPad.Protocol.VoidMessages;
-using ElympicsPlayPad.Protocol.WebMessages;
 using ElympicsPlayPad.Utility;
 using NUnit.Framework;
 using UnityEngine;
@@ -49,15 +48,6 @@ namespace ElympicsPlayPad.Tests
                 systemInfoData = SystemInfoDataFactory.GetSystemInfoData(),
             };
             _ = _factory.GetVoidMessageJson<SystemInfoDataMessage>(VoidMessageTypes.SystemInfoData, systemInfoDataMessage);
-        }
-
-        [Test]
-        public void WebMessageTest_NullVirtualDeposit()
-        {
-            const string json = "{\"deposits\":null}";
-            var deserialized = JsonUtility.FromJson<VirtualDepositUpdatedMessage>(json);
-            Assert.NotNull(deserialized.deposits);
-            Assert.AreEqual(0, deserialized.deposits.Length);
         }
 
     }

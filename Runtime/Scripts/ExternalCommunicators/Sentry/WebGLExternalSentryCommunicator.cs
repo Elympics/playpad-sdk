@@ -14,11 +14,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
     {
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly WebGLRoundTripTimeReporter _rttReporter;
+        private readonly ElympicsMatchLauncher _launcher;
+        private MatchLauncherState _launcherState;
 
-        public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem)
+        public WebGLExternalSentryCommunicator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsMatchLauncher launcher)
         {
+            _launcher = launcher;
+            _launcherState = launcher.State;
+            _launcher.StateChanged += OnLauncherStateChanged;
             _playPadMessagingSystem = playPadMessagingSystem;
-            _rttReporter = new WebGLRoundTripTimeReporter(32, _playPadMessagingSystem);
+            _rttReporter = new WebGLRoundTripTimeReporter(32, _playPadMessagingSystem, launcher);
             CrossAssemblyEventBroadcaster.AddObserver<RttReceived>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ReceivedStatsUpdated>(this);
             CrossAssemblyEventBroadcaster.AddObserver<ElympicsStateChanged>(this);
@@ -51,5 +56,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                 _rttReporter.FlushRttBuffer();
         }
         public void OnEvent(ElympicsLogEvent argument) => LogCaptured(argument.Json, argument.LogLevel);
+
+        /// <summary>Flushes the tail of the RTT buffer of every match, including ones not started by the lobby wrapper.</summary>
+        private void OnLauncherStateChanged(MatchLauncherState state)
+        {
+            var wasRunning = _launcherState == MatchLauncherState.Running;
+            _launcherState = state;
+            if (wasRunning && state != MatchLauncherState.Running)
+                _rttReporter.FlushRttBuffer();
+        }
+
+        public void Dispose() => _launcher.StateChanged -= OnLauncherStateChanged;
     }
 }

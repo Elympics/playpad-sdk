@@ -23,6 +23,6 @@
     }
   ],
   "dependencies": {
-    "com.daftmobile.elympics": "0.26.0"
+    "com.daftmobile.elympics": "0.27.0"
   }
 }

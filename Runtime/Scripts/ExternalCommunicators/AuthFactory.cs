@@ -20,7 +20,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (_authProviders.TryGetValue(mode, out var provider))
                 return provider;
-            throw new ElympicsException("No auth provider for mode {mode}");
+            throw new ElympicsException($"No auth provider for launch mode {mode}.");
         }
     }
 }

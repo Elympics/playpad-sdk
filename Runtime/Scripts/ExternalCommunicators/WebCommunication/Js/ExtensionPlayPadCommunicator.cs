@@ -28,7 +28,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         private CurrentAuthenticationProcess? _currentAuthenticationProcess;
         private readonly Queue<ExtensionRequest> _requestQueue = new();
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private UniTaskCompletionSource _authenticationCompletionSource;
+        private UniTaskCompletionSource? _authenticationCompletionSource;
 
         public ExtensionPlayPadCommunicator()
         {
@@ -207,9 +207,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
                     return;
                 }
 
-            var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
-            if (!config)
-                throw new ElympicsException("Couldn't load game config");
+            var config = ElympicsConfig.LoadCurrentElympicsGameConfig() ?? throw new ElympicsException("Couldn't load game config");
             var jwt = ElympicsConfig.AuthToken;
             if (string.IsNullOrEmpty(jwt))
                 throw new ElympicsException("Please login to your Elympics account before connecting to PlayPad extension.");

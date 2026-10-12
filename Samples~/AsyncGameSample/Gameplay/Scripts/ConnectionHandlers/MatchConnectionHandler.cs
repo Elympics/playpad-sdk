@@ -1,8 +1,12 @@
 using System;
 using System.Collections;
 using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
 using MatchTcpClients.Synchronizer;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Lobby;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -32,14 +36,18 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             if (disconnectionMask == null)
                 throw new NullReferenceException($"You need to provide {nameof(MatchDisconnectionMask)} for connection issues handling - ensure that it is assigned to the {nameof(MatchConnectionHandler)} component");
 
-            if (ElympicsLobbyClient.Instance != null)
-                ElympicsLobbyClient.Instance.WebSocketSession.Disconnected += WebSocketSession_Disconnected;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost += OnConnectionLost;
+#endif
         }
 
         private void OnDestroy()
         {
-            if (ElympicsLobbyClient.Instance != null)
-                ElympicsLobbyClient.Instance.WebSocketSession.Disconnected -= WebSocketSession_Disconnected;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+            if (PlayPadCommunicator.Instance != null)
+                PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
+#endif
         }
 
         #region happy path
@@ -112,8 +120,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         #endregion
 
         #region failing paths
-        private void WebSocketSession_Disconnected(DisconnectionData data)
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        private void OnConnectionLost(ElympicsConnectionLostData lostData)
         {
+            var data = lostData.DisconnectionData;
             // Necesary check so that the popup doesn't show up when the user is connecting wallet via external applications or other intended web socket disconnects
             if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown)
             {
@@ -126,6 +136,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             secondsWithoutConnection = -1;
             disconnectionMask.ShowDefiniteDisconnection($"Web socket disconnected: {data.Reason}. Check your Internet connection and reload the game.");
         }
+#endif
 
         public void OnConnectingFailed()
         {

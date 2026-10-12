@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
-            return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
+            return new AuthData(Guid.Parse(result.userId), result.jwt, authType);
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
@@ -65,6 +65,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 
             void OnSessionUpdated() => sessionUpdated = true;
         }
+
+        /// <summary>
+        /// The handshake is sent from scene Awake and answered by the host with no
+        /// human in the loop, so it must not inherit the dispatcher's minutes-long
+        /// default: a lost response would otherwise look like an indefinite hang on
+        /// the launch screen with nothing in the log naming the cause. Generous
+        /// enough for a slow device (the host answers in well under a second once
+        /// the player is instantiated), short enough to diagnose.
+        /// </summary>
+        private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(30);
 
         public async UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
@@ -85,7 +95,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var logger = _logger.WithMethodName();
             try
             {
-                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
+                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct, HandshakeTimeout);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
@@ -124,7 +134,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                         var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
                         var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
                         var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
-                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, authType);
                         AuthenticationUpdated?.Invoke(cached);
                         break;
                     }

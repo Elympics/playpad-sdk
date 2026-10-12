@@ -1,6 +1,9 @@
-using Elympics;
+using ElympicsPlayPad.ExternalCommunicators;
 using TMPro;
 using UnityEngine;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Lobby;
+#endif
 
 public class DisconnectionPopup : MonoBehaviour
 {
@@ -13,23 +16,27 @@ public class DisconnectionPopup : MonoBehaviour
 
     private void Start()
     {
-        if (ElympicsLobbyClient.Instance != null)
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        if (PlayPadCommunicator.Instance != null)
         {
-            ElympicsLobbyClient.Instance.WebSocketSession.Disconnected -= WebSocketSession_Disconnected;
-            ElympicsLobbyClient.Instance.WebSocketSession.Disconnected += WebSocketSession_Disconnected;
+            PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
+            PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost += OnConnectionLost;
         }
+#endif
     }
 
     private void OnDestroy()
     {
-        if (ElympicsLobbyClient.Instance != null)
-        {
-            ElympicsLobbyClient.Instance.WebSocketSession.Disconnected -= WebSocketSession_Disconnected;
-        }
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        if (PlayPadCommunicator.Instance != null)
+            PlayPadCommunicator.Instance.Lobby.ElympicsConnectionLost -= OnConnectionLost;
+#endif
     }
 
-    private void WebSocketSession_Disconnected(DisconnectionData data)
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+    private void OnConnectionLost(ElympicsConnectionLostData lostData)
     {
+        var data = lostData.DisconnectionData;
         // Necesary check so that the popup doesn't show up when the user is connecting wallet via external applications or other intended web socket disconnects.
         if (data.Reason is DisconnectionReason.ClientRequest or DisconnectionReason.ApplicationShutdown)
         {
@@ -43,4 +50,5 @@ public class DisconnectionPopup : MonoBehaviour
         disconnectionPopupObject.SetActive(true);
         errorText.text = disconnectedMessage;
     }
+#endif
 }

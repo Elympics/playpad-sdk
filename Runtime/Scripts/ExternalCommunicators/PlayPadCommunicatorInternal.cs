@@ -1,49 +1,43 @@
 #nullable enable
+using System;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.ElympicsSystems.Internal;
 using Elympics.Models.Authentication;
-using Elympics.Models.Matchmaking;
-using Elympics.SnapshotAnalysis.Retrievers;
-using ElympicsPlayPad.ExternalCommunicators.Replay;
 using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Wrappers;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace ElympicsPlayPad
 {
-    internal class PlayPadCommunicatorInternal : ILobby, ISessionManagerAuthProvider
+    /// <summary>Auth provider for <see cref="ExternalCommunicators.Authentication.Models.LaunchMode.Gameplay"/>: the web page matchmakes and hands the match over.</summary>
+    internal class PlayPadCommunicatorInternal : ISessionManagerAuthProvider
     {
         public AuthData? AuthData { get; private set; }
-        public SnapshotAnalysisRetriever? SnapshotAnalysisRetriever => _externalReplayCommunicator?.SnapshotRetriever();
-        public JoinedMatchMode MatchMode { get; private set; }
-        public MatchmakingFinishedData? MatchDataGuid { get; private set; }
-        private readonly IExternalReplayCommunicator? _externalReplayCommunicator;
-        private readonly ElympicsGameConfig _gameConfig;
-        public PlayPadCommunicatorInternal(IExternalReplayCommunicator? externalReplayCommunicator, ElympicsGameConfig gameConfig)
+        private readonly string _gameId;
+        private readonly bool _useWeb;
+
+        public PlayPadCommunicatorInternal(string gameId, bool useWeb, ElympicsMatchLauncher launcher)
         {
-            _externalReplayCommunicator = externalReplayCommunicator;
-            _gameConfig = gameConfig;
+            _gameId = gameId;
+            _useWeb = useWeb;
+            Launcher = launcher;
         }
 
-        public void PlayMatchInternal(MatchmakingFinishedData matchData)
+        public ElympicsMatchLauncher Launcher { get; }
+
+        public UniTask<ElympicsLaunchResult> PlayMatchInternal(FoundMatch matchData)
         {
-            MatchDataGuid = matchData;
-
-            var isSinglePlayer = string.IsNullOrEmpty(matchData.WebServerAddress) && string.IsNullOrEmpty(matchData.TcpUdpServerAddress);
-
-            SetUpMatch(isSinglePlayer ? JoinedMatchMode.SinglePlayer : JoinedMatchMode.Online);
-            LoadGameplayScene();
+            var userId = AuthData?.UserId ?? throw new InvalidOperationException("Cannot play a match before authentication.");
+            return MatchLaunching.LaunchAsync(Launcher, _gameId, _useWeb, matchData, userId);
         }
-        private void LoadGameplayScene() => SceneManager.LoadScene(_gameConfig.GameplayScene);
 
-        private void SetUpMatch(JoinedMatchMode mode) => MatchMode = mode;
         public UniTask Authenticate(AuthData cachedData, string region, bool autoRetry)
         {
             Debug.Log("Authenticated with cached data.");
             AuthData = cachedData;
             return UniTask.CompletedTask;
         }
+
         public void SignOut() => AuthData = null;
         public bool IsAuthenticated => AuthData != null;
     }
