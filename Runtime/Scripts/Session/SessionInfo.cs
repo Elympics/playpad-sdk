@@ -1,4 +1,5 @@
 #nullable enable
+using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using JetBrains.Annotations;
@@ -37,7 +38,7 @@ namespace ElympicsPlayPad.Session
             Capabilities capabilities,
             string environment,
             bool isMobile,
-            string closestRegion,
+            string? closestRegion,
             FeatureAccess features,
             string? tonWalletAddress,
             UserPrefsInfo userPrefs,
@@ -49,7 +50,7 @@ namespace ElympicsPlayPad.Session
             Capabilities = capabilities;
             Environment = environment;
             IsMobile = isMobile;
-            ClosestRegion = closestRegion;
+            ClosestRegion = closestRegion ?? ElympicsRegions.Default;
             Features = features;
             TonWalletAddress = tonWalletAddress;
             LaunchMode = launchMode;

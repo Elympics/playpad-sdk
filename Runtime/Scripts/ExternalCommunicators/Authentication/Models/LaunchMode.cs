@@ -1,4 +1,5 @@
 using System;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
 {
     [Flags]

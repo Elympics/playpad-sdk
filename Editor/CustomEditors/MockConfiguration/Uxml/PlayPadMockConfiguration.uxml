@@ -34,29 +34,5 @@
             <uie:ObjectField label="External UI" name="customExternalUiCommunicator" class="communicator-field" />
             <ui:Toggle label="Use Mock" name="useCustomStandaloneExternalUiCommunicator" class="communicator-toggle" />
         </ui:VisualElement>
-
-        <!-- ERC20 Smart Contract Communicator -->
-        <ui:VisualElement class="communicator-row">
-            <uie:ObjectField label="ERC20 Contract" name="customErc20SmartContractCommunicator" class="communicator-field" />
-            <ui:Toggle label="Use Mock" name="useCustomStandaloneErc20SmartContractCommunicator" class="communicator-toggle" />
-        </ui:VisualElement>
-
-        <!-- BlockChain Currency Communicator -->
-        <ui:VisualElement class="communicator-row">
-            <uie:ObjectField label="BlockChain Currency" name="customBlockChainCurrencyCommunicator" class="communicator-field" />
-            <ui:Toggle label="Use Mock" name="useCustomStandaloneBlockChainCurrencyCommunicator" class="communicator-toggle" />
-        </ui:VisualElement>
-
-        <!-- TON NFT Communicator -->
-        <ui:VisualElement class="communicator-row">
-            <uie:ObjectField label="TON NFT" name="customTonNftExternalCommunicator" class="communicator-field" />
-            <ui:Toggle label="Use Mock" name="useCustomTonNftExternalCommunicator" class="communicator-toggle" />
-        </ui:VisualElement>
-
-        <!-- EVM Communicator -->
-        <ui:VisualElement class="communicator-row">
-            <uie:ObjectField label="EVM" name="customEvmExternalCommunicator" class="communicator-field" />
-            <ui:Toggle label="Use Mock" name="useCustomEvmExternalCommunicator" class="communicator-toggle" />
-        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -1,27 +1,16 @@
 #nullable enable
 using System;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
-using Elympics.Communication.Mappers;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.Internal;
-using ElympicsPlayPad.ExternalCommunicators.Leaderboard;
 using ElympicsPlayPad.ExternalCommunicators.Lobby;
-using ElympicsPlayPad.ExternalCommunicators.Replay;
 using ElympicsPlayPad.ExternalCommunicators.Sentry;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using ElympicsPlayPad.ExternalCommunicators.Utility;
-using ElympicsPlayPad.ExternalCommunicators.VirtualDeposit;
 using ElympicsPlayPad.ExternalCommunicators.Web;
-using ElympicsPlayPad.ExternalCommunicators.Web3.ContractOperations;
-using ElympicsPlayPad.ExternalCommunicators.Web3.Erc20SmartContract;
-using ElympicsPlayPad.ExternalCommunicators.Web3.NFT;
-using ElympicsPlayPad.ExternalCommunicators.Web3.Wallet;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Utility;
@@ -51,27 +40,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [PublicAPI] public IExternalUiCommunicator? ExternalUiCommunicator;
 
         [PublicAPI]
-        public IExternalERC20SmartContractOperations? TokenCommunicator;
-
-        [PublicAPI]
-        public IExternalTournamentCommunicator? TournamentCommunicator;
-
-        [PublicAPI]
-        public IExternalLeaderboardCommunicator? LeaderboardCommunicator;
-
-        [PublicAPI]
-        public IExternalReplayCommunicator? ReplayCommunicator;
-
-        [PublicAPI]
-        public IExternalBlockChainCurrencyCommunicator? VirtualDepositCommunicator;
-
-        [PublicAPI]
-        public ITonNftExternalCommunicator? TonNftExternalCommunicator;
-
-        [PublicAPI]
-        public IEvmExternalCommunicator? EvmExternalCommunicator;
-
-        [PublicAPI]
         public IExternalWebCommunicator? ExternalWebCommunicator;
 
         [PublicAPI]
@@ -81,14 +49,17 @@ namespace ElympicsPlayPad.ExternalCommunicators
         [PublicAPI]
         public ISessionManager SessionManager = null!;
 
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        /// <summary>Elympics lobby: authentication, the lobby connection and Rooms. WebGL builds have it only with ELYMPICS_PLAYPAD_KEEP_LOBBY.</summary>
+        [PublicAPI]
+        public IElympicsLobbyWrapper Lobby { get; private set; } = null!;
+#endif
+
         private PlayPadCommunicatorInternal _communicatorInternal = null!;
         private PlayPadMessagingSystem _playPadMessagingSystem = null!;
         private WebGLFunctionalities? _webGLFunctionalities;
-        private IElympicsLobbyWrapper _lobby = null!;
-
-        private IExternalSentryCommunicator? _sentry;
+        private WebGLExternalSentryCommunicator? _sentry;
         private IHeartbeatCommunicator? _heartbeat;
-        private static ElympicsLoggerContext loggerContext;
 
         /// <summary>False in editor and local builds that are not run through PlayPad website.</summary>
         private static bool CanMockPlayPad =>
@@ -102,22 +73,21 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (!Instance)
             {
+                if (transform.parent != null)
+                    transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
-                var version = PlayPadSdkVersionRetriever.GetVersionStringFromAssembly();
-                loggerContext = ElympicsLogger.CurrentContext ?? new ElympicsLoggerContext(ElympicsLogger.SessionId);
-                loggerContext = loggerContext.WithApp(ElympicsLoggerContext.PlayPadContextApp).SetPlayPadSdkContext(PlayPadMessagingSystem.ProtocolVersion, version)
-                    .WithContext(nameof(PlayPadCommunicator));
+                ElympicsLogger.State.SetPlayPadVersion(PlayPadMessagingSystem.ProtocolVersion);
                 _playPadMessagingSystem = GetComponent<PlayPadMessagingSystem>();
                 if (!_playPadMessagingSystem)
                     throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(PlayPadMessagingSystem)} component on gameObject {gameObject.name}");
                 var playpadCommunicationFactory = GetComponent<PlayPadCommunicatorFactory>();
                 if (!playpadCommunicationFactory)
                     throw new ArgumentNullException($"Couldn't find {nameof(PlayPadCommunicatorFactory)} component on gameObject {gameObject.name}");
-                _playPadMessagingSystem.Init(playpadCommunicationFactory, loggerContext);
+                _playPadMessagingSystem.Init(playpadCommunicationFactory);
 
-                _lobby = GetComponent<IElympicsLobbyWrapper>();
-                if (_lobby == null)
-                    throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+                Lobby = GetComponent<IElympicsLobbyWrapper>() ?? throw new ArgumentNullException(nameof(_playPadMessagingSystem), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
+#endif
 
                 var gameConfig = ElympicsConfig.LoadCurrentElympicsGameConfig();
                 if (!gameConfig)
@@ -128,72 +98,35 @@ namespace ElympicsPlayPad.ExternalCommunicators
                 if (sessionManager == null)
                     throw new ArgumentNullException(nameof(sessionManager), $"Couldn't find {nameof(sessionManager)} component on gameObject {gameObject.name}");
 
-                ReplayCommunicator = new WebGLExternalReplay(_playPadMessagingSystem, loggerContext, _lobby);
-                _communicatorInternal = new PlayPadCommunicatorInternal(ReplayCommunicator, gameConfig!);
+                var launcher = ElympicsMatchLauncher.Instance;
+                _communicatorInternal = new PlayPadCommunicatorInternal(gameConfig!.GameId, gameConfig.UseWeb, launcher);
 
                 var authFactory = new AuthFactory();
-                authFactory.RegisterAuthProvider(GetComponent<IElympicsLobbyWrapper>(), LaunchMode.Lobby | LaunchMode.Gameplay);
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+                authFactory.RegisterAuthProvider(Lobby, LaunchMode.Lobby | LaunchMode.Gameplay);
+#endif
                 authFactory.RegisterAuthProvider(_communicatorInternal, LaunchMode.Gameplay);
-                sessionManager.Init(authFactory, loggerContext, _playPadMessagingSystem);
+                sessionManager.Init(authFactory, _playPadMessagingSystem);
                 SessionManager = sessionManager;
 
                 _webGLFunctionalities = new WebGLFunctionalities(_playPadMessagingSystem);
                 _heartbeat = new WebGLHeartbeatCommunicator(_playPadMessagingSystem);
                 ExternalAuthenticator = UseMockAuth
                     ? mockConfiguration!.customAuthenticatorCommunicator
-                    : new WebGLExternalAuthenticator(_playPadMessagingSystem, loggerContext, sessionManager, _heartbeat);
-                var walletCommunicator = new WebGLExternalWalletCommunicator(_playPadMessagingSystem);
-                VirtualDepositCommunicator = UseMockBlockChainCurrency
-                    ? mockConfiguration!.customBlockChainCurrencyCommunicator
-                    : new WebGLBlockChainCurrencyCommunicator(_playPadMessagingSystem, loggerContext);
-                TournamentCommunicator = UseMockTournament
-                    ? mockConfiguration!.customTournamentCommunicator
-                    : new WebGLTournamentCommunicator(loggerContext, VirtualDepositCommunicator!, _playPadMessagingSystem);
+                    : new WebGLExternalAuthenticator(_playPadMessagingSystem, sessionManager, _heartbeat);
                 GameStatusCommunicator = UseMockGameStatus
                     ? mockConfiguration!.customGameStatusCommunicator
-                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, _lobby, TournamentCommunicator!, loggerContext);
+                    : new WebGLGameStatusCommunicator(_playPadMessagingSystem, launcher);
                 ExternalUiCommunicator = UseMockExternalUi
                     ? mockConfiguration!.customExternalUiCommunicator
                     : new WebGLExternalUiCommunicator(_playPadMessagingSystem);
-                var webGLContractOperations = new WebGLExternalContractOperations(_playPadMessagingSystem);
-                TokenCommunicator = UseMockErc20SmartContract
-                    ? mockConfiguration!.customErc20SmartContractCommunicator
-                    : new Erc20SmartContractCommunicator(webGLContractOperations, walletCommunicator);
-                LeaderboardCommunicator = UseMockLeaderboard
-                    ? mockConfiguration!.customLeaderboardCommunicator
-                    : new WebGLLeaderboardCommunicator(_playPadMessagingSystem, loggerContext);
-                TonNftExternalCommunicator = UseMockTonNft
-                    ? mockConfiguration!.customTonNftExternalCommunicator
-                    : new WebGLTonNftExternalCommunicator(_playPadMessagingSystem);
-                EvmExternalCommunicator = UseMockEvm
-                    ? mockConfiguration!.customEvmExternalCommunicator
-                    : new WebGLEvmExternalCommunicator(_playPadMessagingSystem);
-                LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem, loggerContext);
-                Room.BeforeMarkYourselfReady = BeforeSetReady;
+                LobbyCommunicator = UseMockLobby ? mockConfiguration!.customLobbyExternalCommunicator : new WebGLExternalLobby(_playPadMessagingSystem, _communicatorInternal);
                 ExternalWebCommunicator = new WebGLWebCommunicator(_playPadMessagingSystem);
-                _sentry = new WebGLExternalSentryCommunicator(_playPadMessagingSystem);
-                LobbyRegister.PlayPadLobby = _communicatorInternal;
+                _sentry = new WebGLExternalSentryCommunicator(_playPadMessagingSystem, launcher);
                 Instance = this;
             }
             else
                 Destroy(gameObject);
-        }
-
-        private async UniTask BeforeSetReady(IRoom room, CancellationToken ct)
-        {
-            if (room.State.MatchmakingData?.BetDetails is not { } betDetails)
-                return;
-
-            var logger = loggerContext.WithMethodName();
-
-            var coinInfo = await betDetails.Coin.ToCoinInfo(logger);
-            var ensureVirtualDepositResult = await VirtualDepositOperations.EnsureVirtualDeposit(_playPadMessagingSystem, betDetails.BetValue, coinInfo, ct);
-            if (!ensureVirtualDepositResult.Success)
-                throw logger.CaptureAndThrow(new ElympicsException(ensureVirtualDepositResult.Error));
-
-            var signProofOfEntryResult = await VirtualDepositOperations.SignProofOfEntry(_playPadMessagingSystem, room, ct);
-            if (!signProofOfEntryResult.IsSuccess)
-                throw logger.CaptureAndThrow(new ElympicsException(signProofOfEntryResult.Error));
         }
 
         [Header("Custom implementations of communicators (works only in Editor)")]
@@ -209,6 +142,8 @@ namespace ElympicsPlayPad.ExternalCommunicators
             _webGLFunctionalities?.Dispose();
             GameStatusCommunicator?.Dispose();
             _heartbeat?.Dispose();
+            _sentry?.Dispose();
+            (LobbyCommunicator as IDisposable)?.Dispose();
         }
 
         private bool UseMockAuth => useMockConfiguration
@@ -216,19 +151,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
             && mockConfiguration!.useStandaloneAuthenticationCommunicator
             && mockConfiguration!.customAuthenticatorCommunicator
             && CanMockPlayPad;
-
-        private bool UseMockBlockChainCurrency => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneBlockChainCurrencyCommunicator
-            && mockConfiguration!.customBlockChainCurrencyCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockTournament => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneTournamentCommunicator
-            && mockConfiguration!.customTournamentCommunicator
-            && CanMockPlayPad
-            && VirtualDepositCommunicator != null;
 
         private bool UseMockGameStatus => useMockConfiguration
             && mockConfiguration
@@ -242,30 +164,6 @@ namespace ElympicsPlayPad.ExternalCommunicators
             && mockConfiguration!.customExternalUiCommunicator
             && CanMockPlayPad;
 
-        private bool UseMockErc20SmartContract => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneErc20SmartContractCommunicator
-            && mockConfiguration!.customErc20SmartContractCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockLeaderboard => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomStandaloneLeaderboardCommunicator
-            && mockConfiguration!.customLeaderboardCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockTonNft => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomTonNftExternalCommunicator
-            && mockConfiguration!.customTonNftExternalCommunicator
-            && CanMockPlayPad;
-
-        private bool UseMockEvm => useMockConfiguration
-            && mockConfiguration
-            && mockConfiguration!.useCustomEvmExternalCommunicator
-            && mockConfiguration!.customEvmExternalCommunicator
-            && CanMockPlayPad;
-
         private bool UseMockLobby => useMockConfiguration
             && mockConfiguration
             && mockConfiguration!.useCustomLobbyCommunicator
@@ -275,9 +173,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         #region internal
 
         internal const string ExternalAuthenticatorFieldName = nameof(ExternalAuthenticator);
-        internal const string TournamentCommunicatorFieldName = nameof(TournamentCommunicator);
         internal const string GameStatusCommunicatorFieldName = nameof(GameStatusCommunicator);
-        internal const string VirtualDepositCommunicatorFieldName = nameof(VirtualDepositCommunicator);
 
         #endregion
     }

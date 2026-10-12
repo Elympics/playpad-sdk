@@ -2,8 +2,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Utility;
@@ -27,17 +26,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         public event Action<AuthData>? AuthenticationUpdated;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
         private readonly SessionManager _sessionManager;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(WebGLExternalAuthenticator))
+            .WithMonitoringEnabled();
         private readonly IHeartbeatCommunicator _heartbeatCommunicator;
 
-        public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, ElympicsLoggerContext logger, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
+        public WebGLExternalAuthenticator(PlayPadMessagingSystem playPadMessagingSystem, SessionManager sessionManager, IHeartbeatCommunicator heartbeatCommunicator)
         {
             _playPadMessagingSystem = playPadMessagingSystem;
             _sessionManager = sessionManager;
             _heartbeatCommunicator = heartbeatCommunicator;
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.AuthenticationUpdated);
             _playPadMessagingSystem.RegisterIWebEventReceiver(this, WebMessageTypes.RegionUpdated);
-            _logger = logger.WithContext(nameof(WebGLExternalAuthenticator));
         }
 
         public async UniTask<AuthData> Authenticate(CancellationToken ct = default)
@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             ThrowIfInvalidAuthenticateResponse(result);
             var payloadDeserialized = result.jwt.ExtractUnityPayloadFromJwt();
             var authType = AuthTypeRawUtility.ConvertToAuthType(payloadDeserialized.authType);
-            return new AuthData(Guid.Parse(result.userId), result.jwt, result.nickname, authType);
+            return new AuthData(Guid.Parse(result.userId), result.jwt, authType);
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
@@ -65,6 +65,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
 
             void OnSessionUpdated() => sessionUpdated = true;
         }
+
+        /// <summary>
+        /// The handshake is sent from scene Awake and answered by the host with no
+        /// human in the loop, so it must not inherit the dispatcher's minutes-long
+        /// default: a lost response would otherwise look like an indefinite hang on
+        /// the launch screen with nothing in the log naming the cause. Generous
+        /// enough for a slow device (the host answers in well under a second once
+        /// the player is instantiated), short enough to diagnose.
+        /// </summary>
+        private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(30);
 
         public async UniTask<HandshakeInfo> InitializationMessage(
             string gameId,
@@ -85,22 +95,23 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             var logger = _logger.WithMethodName();
             try
             {
-                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct);
+                var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct, HandshakeTimeout);
                 var capabilities = (Capabilities)result.capabilities;
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
                 var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
                 var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
-                logger = logger.SetFleetName(result.fleetName).SetGameVersionId(result.gameVersionId);
+                ElympicsLogger.State.SetFleetName(result.fleetName);
+                ElympicsLogger.State.SetGameVersionId(result.gameVersionId);
                 return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
             }
             catch (ResponseException e)
             {
                 if (e.Code == RequestErrors.ExternalAuthFailed)
-                    throw logger.CaptureAndThrow(new SessionManagerFatalError(e.Message));
+                    throw logger.LogExceptionAndReturn(new SessionManagerFatalError(e.Message));
 
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
 
@@ -108,7 +119,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         {
             var logger = _logger.WithMethodName();
             if (string.IsNullOrEmpty(result.jwt))
-                throw logger.CaptureAndThrow(new SessionManagerFatalError("External message did not return authorization token. Unable to authorize."));
+                throw logger.LogExceptionAndReturn(new SessionManagerFatalError("External message did not return authorization token. Unable to authorize."));
         }
 
         public void OnWebMessage(WebMessage message)
@@ -123,7 +134,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                         var data = JsonUtility.FromJson<AuthenticationUpdatedMessage>(message.message);
                         var jwtPayload = data.jwt.ExtractUnityPayloadFromJwt();
                         var authType = AuthTypeRawUtility.ConvertToAuthType(jwtPayload.authType);
-                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, data.nickname, authType);
+                        var cached = new AuthData(Guid.Parse(data.userId), data.jwt, authType);
                         AuthenticationUpdated?.Invoke(cached);
                         break;
                     }
@@ -134,14 +145,14 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                         break;
                     }
                     default:
-                        logger.Error($"Unable to handle message type {message.type}");
+                        logger.LogError($"Unable to handle message type {message.type}");
                         break;
                 }
 
             }
             catch (Exception e)
             {
-                throw logger.CaptureAndThrow(e);
+                throw logger.LogExceptionAndReturn(e);
             }
         }
     }

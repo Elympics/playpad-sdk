@@ -2,6 +2,7 @@ using System;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.VoidMessages;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Web
 {
     internal class WebGLWebCommunicator : IExternalWebCommunicator

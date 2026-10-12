@@ -1,5 +1,6 @@
 using Elympics;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {
     internal static class PlayPadExtensionAuthentication
@@ -25,7 +26,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             PlayerPrefs.SetString(AUTHORIZED_GAMEID_KEY, gameId);
             PlayerPrefs.SetString(AUTHORIZED_GAMEVERSIONID_KEY, gameVersionId);
             PlayerPrefs.SetString(AUTHORIZED_DEVELOPER_JWT_KEY, developerJwt);
-            PlayerPrefs.SetString(EXPIRATION_KEY, TimeUtil.DateTimeNowToString);
+            PlayerPrefs.SetString(EXPIRATION_KEY, TimeUtil.DateTimeNowAsString);
         }
 
         private static AuthorizationStatus? GetAuthorizationStatus()

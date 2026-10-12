@@ -1,0 +1,23 @@
+{
+    "name": "ElympicsPlayPad.Rooms",
+    "rootNamespace": "ElympicsPlayPad.Rooms",
+    "references": [
+        "GUID:4a31ef91d7ae41ae8b9e8e43395527aa",
+        "GUID:65e11b29373d4c928b00ae2dba04632e",
+        "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
+        "GUID:645313404a2d0c44abd9febb05cd1212",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:5a46ad82eac024e4fbb6a0516a5def17"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

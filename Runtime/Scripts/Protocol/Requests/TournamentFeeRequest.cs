@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+
 namespace ElympicsPlayPad.Protocol.Requests
 {
     [Serializable]

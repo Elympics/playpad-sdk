@@ -1,4 +1,5 @@
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
+
 namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions
 {
     public static class FeatureAccessExt

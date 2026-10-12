@@ -3,6 +3,7 @@ using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 using ElympicsPlayPad.Session;
 using UnityEngine;
+
 namespace ElympicsPlayPad.ExternalCommunicators
 {
     public class AuthFactory
@@ -11,7 +12,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
 
         public void RegisterAuthProvider(ISessionManagerAuthProvider provider, LaunchMode mode)
         {
-            if (_authProviders.TryAdd(mode, provider) == false)
+            if (!_authProviders.TryAdd(mode, provider))
                 Debug.LogError($"Auth provider already existing for LaunchMode {mode}");
         }
 
@@ -19,7 +20,7 @@ namespace ElympicsPlayPad.ExternalCommunicators
         {
             if (_authProviders.TryGetValue(mode, out var provider))
                 return provider;
-            throw new ElympicsException("No auth provider for mode {mode}");
+            throw new ElympicsException($"No auth provider for launch mode {mode}.");
         }
     }
 }

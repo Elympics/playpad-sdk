@@ -1,9 +1,11 @@
 using Cysharp.Threading.Tasks;
-using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Session;
 using UnityEngine;
 using UnityEngine.Assertions;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Rooms.Models;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -17,12 +19,10 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private GameObject authenticationInProgressScreen;
 
         private SessionManager _sessionManager;
-        private IMatchLauncher _matchLauncher;
 
         private void Start()
         {
             _sessionManager = FindObjectOfType<SessionManager>();
-            _matchLauncher = ElympicsLobbyClient.Instance;
             Assert.IsNotNull(_sessionManager);
 
             OnLobbySceneLoaded().Forget();
@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             _sessionManager.FinishSessionInfoUpdate += SetAuthenticationScreenInactive;
             _sessionManager.FinishSessionInfoUpdate += RejoinIfHasOngoingMatch;
 
-            bool shouldHideSplashScreen = false;
+            var shouldHideSplashScreen = false;
 
             if (!_sessionManager.ConnectedWithPlayPad)
             {
@@ -43,30 +43,27 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             // Put here any further lobby scene configuration and UI adjustments
-            tournamentView.OnStart();
-            leaderboardView.OnStart();
-            allTimeHighScoreView.OnStart();
+            TournamentView.OnStart();
             tournamentPlayButton.OnStart();
             ElympicsBestScoreManager.OnStart();
 
             if (shouldHideSplashScreen)
-                PlayPadCommunicator.Instance.GameStatusCommunicator?.HideSplashScreen();
+                PlayPadCommunicator.Instance?.GameStatusCommunicator?.HideSplashScreen();
         }
 
         private void SetAuthenticationScreenActive() => authenticationInProgressScreen.SetActive(true);
         private void SetAuthenticationScreenInactive() => authenticationInProgressScreen.SetActive(false);
 
-        // If the game dependens on local state too much, making the game rejoinable won't be possible
+        // If the game depends on local state too much, making the game rejoinable won't be possible
         // It should be managed in the GenericSoloServerHandler whether the server closes as soon as the player disconnects (allowing for rejoin) or not
         private void RejoinIfHasOngoingMatch()
         {
-            var currentRoom = ElympicsLobbyClient.Instance?.RoomsManager.CurrentRoom;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+            var currentRoom = PlayPadCommunicator.Instance?.Lobby.RoomsManager.CurrentRoom;
 
-            if (currentRoom != null && currentRoom.State.MatchmakingData!.MatchData!.State == Elympics.Rooms.Models.MatchState.Running)
-            {
-                var matchmakingData = currentRoom.State.MatchmakingData;
-                _matchLauncher.PlayMatch(new Elympics.Models.Matchmaking.MatchmakingFinishedData(matchmakingData.MatchData.MatchId, matchmakingData.MatchData.MatchDetails, matchmakingData.QueueName, ElympicsLobbyClient.Instance.CurrentRegion));
-            }
+            if (currentRoom?.State.MatchmakingData?.MatchData?.State == MatchState.Running)
+                currentRoom.PlayAvailableMatch();
+#endif
         }
 
         private void OnDestroy()

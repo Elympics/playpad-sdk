@@ -12,6 +12,8 @@ namespace ElympicsPlayPad.ExternalCommunicators.Ui
 
         public WebGLExternalUiCommunicator(PlayPadMessagingSystem playPadMessagingSystem) => _playPadMessagingSystem = playPadMessagingSystem;
 
-        public async UniTask Display(string name) => _ = await _playPadMessagingSystem.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal, new ShowPlayPadModalRequest { modalName = name }, CancellationToken.None);
+        public async UniTask Display(string name, string payload = null) =>
+            _ = await _playPadMessagingSystem.SendRequestMessage<ShowPlayPadModalRequest, EmptyPayload>(RequestResponseMessageTypes.ShowPlayPadModal,
+                new ShowPlayPadModalRequest { modalName = name, payload = payload }, CancellationToken.None);
     }
 }

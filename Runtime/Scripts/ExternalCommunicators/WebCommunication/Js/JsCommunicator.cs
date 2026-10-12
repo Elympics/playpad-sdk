@@ -2,7 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Cysharp.Threading.Tasks;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -17,7 +17,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         public event Action<string>? WebRequestMessageReceived;
 
         private const string GameObjectName = "JsReceiver";
-        private ElympicsLoggerContext _loggerContext; //TODO implement later k.pieta 29.01.2025
+        private readonly LoggerConfig _loggerContext = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(JsCommunicator))
+            .WithMonitoringEnabled(); // TODO: implement later ~kpieta 2025-01-29
 
         private void Awake() => gameObject.name = GameObjectName;
 
@@ -36,10 +38,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             WebMessageReceived?.Invoke(messageObject);
         }
 
+        [UsedImplicitly]
         public void HandleWebRequest(string messageObject)
         {
             Debug.Log($"From JS: handle web request {messageObject}");
-            WebMessageReceived?.Invoke(messageObject);
+            WebRequestMessageReceived?.Invoke(messageObject);
         }
 
         public void SendRequestMessage(string messageType, string jsonMessage) => DispatchMessage(messageType, jsonMessage);

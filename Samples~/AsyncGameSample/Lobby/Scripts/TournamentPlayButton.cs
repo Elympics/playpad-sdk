@@ -1,13 +1,15 @@
-using UnityEngine;
+using System;
 using Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
+using ElympicsPlayPad.ExternalCommunicators.Authentication.Extensions;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
-using System;
+using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;
+using UnityEngine;
 using UnityEngine.Assertions;
-using Elympics;
-using ElympicsPlayPad.ExternalCommunicators.Tournament;
-using ElympicsPlayPad.Tournament.Data;
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+using ElympicsPlayPad.Rooms;
+#endif
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
@@ -23,12 +25,14 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [SerializeField] private Sprite playAvailableSprite;
         [SerializeField] private Sprite userActionRequiredSprite;
         [SerializeField] private Sprite playBlockedSprite;
-        [SerializeField] private PlayButtonsViewBase[] playButtonViews;
+        [SerializeField] private PlayButtonsViewBase playButtonView;
 
-        private PlayButtonsViewBase currentPlayButtonView;
+        private bool _hostMatchRequested;
 
-        private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance.GameStatusCommunicator;
-        private IExternalTournamentCommunicator TournamentCommunicator => PlayPadCommunicator.Instance.TournamentCommunicator;
+        /// <summary>Without its own lobby (LaunchMode Gameplay), PlayPad gets the match from the web page, which also owns the Play button.</summary>
+        public static bool HostMatchmakes => PlayPadCommunicator.Instance?.SessionManager.CurrentSession is { } session && !session.LaunchMode.HasLobby();
+
+        private IExternalGameStatusCommunicator PlayStatusCommunicator => PlayPadCommunicator.Instance?.GameStatusCommunicator;
 
         private void Awake()
         {
@@ -40,70 +44,81 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         public void OnStart()
         {
-            //Subscribe callbacks for play button & train button, each play button will handle it as needed
-            for (int i = 0; i < playButtonViews.Length; i++)
+            //Subscribe callbacks for play button
+            playButtonView.SubscribePlayButtonCallback(PlayTournament);
+            playButtonView.AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
+
+            if (HostMatchmakes)
             {
-                playButtonViews[i].SubscribePlayButtonCallback(PlayTournament, PlayTraining);
-                playButtonViews[i].AssignPlayButtonSprites(playAvailableSprite, userActionRequiredSprite, playBlockedSprite);
+                PlayHostMatchWhenReady();
+                return;
             }
 
-            TournamentCommunicator.TournamentUpdated += UpdateTournamentView;
-            UpdateTournamentView(TournamentCommunicator.CurrentTournament.Value);
-
-            PlayStatusCommunicator.PlayStatusUpdated += UpdatePlayButton;
-            UpdatePlayButton(PlayStatusCommunicator.CurrentPlayStatus);
+            // The page blocks play when the game has no tournament, so its play status doesn't apply to the sample's own quick match.
+            UpdatePlayButton(new PlayStatusInfo { PlayStatus = PlayStatus.Play, LabelInfo = "Play" });
         }
 
         private void OnDestroy()
         {
-            PlayStatusCommunicator.PlayStatusUpdated -= UpdatePlayButton;
-            TournamentCommunicator.TournamentUpdated -= UpdateTournamentView;
+            if (PlayPadCommunicator.Instance?.LobbyCommunicator is { } lobby)
+                lobby.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
         }
 
-        private void UpdateTournamentView(TournamentInfo info)
+        // Like the server-client template's LaunchModeResolver: play the page's match once, as soon as it's ready.
+        private void PlayHostMatchWhenReady()
         {
-            //Check and select new current play button view & enable / disable all play buttons depending on tournament type
-            for (int i = 0; i < playButtonViews.Length; i++)
-            {
-                playButtonViews[i].OnTournamentViewUpdated(info);
-
-                if (playButtonViews[i].ShouldUseThisPlayButtonView(info))
-                    currentPlayButtonView = playButtonViews[i];
-            }
+            var lobby = PlayPadCommunicator.Instance!.LobbyCommunicator!;
+            if (lobby.Lobby.IsMatchReady)
+                PlayHostMatch();
+            else
+                lobby.OnLobbyInfoUpdated += OnHostLobbyInfoUpdated;
         }
 
-        private void UpdatePlayButton(PlayStatusInfo info)
+        private void OnHostLobbyInfoUpdated(LobbyInfo info)
         {
-            currentPlayButtonView.UpdatePlayButton(info);
+            if (info.IsMatchReady)
+                PlayHostMatch();
         }
 
-        private void PlayTournament()
+        private void PlayHostMatch()
         {
-            UniTask<IRoom> roomTask = PlayStatusCommunicator.PlayGame(new PlayGameConfig { QueueName = playQueue });
-            PlayGameAsync(roomTask).Forget();
+            if (_hostMatchRequested)
+                return;
+            _hostMatchRequested = true;
+            PlayPadCommunicator.Instance!.LobbyCommunicator!.OnLobbyInfoUpdated -= OnHostLobbyInfoUpdated;
+            PlayGameAsync(PlayWebLobbyMatch()).Forget();
         }
 
-        private void PlayTraining()
+        private void UpdatePlayButton(PlayStatusInfo info) => playButtonView.UpdatePlayButton(info);
+
+#if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
+        private void PlayTournament() => PlayGameAsync(StartQuickMatch()).Forget();
+
+        private UniTask<IRoom> StartQuickMatch() => PlayPadCommunicator.Instance!.Lobby.RoomsManager.StartQuickMatch(playQueue);
+#else
+        // Without the lobby, the web page matchmakes and both buttons play the match it found.
+        private void PlayTournament() => PlayGameAsync(PlayWebLobbyMatch()).Forget();
+#endif
+
+        private static UniTask PlayWebLobbyMatch()
         {
-            UniTask<IRoom> roomTask = ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
-            PlayGameAsync(roomTask).Forget();
+            PlayPadCommunicator.Instance!.LobbyCommunicator!.PlayMatch();
+            return UniTask.CompletedTask;
         }
 
-        private async UniTask PlayGameAsync(UniTask<IRoom> roomTask)
+        private async UniTask PlayGameAsync(UniTask matchTask)
         {
             Assert.IsNotNull(MatchConnectingMask.Instance);
             MatchConnectingMask.Instance.ShowOrUpdate(ConnectingSubText);
 
             try
             {
-                _ = await roomTask;
+                await matchTask;
             }
             catch (Exception e)
             {
                 if (PlayStatusCommunicator.CurrentPlayStatus.PlayStatus == PlayStatus.UserActionRequired)
-                {
                     Debug.Log($"[PlayGameAsync]: {e.Message}");
-                }
                 else
                 {
                     Debug.LogError($"[PlayGameAsync]: {e}");

@@ -1,6 +1,6 @@
 #nullable enable
 using System;
-using Elympics.Communication.Authentication.Models.Internal;
+using ElympicsPlayPad.Auth.Models.Internal;
 
 namespace ElympicsPlayPad.Protocol.Responses
 {

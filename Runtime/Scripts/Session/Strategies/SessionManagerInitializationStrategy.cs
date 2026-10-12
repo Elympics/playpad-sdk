@@ -1,7 +1,7 @@
 #nullable enable
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Authentication.Models;
 
@@ -9,12 +9,8 @@ namespace ElympicsPlayPad.Session.Strategies
 {
     internal abstract class SessionManagerInitializationStrategy
     {
-        protected readonly ElympicsLoggerContext Logger;
-
-        protected SessionManagerInitializationStrategy(ElympicsLoggerContext logger)
-        {
-            Logger = logger;
-        }
+        protected readonly LoggerConfig Logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithMonitoringEnabled();
 
         /// <summary>
         /// Performs post-authentication initialization tasks specific to the platform.

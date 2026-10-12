@@ -5,6 +5,7 @@ using Elympics.AssemblyCommunicator.Events;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.VoidMessages;
+using ElympicsPlayPad.Wrappers;
 
 namespace ElympicsPlayPad.ExternalCommunicators.Sentry
 {
@@ -14,11 +15,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
         private readonly int _rttBufferSize;
         private readonly List<RttReceived> _rttBuffer;
         private readonly PlayPadMessagingSystem _playPadMessagingSystem;
+        private readonly ElympicsMatchLauncher _launcher;
+
+        private ReceivedStatsUpdated _receivedStats;
 
         /// <param name="rttBufferSize">Number of calls to <see cref="OnRttReceived(RttReceived)"/> after which <see cref="FlushRttBuffer"/> will be called automatically.</param>
         /// <param name="playPadMessagingSystem">Used to send collected data to PlayPad.</param>
-        public WebGLRoundTripTimeReporter(int rttBufferSize, PlayPadMessagingSystem playPadMessagingSystem)
+        public WebGLRoundTripTimeReporter(int rttBufferSize, PlayPadMessagingSystem playPadMessagingSystem, ElympicsMatchLauncher launcher)
         {
+            _launcher = launcher;
             _rttBufferSize = rttBufferSize;
             _rttBuffer = new List<RttReceived>(rttBufferSize);
             _playPadMessagingSystem = playPadMessagingSystem;
@@ -32,9 +37,18 @@ namespace ElympicsPlayPad.ExternalCommunicators.Sentry
                 FlushRttBuffer();
         }
 
+        public void OnReceivedStatsUpdated(ReceivedStatsUpdated stats) => _receivedStats = stats;
+
         public void FlushRttBuffer()
         {
-            var message = new NetworkStatusMessage { matchId = LobbyRegister.GetMatchData()?.MatchId.ToString() ?? string.Empty, data = _rttBuffer };
+            if (_rttBuffer.Count == 0)
+                return;
+            var message = new NetworkStatusMessage
+            {
+                matchId = LaunchedMatch.MatchId(_launcher),
+                data = _rttBuffer,
+                receivedStats = _receivedStats,
+            };
             _playPadMessagingSystem.SendVoidMessage<NetworkStatusMessage>(VoidMessageTypes.NetworkStatusMessage, message);
             _rttBuffer.Clear();
         }

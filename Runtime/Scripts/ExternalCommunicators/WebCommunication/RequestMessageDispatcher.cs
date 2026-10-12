@@ -3,8 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Elympics;
-using Elympics.ElympicsSystems.Internal;
+using Elympics.Core.Logger;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;
 using UnityEngine;
@@ -14,22 +13,37 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     internal class RequestMessageDispatcher
     {
         private readonly TimeSpan _requestTimeOut;
-        private readonly ElympicsLoggerContext _logger;
+        private readonly LoggerConfig _logger = ElympicsLogger.WithPlayPadSdkService()
+            .WithClass(typeof(RequestMessageDispatcher))
+            .WithMonitoringEnabled();
 
-        public RequestMessageDispatcher(ElympicsLoggerContext logger)
+        public RequestMessageDispatcher()
         {
             _requestTimeOut = TimeSpan.FromSeconds(10 * 60);
-            _logger = logger.WithContext(nameof(RequestMessageDispatcher));
         }
 
-        public void RegisterTicket(int ticket)
+        /// <summary>
+        /// Registers a ticket to await a response on.
+        /// </summary>
+        /// <param name="messageType">
+        /// The request type. Recorded so a timeout can name the message that never
+        /// came back — without it the failure reads "[] Request reached timeout."
+        /// and says nothing about what to look at.
+        /// </param>
+        /// <param name="timeout">
+        /// Per-request override of the default wait. Pass one for machine-to-machine
+        /// requests that should fail fast; leave it null for anything that waits on a
+        /// person (wallet confirmations, on-ramp and modal flows), which legitimately
+        /// takes minutes.
+        /// </param>
+        public void RegisterTicket(int ticket, string messageType = "", TimeSpan? timeout = null)
         {
-            var added = TicketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(_requestTimeOut)));
+            var added = TicketStatus.TryAdd(ticket, new TicketStatus(new CancellationTokenSource(timeout ?? _requestTimeOut), messageType));
             if (added)
                 return;
 
             var logger = _logger.WithMethodName();
-            throw logger.CaptureAndThrow(new ProtocolException($"Ticket {ticket} already exist in map.", string.Empty));
+            throw logger.LogExceptionAndReturn(new ProtocolException($"Ticket {ticket} already exist in map.", messageType));
         }
 
         public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket, CancellationToken ct)
@@ -37,7 +51,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         {
             var logger = _logger.WithMethodName();
             if (!TicketStatus.TryGetValue(ticket, out var ticketStatus))
-                throw logger.CaptureAndThrow(new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty));
+                throw logger.LogExceptionAndReturn(new ProtocolException($"Cannot find ticketStatus for Ticket: {ticket}", string.Empty));
             var token = ticketStatus.Timeout.Token;
             if (ct != default)
             {
@@ -55,14 +69,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                     ClearTicketStatus(ticket);
 
                 if (isTimeout)
-                    throw logger.CaptureAndThrow(new ProtocolException("Request reached timeout.", string.Empty));
+                    throw logger.LogExceptionAndReturn(
+                        new ProtocolException($"Request reached timeout. No response for ticket {ticket}.", ticketStatus.MessageType));
 
                 ct.ThrowIfCancellationRequested();
             }
 
             if (IsErrorResponse(ticketStatus, out var code))
             {
-                logger.Log($"Found error in ticket {ticket} error {code} type: {ticketStatus.Response?.type}");
+                logger.LogInfo($"Found error in ticket {ticket} error {code} type: {ticketStatus.Response?.type}");
                 var errorMessage = GetErrorDescription(ticketStatus);
                 ClearTicketStatus(ticket);
                 throw new ResponseException(code, errorMessage);
@@ -92,13 +107,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
 
             if (!TicketStatus.TryGetValue(response.ticket, out var ticketStatus))
             {
-                logger.Error($"Did not found ticketStatus for ticket: {response.ticket} type: {response.type}");
+                logger.LogError($"Did not found ticketStatus for ticket: {response.ticket} type: {response.type}");
                 return;
             }
 
             if (ticketStatus.Response != null)
             {
-                logger.Error($"Status map already contains response {response.type}. Discarding message");
+                logger.LogError($"Status map already contains response {response.type}. Discarding message");
                 return;
             }
 
@@ -111,13 +126,13 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             ticketStatus.Response = response;
         }
 
-        private static TReturn GetResponseData<TReturn>(TicketStatus ticketStatus, ElympicsLoggerContext loggerContext)
+        private static TReturn GetResponseData<TReturn>(TicketStatus ticketStatus, LoggerConfig loggerContext)
             where TReturn : struct
         {
             var logger = loggerContext.WithMethodName();
             if (string.IsNullOrEmpty(ticketStatus.Response!.response))
                 if (typeof(TReturn) != typeof(EmptyPayload))
-                    throw logger.CaptureAndThrow(new ProtocolException($"Response data is null or empty.", ticketStatus.Response!.type));
+                    throw logger.LogExceptionAndReturn(new ProtocolException($"Response data is null or empty.", ticketStatus.Response!.type));
                 else
                     return default;
             try
@@ -127,7 +142,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
             }
             catch (Exception)
             {
-                throw logger.CaptureAndThrow(new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type));
+                throw logger.LogExceptionAndReturn(new ProtocolException($"Failed to parse response data to {nameof(TReturn)}", ticketStatus.Response!.type));
             }
         }
 

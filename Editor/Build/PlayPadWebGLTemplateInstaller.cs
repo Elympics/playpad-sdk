@@ -9,7 +9,7 @@ namespace ElympicsPlayPad.Editor.Build
     [InitializeOnLoad]
     internal static class PlayPadWebGLTemplateInstaller
     {
-        private const string TemplateName = "ElympicsLobby";
+        internal const string TemplateName = "ElympicsLobby";
         private const string SourceFolder = "WebGLTemplates~";
 
         static PlayPadWebGLTemplateInstaller() => EditorApplication.delayCall += InstallTemplateIfNeeded;

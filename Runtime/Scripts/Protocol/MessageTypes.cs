@@ -13,19 +13,16 @@ namespace ElympicsPlayPad.Protocol
         public const string GetTournament = "GetTournament";
         public const string GetPlayStatus = "GetPlayStatus";
         public const string ShowPlayPadModal = "ShowPlayPadModal";
-        public const string GetVirtualDeposit = "GetVirtualDeposit";
         public const string EnsureVirtualDeposit = "EnsureVirtualDeposit";
         public const string ChangeRegion = "ChangeRegion";
         public const string MintNft = "MintNft";
         public const string GetRollTournamentFees = "GetRollTournamentFees";
         public const string GetAvailableCoins = "GetAvailableCurrencies";
-        public const string GetWalletCurrencyBalance = "GetWalletCurrencyBalance";
         public const string GetRollingTournamentHistory = "GetRollingTournamentHistory";
         public const string GetUnreadSettlements = "GetUnreadSettlements";
         public const string SignProofOfEntry = "SignProofOfEntry";
         public const string SetActiveTournament = "SetActiveTournament";
         public const string GetRollingTournamentDetails = "GetRollingTournamentDetails";
-        public const string ShowOnRamp = "ShowOnRamp";
         public const string SendRawTransaction = "SendRawTransaction";
         public const string GetLobbyStatus = "GetLobbyStatus";
     }
@@ -40,7 +37,6 @@ namespace ElympicsPlayPad.Protocol
         public const string PlayStatusUpdated = "PlayStatusUpdated";
         public const string RegionUpdated = "RegionUpdated";
         public const string SnapshotReplay = "SnapshotReplay";
-        public const string VirtualDepositUpdated = "VirtualDepositUpdated";
         public const string LobbyStatusUpdated = "LobbyStatusUpdated";
     }
 
@@ -55,6 +51,8 @@ namespace ElympicsPlayPad.Protocol
         public const string OpenUrlMessage = "OpenUrlMessage";
         public const string HeartbeatMessage = "HeartbeatMessage";
         public const string Quit = "Quit";
+        public const string ShowReconnectingScreen = "ShowReconnectingScreen";
+        public const string HideReconnectingScreen = "HideReconnectingScreen";
     }
 
     public static class DebugMessageTypes
