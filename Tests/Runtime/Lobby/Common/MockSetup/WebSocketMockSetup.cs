@@ -17,7 +17,7 @@ using ElympicsPlayPad.Lobby.InternalModels.Rooms.ToRooms;
 using ElympicsPlayPad.Lobby.InternalModels.ToLobby;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Rooms.Models;
-using HybridWebSocket;
+using ElympicsPlayPad.WebSockets;
 using MessagePack;
 using NSubstitute;
 

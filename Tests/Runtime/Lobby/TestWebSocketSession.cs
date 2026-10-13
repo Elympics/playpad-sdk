@@ -16,7 +16,7 @@ using ElympicsPlayPad.Lobby.InternalModels.ToLobby;
 using ElympicsPlayPad.Lobby.Serializers;
 using ElympicsPlayPad.Tests.Lobby.Common;
 using ElympicsPlayPad.Tests.Lobby.Common.MockSetup;
-using HybridWebSocket;
+using ElympicsPlayPad.WebSockets;
 using MessagePack;
 using NSubstitute;
 using NSubstitute.ClearExtensions;

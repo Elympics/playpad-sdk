@@ -7,7 +7,8 @@
         "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
         "GUID:645313404a2d0c44abd9febb05cd1212",
         "Elympics.UniTask",
-        "Elympics.MessagePack.Annotations"
+        "Elympics.MessagePack.Annotations",
+        "ElympicsPlayPad.WebSocket"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

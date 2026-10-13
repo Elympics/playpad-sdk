@@ -10,7 +10,8 @@
         "GUID:4a31ef91d7ae41ae8b9e8e43395527aa",
         "GUID:b83a3eee12fc4c95a9d2278f337f891d",
         "Elympics.MessagePack",
-        "Elympics.MessagePack.Annotations"
+        "Elympics.MessagePack.Annotations",
+        "ElympicsPlayPad.WebSocket"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

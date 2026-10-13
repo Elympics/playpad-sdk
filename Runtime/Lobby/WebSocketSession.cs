@@ -11,7 +11,7 @@ using ElympicsPlayPad.Lobby.InternalModels;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 using ElympicsPlayPad.Lobby.InternalModels.ToLobby;
 using ElympicsPlayPad.Lobby.Serializers;
-using HybridWebSocket;
+using ElympicsPlayPad.WebSockets;
 using MessagePack;
 
 namespace ElympicsPlayPad.Lobby
@@ -56,7 +56,7 @@ namespace ElympicsPlayPad.Lobby
         {
             _controller = controller;
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-            _wsFactory = wsFactory ?? HybridWebSocket.WebSocketFactory.CreateInstance;
+            _wsFactory = wsFactory ?? WebSockets.WebSocketFactory.CreateInstance;
             _serializer = serializer ?? new MessagePackLobbySerializer(serializerOptions);
         }
 
