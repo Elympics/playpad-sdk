@@ -52,3 +52,7 @@ echo "Using Elympics SDK commit ref: $CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'".hash = "'"$CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"'"' "$PACKAGES_LOCK_PATH"
 
 echo "Elympics SDK dependency added ✅"
+
+# Rider: generate_solution_files.sh calls its SyncSolution
+yq -iPo json '.dependencies."com.unity.ide.rider" = "3.0.39"' "$PACKAGES_MANIFEST_PATH"
+
