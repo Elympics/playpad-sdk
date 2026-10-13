@@ -1,28 +1,30 @@
 {
-  "name": "com.daftmobile.elympics-playpad",
-  "version": "3.0.0",
-  "description": "Elympics PlayPad SDK is meant for integration with PlayPad, which is a tool for hosting your games and handling Web3 communication",
-  "displayName": "Elympics PlayPad",
-  "unity": "2021.3",
-  "author": {
-    "name": "Elympics",
-    "email": "hello@elympics.cc",
-    "url": "https://www.elympics.ai/"
-  },
-  "documentationUrl": "https://docs.elympics.ai/",
-  "license": "See LICENSE.md file",
-  "keywords": [
-    "multiplayer",
-    "Web3"
-  ],
-  "samples": [
-    {
-      "displayName": "Asynchronous game lobby sample with leaderboards",
-      "description": "Default implementation of asynchronous game lobby with leaderboards, ready to use and adjust to developer's needs",
-      "path": "Samples~/AsyncGameSample"
+    "name": "com.daftmobile.elympics-playpad",
+    "version": "3.0.0",
+    "description": "Elympics PlayPad SDK is meant for integration with PlayPad, which is a tool for hosting your games and handling Web3 communication",
+    "displayName": "Elympics PlayPad",
+    "unity": "6000.3",
+    "author": {
+        "name": "Elympics",
+        "email": "hello@elympics.cc",
+        "url": "https://www.elympics.ai/"
+    },
+    "documentationUrl": "https://docs.elympics.ai/",
+    "license": "See LICENSE.md file",
+    "keywords": [
+        "multiplayer",
+        "Web3"
+    ],
+    "samples": [
+        {
+            "displayName": "Asynchronous game lobby sample with leaderboards",
+            "description": "Default implementation of asynchronous game lobby with leaderboards, ready to use and adjust to developer's needs",
+            "path": "Samples~/AsyncGameSample"
+        }
+    ],
+    "dependencies": {
+        "com.daftmobile.elympics": "0.29.0",
+        "com.unity.modules.unitywebrequesttexture": "1.0.0",
+        "com.unity.ugui": "2.0.0"
     }
-  ],
-  "dependencies": {
-    "com.daftmobile.elympics": "0.28.0"
-  }
 }
