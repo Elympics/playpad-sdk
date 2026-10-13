@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms.FromRooms;

@@ -2,8 +2,8 @@
 
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 
 namespace ElympicsPlayPad.Lobby

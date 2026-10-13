@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.VoidMessages;
 using ElympicsPlayPad.Protocol.WebMessages;

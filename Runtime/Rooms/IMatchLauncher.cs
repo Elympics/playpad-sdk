@@ -1,7 +1,7 @@
 #nullable enable
 
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 
 namespace ElympicsPlayPad.Rooms
 {

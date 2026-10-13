@@ -2,7 +2,7 @@
 #pragma warning disable 67 //An event was declared but never used in the class in which it was declared.
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using JetBrains.Annotations;
 using UnityEngine;

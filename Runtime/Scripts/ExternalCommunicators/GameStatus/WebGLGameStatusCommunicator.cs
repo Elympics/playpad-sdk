@@ -1,11 +1,11 @@
 #nullable enable
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.AssemblyCommunicator;
 using Elympics.AssemblyCommunicator.Events;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;

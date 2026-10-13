@@ -3,8 +3,8 @@
 using System;
 using System.Collections;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 using ElympicsPlayPad.Rooms;

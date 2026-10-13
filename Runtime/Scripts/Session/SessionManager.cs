@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
 using Elympics.Models.Authentication;

@@ -1,5 +1,5 @@
 using System;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
