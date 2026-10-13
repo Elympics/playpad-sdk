@@ -22,7 +22,8 @@
   ],
   "exclude": [
     ".scripts",
-    "WebGLTemplates~"
+    "WebGLTemplates~",
+    "TestingProject"
   ],
   "verbose": true
 }
