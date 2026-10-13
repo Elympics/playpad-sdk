@@ -7,7 +7,7 @@
         "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
         "GUID:645313404a2d0c44abd9febb05cd1212",
         "Elympics.UniTask",
-        "GUID:5a46ad82eac024e4fbb6a0516a5def17"
+        "Elympics.MessagePack.Annotations"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
