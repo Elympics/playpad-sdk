@@ -15,7 +15,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void Awake()
         {
-            randomizer = FindObjectOfType<ExampleSynchronizedRandomizer>();
+            randomizer = FindFirstObjectByType<ExampleSynchronizedRandomizer>();
             Assert.IsNotNull(randomizer);
         }
 

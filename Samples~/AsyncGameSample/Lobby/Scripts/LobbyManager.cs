@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void Start()
         {
-            _sessionManager = FindObjectOfType<SessionManager>();
+            _sessionManager = FindFirstObjectByType<SessionManager>();
             Assert.IsNotNull(_sessionManager);
 
             OnLobbySceneLoaded().Forget();

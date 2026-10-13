@@ -1,5 +1,3 @@
-//#define UNITY_6000_3_OR_NEWER
-
 using System;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
@@ -34,11 +32,6 @@ namespace ElympicsPlayPad.Editor.Build
             if (PlayerSettings.WebGL.template != ElympicsTemplateName)
                 return;
 
-#if !UNITY_6000_3_OR_NEWER
-            if (EditorUserBuildSettings.development)
-                throw new BuildFailedException(
-                    "Elympics PlayPad WebGL template does not support Development builds on Unity versions older than 6.3. " + "Please disable Development Build or upgrade to Unity 6.3+.");
-#endif
             Console.WriteLine("Setting Elympics PlayPad WebGL template custom values.");
 
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig()
