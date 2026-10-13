@@ -1,0 +1,8 @@
+{
+  "name": "js-check",
+  "private": true,
+  "devDependencies": {
+    "acorn": "^8.19.0",
+    "typescript": "^6.0.3"
+  }
+}
