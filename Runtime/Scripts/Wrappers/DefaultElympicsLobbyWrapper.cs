@@ -15,7 +15,6 @@ using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Serialization.Resolvers;
 using MessagePack;
 using MessagePack.Resolvers;
-using Plugins.Elympics.Plugins.ParrelSync;
 using LobbyRoutes = ElympicsPlayPad.Lobby.InternalModels.Routes;
 #endif
 using ElympicsPlayPad.Utility;
@@ -110,7 +109,7 @@ namespace ElympicsPlayPad.Wrappers
         private const string ClientSecretPlayerPrefsKeyBase = "Elympics/AuthToken";
 
         private static string ClientSecretPlayerPrefsKey =>
-            ElympicsClonesManager.IsClone() ? $"{ClientSecretPlayerPrefsKeyBase}_clone_{ElympicsClonesManager.GetCloneNumber()}" : ClientSecretPlayerPrefsKeyBase;
+            PlayModeInstance.PlayerName is { } playerName ? $"{ClientSecretPlayerPrefsKeyBase}_{playerName}" : ClientSecretPlayerPrefsKeyBase;
 
         private static string GetOrCreateClientSecret()
         {
