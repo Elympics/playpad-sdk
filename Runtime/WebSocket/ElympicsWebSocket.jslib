@@ -12,9 +12,9 @@
 
 // @ts-nocheck
 
-const LibraryWebSocket = {
-    /** @alias webSocketState */
-    /*global webSocketState*/ $webSocketState: {
+const ElympicsLibraryWebSocket = {
+    /** @alias elympicsWebSocketState */
+    /*global elympicsWebSocketState*/ $elympicsWebSocketState: {
 		/*
 		 * Map of instances
 		 *
@@ -47,7 +47,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketSetOnOpen: function(callback) {
 
-		webSocketState.onOpen = callback;
+		elympicsWebSocketState.onOpen = callback;
 
 	},
 
@@ -58,7 +58,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketSetOnMessage: function(callback) {
 
-		webSocketState.onMessage = callback;
+		elympicsWebSocketState.onMessage = callback;
 
 	},
 
@@ -69,7 +69,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketSetOnError: function(callback) {
 
-		webSocketState.onError = callback;
+		elympicsWebSocketState.onError = callback;
 
 	},
 
@@ -80,7 +80,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketSetOnClose: function(callback) {
 
-		webSocketState.onClose = callback;
+		elympicsWebSocketState.onClose = callback;
 
 	},
 
@@ -93,9 +93,9 @@ const LibraryWebSocket = {
 	ElympicsWebSocketAllocate: function(url, protocol) {
 
 		var urlStr = UTF8ToString(url);
-		var id = webSocketState.lastId++;
+		var id = elympicsWebSocketState.lastId++;
 
-		webSocketState.instances[id] = {
+		elympicsWebSocketState.instances[id] = {
 			url: urlStr,
 			protocol: protocol ? UTF8ToString(protocol) : [],
 			ws: null
@@ -115,7 +115,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketFree: function(instanceId) {
 
-		var instance = webSocketState.instances[instanceId];
+		var instance = elympicsWebSocketState.instances[instanceId];
 
 		if (!instance) return 0;
 
@@ -124,7 +124,7 @@ const LibraryWebSocket = {
 			instance.ws.close();
 
 		// Remove reference
-		delete webSocketState.instances[instanceId];
+		delete elympicsWebSocketState.instances[instanceId];
 
 		return 0;
 
@@ -137,7 +137,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketConnect: function(instanceId) {
 
-		var instance = webSocketState.instances[instanceId];
+		var instance = elympicsWebSocketState.instances[instanceId];
 		if (!instance) return -1;
 
 		if (instance.ws !== null)
@@ -149,20 +149,20 @@ const LibraryWebSocket = {
 
 		instance.ws.onopen = function() {
 
-			if (webSocketState.debug)
+			if (elympicsWebSocketState.debug)
 				console.log("[JSLIB WebSocket] Connected.");
 
-			if (webSocketState.onOpen)
-				{{{ makeDynCall('vi', 'webSocketState.onOpen') }}}(instanceId);
+			if (elympicsWebSocketState.onOpen)
+				{{{ makeDynCall('vi', 'elympicsWebSocketState.onOpen') }}}(instanceId);
 
 		};
 
 		instance.ws.onmessage = function(ev) {
 
-			if (webSocketState.debug)
+			if (elympicsWebSocketState.debug)
 				console.log("[JSLIB WebSocket] Received message:", ev.data);
 
-			if (webSocketState.onMessage === null)
+			if (elympicsWebSocketState.onMessage === null)
 				return;
 
 			if (ev.data instanceof ArrayBuffer) {
@@ -173,24 +173,24 @@ const LibraryWebSocket = {
 				HEAPU8.set(dataBuffer, buffer);
 
 				try {
-                    {{{ makeDynCall('viii', 'webSocketState.onMessage') }}}(instanceId, buffer, dataBuffer.length);
+                    {{{ makeDynCall('viii', 'elympicsWebSocketState.onMessage') }}}(instanceId, buffer, dataBuffer.length);
                 } catch (e) {
                     console.log(e);
 				} finally {
 					_free(buffer);
 				}
 
-			} else if (webSocketState.debug)
+			} else if (elympicsWebSocketState.debug)
 				console.warn("[JSLIB WebSocket] Only binary data is supported");
 
 		};
 
 		instance.ws.onerror = function(ev) {
 
-			if (webSocketState.debug)
+			if (elympicsWebSocketState.debug)
 				console.log("[JSLIB WebSocket] Error occured.");
 
-			if (webSocketState.onError) {
+			if (elympicsWebSocketState.onError) {
 
 				var msg = ev.error ? ev.error.message : 'Error occured';
 				var bufferSize = lengthBytesUTF8(msg) + 1;
@@ -198,7 +198,7 @@ const LibraryWebSocket = {
 				stringToUTF8(msg, buffer, bufferSize);
 
 				try {
-					{{{ makeDynCall('vii', 'webSocketState.onError') }}}(instanceId, buffer);
+					{{{ makeDynCall('vii', 'elympicsWebSocketState.onError') }}}(instanceId, buffer);
 				} finally {
 					_free(buffer);
 				}
@@ -209,10 +209,10 @@ const LibraryWebSocket = {
 
 		instance.ws.onclose = function(ev) {
 
-			if (webSocketState.debug)
+			if (elympicsWebSocketState.debug)
 				console.log("[JSLIB WebSocket] Closed.");
 
-            if (webSocketState.onClose) {
+            if (elympicsWebSocketState.onClose) {
 
                 var reason = ev.reason.toString();
                 var bufferSize = lengthBytesUTF8(reason) + 1;
@@ -220,7 +220,7 @@ const LibraryWebSocket = {
                 stringToUTF8(reason, buffer, bufferSize);
 
                 try {
-                    {{{ makeDynCall('viii', 'webSocketState.onClose') }}}(instanceId, ev.code, buffer);
+                    {{{ makeDynCall('viii', 'elympicsWebSocketState.onClose') }}}(instanceId, ev.code, buffer);
                 } finally {
                     _free(buffer);
                 }
@@ -244,7 +244,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketClose: function(instanceId, code, reasonPtr) {
 
-		var instance = webSocketState.instances[instanceId];
+		var instance = elympicsWebSocketState.instances[instanceId];
 		if (!instance) return -1;
 
 		if (instance.ws === null)
@@ -277,7 +277,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketSend: function(instanceId, bufferPtr, length) {
 
-		var instance = webSocketState.instances[instanceId];
+		var instance = elympicsWebSocketState.instances[instanceId];
 		if (!instance) return -1;
 
 		if (instance.ws === null)
@@ -299,7 +299,7 @@ const LibraryWebSocket = {
 	 */
 	ElympicsWebSocketGetState: function(instanceId) {
 
-		var instance = webSocketState.instances[instanceId];
+		var instance = elympicsWebSocketState.instances[instanceId];
 		if (!instance) return -1;
 
 		if (instance.ws)
@@ -311,5 +311,5 @@ const LibraryWebSocket = {
 
 };
 
-autoAddDeps(LibraryWebSocket, '$webSocketState');
-mergeInto(LibraryManager.library, LibraryWebSocket);
+autoAddDeps(ElympicsLibraryWebSocket, '$elympicsWebSocketState');
+mergeInto(LibraryManager.library, ElympicsLibraryWebSocket);
