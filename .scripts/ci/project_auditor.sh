@@ -7,6 +7,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="$UNITY_DIR/Packages/manifest.json"
 
 jq '.dependencies["com.unity.project-auditor"] = "3.1.1"' "$MANIFEST" > "$MANIFEST.tmp" && mv "$MANIFEST.tmp" "$MANIFEST"
+# Project Auditor recompiles every assembly against all precompiled DLLs. The tests' NSubstitute.dll brings its own
+# ValueTask, so MessagePack, UniTask and everything built on them fail that compile and are skipped without an error.
+rm -rf "$PACKAGE_DIR/Tests" "$PACKAGE_DIR/Tests.meta"
+# Elympics (with the DLL) comes from git into Library/PackageCache; embed the commit it resolves to, without its tests.
+ELYMPICS_DIR="$UNITY_DIR/Packages/$ELYMPICS_SDK_PACKAGE_NAME"
+ELYMPICS_REF=$(jq -r '.dependencies["'"$ELYMPICS_SDK_PACKAGE_NAME"'"].hash' "$PACKAGES_LOCK_PATH")
+git init -q "$ELYMPICS_DIR"
+git -C "$ELYMPICS_DIR" fetch -q --depth 1 "$CI_ELYMPICS_SDK_GIT_PATH_OVERRIDE" "$ELYMPICS_REF"
+git -C "$ELYMPICS_DIR" checkout -q FETCH_HEAD
+rm -rf "$ELYMPICS_DIR/.git" "$ELYMPICS_DIR/Tests" "$ELYMPICS_DIR/Tests.meta"
 mkdir -p "$UNITY_DIR/Assets/Editor"
 cp "$SCRIPT_DIR/ProjectAuditorCi.cs" "$UNITY_DIR/Assets/Editor/ProjectAuditorCi.cs"
 

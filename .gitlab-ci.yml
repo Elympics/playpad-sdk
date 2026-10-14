@@ -353,8 +353,6 @@ audit:project-auditor:
   stage: check
   needs:
     - job: create-testing-project
-  # Non-blocking until project-auditor-baseline.txt is filled from this job's first findings artifact.
-  allow_failure: true
   variables:
     GIT_DEPTH: 1
   before_script:
