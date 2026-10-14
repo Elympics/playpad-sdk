@@ -12,7 +12,10 @@
 
 using System;
 using System.Collections.Generic;
-#if !UNITY_WEBGL || UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+using AOT;
+#else
 using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
