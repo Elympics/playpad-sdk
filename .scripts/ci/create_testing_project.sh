@@ -56,3 +56,6 @@ echo "Elympics SDK dependency added ✅"
 # Rider: generate_solution_files.sh calls its SyncSolution
 yq -iPo json '.dependencies."com.unity.ide.rider" = "3.0.39"' "$PACKAGES_MANIFEST_PATH"
 
+
+# Keeps com.unity.webrtc's native context stopped in the Editor until a test needs it; it can crash Unity during reloads.
+"$(dirname "${BASH_SOURCE[0]}")/set_scripting_defines.sh" "ELYMPICS_LAZY_WEBRTC_CONTEXT"
