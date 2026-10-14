@@ -34,7 +34,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             _remainingSecondsToEndGame.Value = secondsToEndGameAutomatically;
             _points.Value = 0;
 
-            var serverHandler = FindFirstObjectByType<GenericServerHandler>();
+            var serverHandler = FindAnyObjectByType<GenericServerHandler>();
             Assert.IsNotNull(serverHandler);
             serverHandler.GameJustStarted += StartGame;
         }
@@ -72,7 +72,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void EndGameServer()
         {
-            var matchEnder = FindFirstObjectByType<MatchEnder>();
+            var matchEnder = FindAnyObjectByType<MatchEnder>();
             Assert.IsNotNull(matchEnder);
 
             matchEnder.EndMatch();
