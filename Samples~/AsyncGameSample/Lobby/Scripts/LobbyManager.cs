@@ -68,6 +68,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void OnDestroy()
         {
+            if (_sessionManager == null)
+                return;
             _sessionManager.StartSessionInfoUpdate -= SetAuthenticationScreenActive;
             _sessionManager.FinishSessionInfoUpdate -= SetAuthenticationScreenInactive;
             _sessionManager.FinishSessionInfoUpdate -= RejoinIfHasOngoingMatch;
