@@ -580,6 +580,12 @@ namespace ElympicsPlayPad.WebSockets
                         return;
                     }
 
+                    if (result.EndOfMessage && message.Length == 0)
+                    {
+                        OnMessage?.Invoke(buffer.AsSpan(0, result.Count).ToArray());
+                        continue;
+                    }
+
                     message.Write(buffer, 0, result.Count);
                     if (!result.EndOfMessage)
                         continue;
@@ -623,12 +629,12 @@ namespace ElympicsPlayPad.WebSockets
                 {
                     await run.Ws.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, run.Cts.Token).ConfigureAwait(false);
                 }
-                catch (Exception e) when (e is not OperationCanceledException)
-                {
-                    ReportError(run, e.Message);
-                }
                 catch (OperationCanceledException)
                 {
+                }
+                catch (Exception e)
+                {
+                    ReportError(run, e.Message);
                 }
             }
         }
