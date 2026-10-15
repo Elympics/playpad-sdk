@@ -143,7 +143,8 @@ const ElympicsLibraryWebSocket = {
 		if (instance.ws !== null)
 			return -2;
 
-		instance.ws = new WebSocket(instance.url, instance.protocol);
+		var ws = new WebSocket(instance.url, instance.protocol);
+		instance.ws = ws;
 
 		instance.ws.binaryType = 'arraybuffer';
 
@@ -212,6 +213,10 @@ const ElympicsLibraryWebSocket = {
 			if (elympicsWebSocketState.debug)
 				console.log("[JSLIB WebSocket] Closed.");
 
+			// Before the callback, so calls from the C# OnClose handler see no socket.
+			if (instance.ws === ws)
+				instance.ws = null;
+
             if (elympicsWebSocketState.onClose) {
 
                 var reason = ev.reason.toString();
@@ -226,8 +231,6 @@ const ElympicsLibraryWebSocket = {
                 }
 
             }
-
-			delete instance.ws;
 
 		};
 
