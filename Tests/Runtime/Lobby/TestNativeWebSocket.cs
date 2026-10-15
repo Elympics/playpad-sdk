@@ -1,7 +1,11 @@
 using System;
 using System.Collections;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Elympics.Cysharp.Threading.Tasks;
@@ -60,6 +64,11 @@ namespace ElympicsPlayPad.Tests.Lobby
             await Step(opened.Task, "open", () => error);
             Assert.That(ws.GetState(), Is.EqualTo(WebSocketState.Open));
 
+            var smallPayload = new byte[] { 1, 2, 3 };
+            ws.Send(smallPayload);
+            Assert.That(await Step(received.Task, "small echo"), Is.EqualTo(smallPayload));
+
+            received = new UniTaskCompletionSource<byte[]>();
             var payload = new byte[40000];
             new Random(7).NextBytes(payload);
             ws.Send(payload);
@@ -87,18 +96,13 @@ namespace ElympicsPlayPad.Tests.Lobby
             Assert.That(ws.GetState(), Is.EqualTo(WebSocketState.Closed));
         });
 
-        private static async UniTask Step(UniTask task, string name, Func<string> error = null)
-        {
-            try
-            { await task.Timeout(Timeout); }
-            catch (TimeoutException) { Assert.Fail($"Timed out waiting for {name}. Error: {error?.Invoke() ?? "none"}"); }
-        }
+        private static UniTask Step(UniTask task, string name, Func<string> error = null) => Step(task.AsAsyncUnitUniTask(), name, error);
 
-        private static async UniTask<T> Step<T>(UniTask<T> task, string name)
+        private static async UniTask<T> Step<T>(UniTask<T> task, string name, Func<string> error = null)
         {
             try
             { return await task.Timeout(Timeout); }
-            catch (TimeoutException) { Assert.Fail($"Timed out waiting for {name}."); return default; }
+            catch (TimeoutException) { Assert.Fail($"Timed out waiting for {name}. Error: {error?.Invoke() ?? "none"}"); return default; }
         }
 
         private static int GetFreePort()
@@ -132,26 +136,26 @@ namespace ElympicsPlayPad.Tests.Lobby
         }
 
         /// <returns>The requested sub-protocol, accepted as is.</returns>
-        private static async Task<string> HandshakeAsync(System.IO.Stream stream)
+        private static async Task<string> HandshakeAsync(Stream stream)
         {
-            var request = new System.Text.StringBuilder();
+            var request = new StringBuilder();
             var buffer = new byte[1];
             while (!request.ToString().EndsWith("\r\n\r\n"))
             {
                 if (await stream.ReadAsync(buffer, 0, 1) == 0)
-                    throw new System.IO.EndOfStreamException();
+                    throw new EndOfStreamException();
                 _ = request.Append((char)buffer[0]);
             }
 
-            string Header(string name) => System.Text.RegularExpressions.Regex.Match(request.ToString(), $@"^{name}:\s*(.*?)\s*$",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Multiline).Groups[1].Value;
+            string Header(string name) => Regex.Match(request.ToString(), $@"^{name}:\s*(.*?)\s*$",
+                RegexOptions.IgnoreCase | RegexOptions.Multiline).Groups[1].Value;
 
-            using var sha1 = System.Security.Cryptography.SHA1.Create();
-            var accept = Convert.ToBase64String(sha1.ComputeHash(System.Text.Encoding.ASCII.GetBytes(Header("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")));
+            using var sha1 = SHA1.Create();
+            var accept = Convert.ToBase64String(sha1.ComputeHash(Encoding.ASCII.GetBytes(Header("Sec-WebSocket-Key") + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")));
             var subProtocol = Header("Sec-WebSocket-Protocol");
             var response = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
                 + $"Sec-WebSocket-Accept: {accept}\r\n" + (subProtocol.Length > 0 ? $"Sec-WebSocket-Protocol: {subProtocol}\r\n" : "") + "\r\n";
-            var bytes = System.Text.Encoding.ASCII.GetBytes(response);
+            var bytes = Encoding.ASCII.GetBytes(response);
             await stream.WriteAsync(bytes, 0, bytes.Length);
             return subProtocol.Length > 0 ? subProtocol : null;
         }
@@ -159,7 +163,7 @@ namespace ElympicsPlayPad.Tests.Lobby
         private static async Task EchoAsync(SystemWebSocket socket, CancellationToken ct)
         {
             var buffer = new byte[64 * 1024];
-            var message = new System.IO.MemoryStream();
+            var message = new MemoryStream();
             while (!ct.IsCancellationRequested)
             {
                 var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
