@@ -247,7 +247,7 @@ build:sample:
         BUILD_UNITY_ARCH: webgl-3
         CI_BUILD_DEFINES: ELYMPICS_PLAYPAD_KEEP_LOBBY
   cache:
-    key: library-$BUILD_UNITY_VERSION-$BUILD_TARGET
+    key: library-$BUILD_UNITY_VERSION-$BUILD_TARGET-${CI_BUILD_DEFINES}
     paths:
       - "$TESTING_PROJECT_NAME/Library/"
   before_script:
