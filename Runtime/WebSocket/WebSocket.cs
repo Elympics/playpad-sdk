@@ -224,6 +224,10 @@ namespace ElympicsPlayPad.WebSockets
     /// <summary>
     /// WebSocket class bound to JSLIB.
     /// </summary>
+    /// <remarks>
+    /// An instance is single-use: its JSLIB instance is freed once it closes, or when <see cref="Close"/> finds it unconnected or already closed.
+    /// To reconnect, create a new instance with <see cref="WebSocketFactory.CreateInstance"/>, also from an <see cref="OnClose"/> handler.
+    /// </remarks>
     public class WebSocket : IWebSocket
     {
         /* WebSocket JSLIB functions */
@@ -243,6 +247,8 @@ namespace ElympicsPlayPad.WebSockets
         /// The instance identifier.
         /// </summary>
         protected int instanceId;
+
+        private bool isFreed;
 
         /// <summary>
         /// Occurs when the connection is opened.
@@ -280,7 +286,17 @@ namespace ElympicsPlayPad.WebSockets
         /// </summary>
         ~WebSocket()
         {
+            if (!isFreed)
+                WebSocketFactory.HandleInstanceDestroy(this.instanceId);
+        }
+
+        internal void Free()
+        {
+            if (isFreed)
+                return;
+            isFreed = true;
             WebSocketFactory.HandleInstanceDestroy(this.instanceId);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -297,6 +313,9 @@ namespace ElympicsPlayPad.WebSockets
         /// </summary>
         public void Connect()
         {
+            if (isFreed)
+                throw WebSocketHelpers.GetErrorMessageFromCode(-5, null);
+
             int ret = ElympicsWebSocketConnect(this.instanceId);
 
             if (ret < 0)
@@ -310,7 +329,13 @@ namespace ElympicsPlayPad.WebSockets
         /// <param name="reason">Reason string.</param>
         public void Close(WebSocketCloseCode code = WebSocketCloseCode.Normal, string reason = null)
         {
+            if (isFreed)
+                throw WebSocketHelpers.GetErrorMessageFromCode(-5, null);
+
             int ret = ElympicsWebSocketClose(this.instanceId, (int)code, reason);
+
+            if (ret is -3 or -5)
+                Free();
 
             if (ret < 0)
                 throw WebSocketHelpers.GetErrorMessageFromCode(ret, null);
@@ -322,6 +347,9 @@ namespace ElympicsPlayPad.WebSockets
         /// <param name="data">Payload data.</param>
         public void Send(byte[] data)
         {
+            if (isFreed)
+                throw WebSocketHelpers.GetErrorMessageFromCode(-6, null);
+
             int ret = ElympicsWebSocketSend(this.instanceId, data, data.Length);
 
             if (ret < 0)
@@ -334,6 +362,9 @@ namespace ElympicsPlayPad.WebSockets
         /// <returns>The state.</returns>
         public WebSocketState GetState()
         {
+            if (isFreed)
+                return WebSocketState.Closed;
+
             int state = ElympicsWebSocketGetState(this.instanceId);
 
             if (state < 0)
@@ -777,7 +808,14 @@ namespace ElympicsPlayPad.WebSockets
             if (Instances.TryGetValue(instanceId, out var instanceRef))
             {
                 var reason = Marshal.PtrToStringUTF8(reasonPtr);
-                instanceRef.DelegateOnCloseEvent(closeCode, reason);
+                try
+                {
+                    instanceRef.DelegateOnCloseEvent(closeCode, reason);
+                }
+                finally
+                {
+                    instanceRef.Free();
+                }
             }
         }
 #endif
