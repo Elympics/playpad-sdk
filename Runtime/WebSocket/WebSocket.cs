@@ -18,6 +18,7 @@ using AOT;
 #else
 using System.IO;
 using System.Net.WebSockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 #endif
@@ -144,11 +145,6 @@ namespace ElympicsPlayPad.WebSockets
             return WebSocketCloseCode.Undefined;
         }
 
-        /*
-         * Return error message based on int code
-         *
-
-         */
         /// <summary>
         /// Return an exception instance based on int code.
         ///
@@ -250,24 +246,16 @@ namespace ElympicsPlayPad.WebSockets
 
         private bool isFreed;
 
-        /// <summary>
-        /// Occurs when the connection is opened.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketOpenEventHandler OnOpen;
 
-        /// <summary>
-        /// Occurs when a message is received.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketMessageEventHandler OnMessage;
 
-        /// <summary>
-        /// Occurs when an error was reported from WebSocket.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketErrorEventHandler OnError;
 
-        /// <summary>
-        /// Occurs when the socked was closed.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketCloseEventHandler OnClose;
 
         /// <summary>
@@ -279,38 +267,15 @@ namespace ElympicsPlayPad.WebSockets
             this.instanceId = instanceId;
         }
 
-        /// <summary>
-        /// Destructor - notifies WebSocketFactory about it to remove JSLIB references
-        /// Releases unmanaged resources and performs other cleanup operations before the
-        /// <see cref="T:global::ElympicsPlayPad.WebSockets.WebSocket"/> is reclaimed by garbage collection.
-        /// </summary>
-        ~WebSocket()
-        {
-            if (!isFreed)
-                WebSocketFactory.HandleInstanceDestroy(this.instanceId);
-        }
-
         internal void Free()
         {
             if (isFreed)
                 return;
             isFreed = true;
             WebSocketFactory.HandleInstanceDestroy(this.instanceId);
-            GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Return JSLIB instance ID
-        /// </summary>
-        /// <returns>The instance identifier.</returns>
-        public int GetInstanceId()
-        {
-            return this.instanceId;
-        }
-
-        /// <summary>
-        /// Open WebSocket connection
-        /// </summary>
+        /// <inheritdoc/>
         public void Connect()
         {
             if (isFreed)
@@ -322,11 +287,7 @@ namespace ElympicsPlayPad.WebSockets
                 throw WebSocketHelpers.GetErrorMessageFromCode(ret, null);
         }
 
-        /// <summary>
-        /// Close WebSocket connection with optional status code and reason.
-        /// </summary>
-        /// <param name="code">Close status code.</param>
-        /// <param name="reason">Reason string.</param>
+        /// <inheritdoc/>
         public void Close(WebSocketCloseCode code = WebSocketCloseCode.Normal, string reason = null)
         {
             if (isFreed)
@@ -341,10 +302,7 @@ namespace ElympicsPlayPad.WebSockets
                 throw WebSocketHelpers.GetErrorMessageFromCode(ret, null);
         }
 
-        /// <summary>
-        /// Send binary data over the socket.
-        /// </summary>
-        /// <param name="data">Payload data.</param>
+        /// <inheritdoc/>
         public void Send(byte[] data)
         {
             if (isFreed)
@@ -356,10 +314,7 @@ namespace ElympicsPlayPad.WebSockets
                 throw WebSocketHelpers.GetErrorMessageFromCode(ret, null);
         }
 
-        /// <summary>
-        /// Return WebSocket connection state.
-        /// </summary>
-        /// <returns>The state.</returns>
+        /// <inheritdoc/>
         public WebSocketState GetState()
         {
             if (isFreed)
@@ -380,9 +335,6 @@ namespace ElympicsPlayPad.WebSockets
 
                 case 2:
                     return WebSocketState.Closing;
-
-                case 3:
-                    return WebSocketState.Closed;
 
                 default:
                     return WebSocketState.Closed;
@@ -431,47 +383,64 @@ namespace ElympicsPlayPad.WebSockets
 #else
     /// <summary>
     /// WebSocket class bound to <see cref="ClientWebSocket"/>.
-    /// Events are raised on thread pool threads.
+    /// Events are raised on thread pool threads. Handler exceptions are logged and don't affect the connection.
     /// </summary>
+    /// <remarks>
+    /// An instance is single-use, like the WebGL one: to reconnect, create a new instance with <see cref="WebSocketFactory.CreateInstance"/>.
+    /// </remarks>
     public class WebSocket : IWebSocket
     {
         private const int ReceiveBufferSize = 16 * 1024;
-        private static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(5);
+        private const int MaxCloseReasonBytes = 123;
 
-        /// <summary>
-        /// Occurs when the connection is opened.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketOpenEventHandler OnOpen;
 
-        /// <summary>
-        /// Occurs when a message is received.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketMessageEventHandler OnMessage;
 
-        /// <summary>
-        /// Occurs when an error was reported from WebSocket.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketErrorEventHandler OnError;
 
-        /// <summary>
-        /// Occurs when the socked was closed.
-        /// </summary>
+        /// <inheritdoc/>
         public event WebSocketCloseEventHandler OnClose;
+
+        internal TimeSpan CloseTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         private readonly Uri _uri;
         private readonly string _protocol;
         private readonly object _lock = new();
         private Run _run;
-        private WebSocketState _state = WebSocketState.Connecting;
+        private WebSocketState _state = WebSocketState.Closed;
 
-        // One per Connect, so a previous run that finishes late can't touch the state or socket of the current one.
         private sealed class Run
         {
             public readonly ClientWebSocket Ws = new();
             public readonly CancellationTokenSource Cts = new();
+            // The source is disposed when the run ends, which makes reading its Token throw.
+            public readonly CancellationToken Token;
             public readonly Queue<byte[]> Outgoing = new();
+            // The send loop is the only writer, so a close write never overlaps a send. It stays set once the loop takes the close.
             public bool Sending;
+            public CloseRequest Close;
             public bool CloseReported;
+
+            public Run() => Token = Cts.Token;
+        }
+
+        private sealed class CloseRequest
+        {
+            public readonly WebSocketCloseCode Code;
+            public readonly string Reason;
+            public readonly bool Remote;
+            public readonly TaskCompletionSource<bool> Done = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public CloseRequest(WebSocketCloseCode code, string reason, bool remote)
+            {
+                Code = code;
+                Reason = reason;
+                Remote = remote;
+            }
         }
 
         /// <summary>
@@ -492,110 +461,96 @@ namespace ElympicsPlayPad.WebSockets
             }
         }
 
-        /// <summary>
-        /// Open WebSocket connection
-        /// </summary>
+        /// <inheritdoc/>
         public void Connect()
         {
-            Run previous;
             Run run;
             lock (_lock)
             {
-                if (_state is WebSocketState.Open or WebSocketState.Closing)
-                    throw new WebSocketInvalidStateException("WebSocket is already connected or is closing.");
+                if (_run != null)
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-2, null);
                 _state = WebSocketState.Connecting;
-                previous = _run;
                 run = _run = new Run();
                 if (!string.IsNullOrEmpty(_protocol))
                     run.Ws.Options.AddSubProtocol(_protocol);
             }
 
-            previous?.Cts.Cancel();
             _ = RunAsync(run);
         }
 
-        /// <summary>
-        /// Close WebSocket connection with optional status code and reason.
-        /// </summary>
-        /// <param name="code">Close status code.</param>
-        /// <param name="reason">Reason string.</param>
+        /// <inheritdoc/>
         public void Close(WebSocketCloseCode code = WebSocketCloseCode.Normal, string reason = null)
         {
             Run run;
             lock (_lock)
             {
+                if (_run == null)
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-3, null);
                 if (_state == WebSocketState.Closing)
-                    throw new WebSocketInvalidStateException("WebSocket is already closing.");
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-4, null);
                 if (_state == WebSocketState.Closed)
-                    throw new WebSocketInvalidStateException("WebSocket is already closed.");
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-5, null);
+                if (!IsValidCloseCode(code) || (reason != null && Encoding.UTF8.GetByteCount(reason) > MaxCloseReasonBytes))
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-7, null);
                 run = _run;
-                _state = run == null ? WebSocketState.Closed : WebSocketState.Closing;
-            }
-
-            if (run == null)
-            {
-                OnClose?.Invoke(code, reason ?? string.Empty);
-                return;
+                _state = WebSocketState.Closing;
             }
 
             if (run.Ws.State != System.Net.WebSockets.WebSocketState.Open)
             {
                 // Report before cancelling: the cancellation may run the receive loop inline, which would report Abnormal.
                 ReportClose(run, code, reason);
-                run.Cts.Cancel();
+                Cancel(run);
                 return;
             }
 
-            _ = CloseAsync(run, code, reason);
+            _ = RequestClose(run, new CloseRequest(code, reason, false));
         }
 
-        /// <summary>
-        /// Send binary data over the socket.
-        /// </summary>
-        /// <param name="data">Payload data.</param>
+        /// <inheritdoc/>
         public void Send(byte[] data)
         {
             Run run;
             lock (_lock)
             {
                 if (_state != WebSocketState.Open)
-                    throw new WebSocketInvalidStateException("WebSocket is not in open state.");
+                    throw WebSocketHelpers.GetErrorMessageFromCode(-6, null);
                 run = _run;
-                run.Outgoing.Enqueue(data);
+                run.Outgoing.Enqueue((byte[])data.Clone());
                 if (run.Sending)
                     return;
                 run.Sending = true;
             }
 
-            _ = SendQueuedAsync(run);
+            _ = WriteAsync(run);
         }
 
-        /// <summary>
-        /// Return WebSocket connection state.
-        /// </summary>
-        /// <returns>The state.</returns>
+        /// <inheritdoc/>
         public WebSocketState GetState()
         {
             lock (_lock)
                 return _state;
         }
 
+        // Browsers accept only 1000 and 3000-4999.
+        private static bool IsValidCloseCode(WebSocketCloseCode code) => code == WebSocketCloseCode.Normal || (int)code is >= 3000 and <= 4999;
+
         private async Task RunAsync(Run run)
         {
             var ws = run.Ws;
-            var ct = run.Cts.Token;
+            var ct = run.Token;
             try
             {
                 await ws.ConnectAsync(_uri, ct).ConfigureAwait(false);
                 bool opened;
                 lock (_lock)
                 {
-                    opened = _run == run && _state == WebSocketState.Connecting;
+                    opened = _state == WebSocketState.Connecting;
                     if (opened)
                         _state = WebSocketState.Open;
                 }
                 if (opened)
-                    OnOpen?.Invoke();
+                    RaiseOpen();
 
                 var buffer = new byte[ReceiveBufferSize];
                 using var message = new MemoryStream();
@@ -605,7 +560,7 @@ namespace ElympicsPlayPad.WebSockets
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
                         if (ws.State == System.Net.WebSockets.WebSocketState.CloseReceived)
-                            await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None).ConfigureAwait(false);
+                            await AcknowledgeCloseAsync(run).ConfigureAwait(false);
                         var code = result.CloseStatus.HasValue ? WebSocketHelpers.ParseCloseCodeEnum((int)result.CloseStatus.Value) : WebSocketCloseCode.NoStatus;
                         ReportClose(run, code, result.CloseStatusDescription ?? string.Empty);
                         return;
@@ -613,7 +568,7 @@ namespace ElympicsPlayPad.WebSockets
 
                     if (result.EndOfMessage && message.Length == 0)
                     {
-                        OnMessage?.Invoke(buffer.AsSpan(0, result.Count).ToArray());
+                        RaiseMessage(buffer.AsSpan(0, result.Count).ToArray());
                         continue;
                     }
 
@@ -622,7 +577,7 @@ namespace ElympicsPlayPad.WebSockets
                         continue;
                     var data = message.ToArray();
                     message.SetLength(0);
-                    OnMessage?.Invoke(data);
+                    RaiseMessage(data);
                 }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -637,75 +592,180 @@ namespace ElympicsPlayPad.WebSockets
             finally
             {
                 ws.Dispose();
+                run.Cts.Dispose();
             }
         }
 
-        private async Task SendQueuedAsync(Run run)
+        private async Task AcknowledgeCloseAsync(Run run)
+        {
+            lock (_lock)
+            {
+                if (_state == WebSocketState.Open)
+                    _state = WebSocketState.Closing;
+                run.Outgoing.Clear();
+            }
+
+            var request = RequestClose(run, new CloseRequest(WebSocketCloseCode.Normal, null, true));
+            // A close reported without the write loop (Close on a socket that isn't open) cancels the run instead.
+            using var registration = run.Token.Register(() => request.Done.TrySetCanceled(run.Token));
+            _ = await request.Done.Task.ConfigureAwait(false);
+        }
+
+        private CloseRequest RequestClose(Run run, CloseRequest request)
+        {
+            var start = false;
+            lock (_lock)
+            {
+                if (run.Close != null)
+                    return run.Close;
+                run.Close = request;
+                if (!run.Sending)
+                    run.Sending = start = true;
+            }
+
+            if (start)
+                _ = WriteAsync(run);
+            return request;
+        }
+
+        private async Task WriteAsync(Run run)
         {
             while (true)
             {
-                byte[] data;
+                byte[] data = null;
+                CloseRequest close = null;
                 lock (_lock)
                 {
-                    if (run.Outgoing.Count == 0 || _run != run || _state != WebSocketState.Open)
+                    if (run.CloseReported)
                     {
                         run.Outgoing.Clear();
                         run.Sending = false;
                         return;
                     }
-                    data = run.Outgoing.Dequeue();
+
+                    if (run.Outgoing.Count > 0)
+                        data = run.Outgoing.Dequeue();
+                    else if (run.Close != null)
+                        close = run.Close;
+                    else
+                    {
+                        run.Sending = false;
+                        return;
+                    }
+                }
+
+                if (close != null)
+                {
+                    await WriteCloseAsync(run, close).ConfigureAwait(false);
+                    return;
                 }
 
                 try
                 {
-                    await run.Ws.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, run.Cts.Token).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
+                    await run.Ws.SendAsync(new ArraySegment<byte>(data), WebSocketMessageType.Binary, true, run.Token).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    ReportError(run, e.Message);
+                    lock (_lock)
+                        run.Outgoing.Clear();
+                    if (e is not OperationCanceledException)
+                        ReportError(run, e.Message);
                 }
             }
         }
 
-        private async Task CloseAsync(Run run, WebSocketCloseCode code, string reason)
+        private async Task WriteCloseAsync(Run run, CloseRequest close)
         {
             try
             {
-                // The receive loop reports the close once the server acknowledges it, or Abnormal once the timeout cancels it.
-                await run.Ws.CloseOutputAsync((WebSocketCloseStatus)(int)code, reason, CancellationToken.None).ConfigureAwait(false);
-                run.Cts.CancelAfter(CloseTimeout);
+                // The receive loop reports the close once the server acknowledges it. The timeout covers this write and that wait.
+                CancelAfter(run, CloseTimeout);
+                await run.Ws.CloseOutputAsync((WebSocketCloseStatus)(int)close.Code, close.Reason, run.Token).ConfigureAwait(false);
+                _ = close.Done.TrySetResult(true);
             }
             catch (Exception e)
             {
+                if (close.Remote)
+                {
+                    _ = close.Done.TrySetException(e);
+                    return;
+                }
+
+                _ = close.Done.TrySetResult(false);
+                if (e is OperationCanceledException)
+                {
+                    ReportClose(run, WebSocketCloseCode.Abnormal, string.Empty);
+                    return;
+                }
+
                 ReportError(run, e.Message);
-                ReportClose(run, code, reason);
-                run.Cts.Cancel();
+                ReportClose(run, close.Code, close.Reason);
+                Cancel(run);
             }
+        }
+
+        private static void Cancel(Run run)
+        {
+            try
+            { run.Cts.Cancel(); }
+            catch (ObjectDisposedException) { }
+        }
+
+        private static void CancelAfter(Run run, TimeSpan delay)
+        {
+            try
+            { run.Cts.CancelAfter(delay); }
+            catch (ObjectDisposedException) { }
         }
 
         private void ReportError(Run run, string message)
         {
             lock (_lock)
             {
-                if (_run != run || run.CloseReported)
+                if (run.CloseReported)
                     return;
             }
-            OnError?.Invoke(message);
+            RaiseError(message);
         }
 
         private void ReportClose(Run run, WebSocketCloseCode code, string reason)
         {
             lock (_lock)
             {
-                if (_run != run || run.CloseReported)
+                if (run.CloseReported)
                     return;
                 run.CloseReported = true;
                 _state = WebSocketState.Closed;
             }
-            OnClose?.Invoke(code, reason ?? string.Empty);
+            RaiseClose(code, reason ?? string.Empty);
+        }
+
+        private void RaiseOpen()
+        {
+            try
+            { OnOpen?.Invoke(); }
+            catch (Exception e) { UnityEngine.Debug.LogException(e); }
+        }
+
+        private void RaiseMessage(byte[] data)
+        {
+            try
+            { OnMessage?.Invoke(data); }
+            catch (Exception e) { UnityEngine.Debug.LogException(e); }
+        }
+
+        private void RaiseError(string message)
+        {
+            try
+            { OnError?.Invoke(message); }
+            catch (Exception e) { UnityEngine.Debug.LogException(e); }
+        }
+
+        private void RaiseClose(WebSocketCloseCode code, string reason)
+        {
+            try
+            { OnClose?.Invoke(code, reason); }
+            catch (Exception e) { UnityEngine.Debug.LogException(e); }
         }
     }
 #endif
@@ -761,7 +821,7 @@ namespace ElympicsPlayPad.WebSockets
         }
 
         /// <summary>
-        /// Called when instance is destroyed (by destructor)
+        /// Called when the instance is freed.
         /// Method removes instance from map and free it in JSLIB implementation
         /// </summary>
         /// <param name="instanceId">Instance identifier.</param>
