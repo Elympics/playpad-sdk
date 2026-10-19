@@ -33,7 +33,7 @@ namespace ElympicsPlayPad.Editor.Build
                 return;
 
             // The Editor-load check runs from delayCall, which comes too late for builds started with -executeMethod.
-            PlayPadWebGLTemplateInstaller.UpdateTemplateIfNeeded();
+            PlayPadWebGLTemplateInstaller.UpdateTemplateIfNeeded(refreshAssetDatabase: false);
 
             Console.WriteLine("Setting Elympics PlayPad WebGL template custom values.");
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using ElympicsPlayPad.Editor.Build;
 using NUnit.Framework;
 using TemplateAction = ElympicsPlayPad.Editor.Build.PlayPadWebGLTemplateInstaller.TemplateAction;
@@ -10,7 +11,7 @@ namespace ElympicsPlayPad.Editor.Tests
     {
         private const string Shipped = "shipped";
         private const string Previous = "previous";
-        private static readonly string[] Unstamped = { "legacy" };
+        private const string Unstamped = "legacy";
 
         private string _directory;
 
@@ -74,12 +75,32 @@ namespace ElympicsPlayPad.Editor.Tests
             Assert.That(new[] { original, edited, renamed }, Is.Unique);
         }
 
-        private void Write(string relativePath, string content)
+        [Test]
+        public void SyncKeepsMetaOfKeptFilesAndRemovesStaleOnes()
         {
-            var path = Path.Combine(_directory, relativePath);
-            _ = Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, content);
+            var source = Path.Combine(_directory, "source");
+            var destination = Path.Combine(_directory, "destination");
+            Write("source/index.html", "new");
+            Write("source/assets/new.js", "n");
+            Write("destination/index.html", "old");
+            Write("destination/index.html.meta", "guid: kept");
+            Write("destination/assets/old.js", "o");
+            Write("destination/assets/old.js.meta", "guid: stale");
+            Write("destination/gone/old.css", "o");
+            Write("destination/gone.meta", "guid: stale");
+
+            PlayPadWebGLTemplateInstaller.SyncDirectory(source, destination);
+
+            Assert.That(File.ReadAllText(Path.Combine(destination, "index.html")), Is.EqualTo("new"));
+            Assert.That(File.ReadAllText(Path.Combine(destination, "index.html.meta")), Is.EqualTo("guid: kept"));
+            Assert.That(File.Exists(Path.Combine(destination, "assets/new.js")));
+            Assert.That(File.Exists(Path.Combine(destination, "assets/old.js")), Is.False);
+            Assert.That(File.Exists(Path.Combine(destination, "assets/old.js.meta")), Is.False);
+            Assert.That(Directory.Exists(Path.Combine(destination, "gone")), Is.False);
+            Assert.That(File.Exists(Path.Combine(destination, "gone.meta")), Is.False);
         }
+
+        private void Write(string relativePath, string content) => WriteBytes(relativePath, Encoding.UTF8.GetBytes(content));
 
         private void WriteBytes(string relativePath, byte[] content)
         {
