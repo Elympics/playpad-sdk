@@ -5,6 +5,8 @@ using UnityEngine.Assertions;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
+    // Its ElympicsBehaviour is predictable for World, so clients don't predict it:
+    // the game state (e.g. points) changes only on the server, in RPCs.
     public class SampleGameplayManager : ScoreProviderBase, IInitializable, IUpdatable, IClientHandlerGuid
     {
         [SerializeField] private int secondsToEndGameAutomatically = 30;
@@ -64,7 +66,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         // Runs only at the Client
         public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView(_points.Value);
 
-        [UsedImplicitly] // by EndGameButton - possible to call directly because Predicion in the GameCondig is set to false
+        [UsedImplicitly] // by EndGameButton
         public void RequestGameEnd() => RpcEndGame();
 
         [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
@@ -78,9 +80,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             matchEnder.EndMatch();
         }
 
-
-        // Please note it is only possible outside of ElympicsUpdate because Prediction in the ElympicsGameConfig was set to False
-        [UsedImplicitly] // by BumpPointsButton - possible to call directly because Predicion in the GameCondig is set to false
+        [UsedImplicitly] // by BumpPointsButton
         public void RequestBumpPoints()
         {
             Debug.Log("BumpPoints at client");
