@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53a71d9459a346fbb7a3667f57b4cf19, type: 3}
+  m_Name: ElympicsPlayPadDefines
+  m_EditorClassIdentifier: 
+  list:
+  - name: ELYMPICS_PLAYPAD_KEEP_LOBBY
+    description: "Keeps the Elympics WebSocket lobby (PlayPadCommunicator.Lobby, its authentication and Rooms) in WebGL builds, which leave it out by default. Define it if the game uses the in-game lobby (LaunchMode.Lobby)."
+    buildTargets:
+    - WebGL
+  - name: ELYMPICS_DISABLE_PLAYPAD
+    description: "Lets a player build run outside the PlayPad website by mocking PlayPad, as the Editor does. Use it only for local test builds."
+    buildTargets: []
