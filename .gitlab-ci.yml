@@ -26,9 +26,10 @@ variables:
 stages:
   - prepare-version
   - prepare-license
-  - prepare-project
+  - compile
+  - build
   - test
-  - check
+  - verify
   - trigger
   - pre-release
   - release
@@ -173,7 +174,7 @@ get-activation-file:
 check-commits:
   extends:
     - .bash_image
-  stage: check
+  stage: verify
   needs: []
   variables:
     GIT_DEPTH: 0
@@ -183,7 +184,7 @@ check-commits:
 verify-js:
   extends:
     - .node_image
-  stage: check
+  stage: verify
   needs: []
   variables:
     GIT_DEPTH: 1
@@ -195,7 +196,7 @@ create-testing-project:
   extends:
     - .unity_image
     - .cond.license
-  stage: prepare-project
+  stage: compile
   timeout: 30m
   variables:
     GIT_DEPTH: 1
@@ -234,7 +235,7 @@ build:sample:
     - .cond.license
   timeout: 45m
   image: unityci/editor:ubuntu-$BUILD_UNITY_VERSION-$BUILD_UNITY_ARCH
-  stage: test
+  stage: build
   needs: []
   variables:
     GIT_DEPTH: 1
@@ -347,7 +348,7 @@ verify-formatting:
   extends:
     - .unity_image
     - .cond.license
-  stage: check
+  stage: verify
   needs:
     - job: create-testing-project
   variables:
@@ -371,7 +372,7 @@ audit:project-auditor:
   extends:
     - .unity_image
     - .cond.license
-  stage: check
+  stage: verify
   needs:
     - job: create-testing-project
   variables:
@@ -391,7 +392,7 @@ verify-messagepack-generated:
   extends:
     - .unity_image
     - .cond.license
-  stage: check
+  stage: verify
   needs:
     - job: create-testing-project
   variables:
