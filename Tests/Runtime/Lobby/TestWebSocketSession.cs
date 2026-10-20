@@ -357,6 +357,33 @@ namespace ElympicsPlayPad.Tests.Lobby
         });
 
         [UnityTest]
+        public IEnumerator ErrorRaisedOnThreadPoolShouldDisconnectOnMainThread() => UniTask.ToCoroutine(async () =>
+        {
+            const string errorMessage = "test error message";
+            using var session = CreateDefaultWebSocketSession();
+
+            await ConnectWebSocketSessionAndAssert(session);
+            var closedOnMainThread = (bool?)null;
+            WebSocketMock.When(x => x.Close(Arg.Any<WebSocketCloseCode>())).Do(_ => closedOnMainThread = PlayerLoopHelper.IsMainThread);
+            var errorLogged = false;
+            void OnLog(string condition, string _, LogType type) => errorLogged |= type == LogType.Error && condition.Contains(errorMessage);
+            LogAssert.Expect(LogType.Error, new Regex($".*{errorMessage}.*"));
+            Application.logMessageReceived += OnLog;
+            try
+            {
+                await UniTask.RunOnThreadPool(() => WebSocketMock.OnError += Raise.Event<WebSocketErrorEventHandler>(errorMessage), false);
+                await UniTask.WaitUntil(() => closedOnMainThread.HasValue && errorLogged).Timeout(TimeSpan.FromSeconds(5));
+            }
+            finally
+            {
+                Application.logMessageReceived -= OnLog;
+            }
+
+            Assert.That(closedOnMainThread, Is.True);
+            Assert.False(session.IsConnected);
+        });
+
+        [UnityTest]
         public IEnumerator WebSocketShouldBeClosedWhenSessionIsDisposed() => UniTask.ToCoroutine(async () =>
         {
             using var session = CreateDefaultWebSocketSession();

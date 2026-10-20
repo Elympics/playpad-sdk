@@ -260,7 +260,7 @@ namespace ElympicsPlayPad.Lobby
         }
         private void HandleError(string message)
         {
-            DisconnectInternal(DisconnectionReason.Error);
+            RunOnMainThread(() => DisconnectInternal(DisconnectionReason.Error));
             _dispatcher.Enqueue(() => ElympicsLogger.LogError(message));
         }
 
@@ -270,7 +270,25 @@ namespace ElympicsPlayPad.Lobby
             _dispatcher.Enqueue(code != WebSocketCloseCode.Normal ? () => logger.LogError($"Connection closed abnormally [{code}] {reason}")
                 : () => logger.LogInfo($"Connection closed gracefully [{code}] {reason}"));
 
-            DisconnectInternal(IsConnected && code == WebSocketCloseCode.Away ? DisconnectionReason.Timeout : DisconnectionReason.Closed);
+            RunOnMainThread(() => DisconnectInternal(IsConnected && code == WebSocketCloseCode.Away ? DisconnectionReason.Timeout : DisconnectionReason.Closed));
+        }
+
+        // The native WebSocket and the heartbeat check run on thread-pool threads, while Connect and Disconnect run on the main thread.
+        private void RunOnMainThread(Action action)
+        {
+            if (PlayerLoopHelper.IsMainThread)
+            {
+                action();
+                return;
+            }
+
+            var cts = _cts;
+            _dispatcher.Enqueue(() =>
+            {
+                // The session may have been disposed, disconnected or reconnected since.
+                if (!_isDisposed && _cts == cts)
+                    action();
+            });
         }
 
         private async UniTaskVoid AutoDisconnectOnTimeout(CancellationToken cancellationToken) => await UniTask.RunOnThreadPool(() =>
@@ -294,7 +312,7 @@ namespace ElympicsPlayPad.Lobby
                         return;
 
                     logger.LogError("We have not received a response from the server. You have been disconnected. Please check your internet connection and try reconnecting.");
-                    DisconnectInternal(DisconnectionReason.Closed);
+                    RunOnMainThread(() => DisconnectInternal(DisconnectionReason.Closed));
                     return;
                 }
             },
