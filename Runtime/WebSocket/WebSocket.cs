@@ -559,9 +559,14 @@ namespace ElympicsPlayPad.WebSockets
                     var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), ct).ConfigureAwait(false);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        if (ws.State == System.Net.WebSockets.WebSocketState.CloseReceived)
-                            await AcknowledgeCloseAsync(run).ConfigureAwait(false);
                         var code = result.CloseStatus.HasValue ? WebSocketHelpers.ParseCloseCodeEnum((int)result.CloseStatus.Value) : WebSocketCloseCode.NoStatus;
+                        if (ws.State == System.Net.WebSockets.WebSocketState.CloseReceived)
+                        {
+                            // Once the server's close frame has arrived, its code is reported even if the acknowledgement fails, as browsers do.
+                            try
+                            { await AcknowledgeCloseAsync(run).ConfigureAwait(false); }
+                            catch (Exception) { }
+                        }
                         ReportClose(run, code, result.CloseStatusDescription ?? string.Empty);
                         return;
                     }
