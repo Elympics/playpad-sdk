@@ -49,8 +49,15 @@ namespace ElympicsPlayPad.Editor.Build
         static PlayPadWebGLTemplateInstaller() => EditorApplication.delayCall += () => UpdateTemplateIfNeeded();
 #endif
 
-        private static string InstalledPath => Path.Combine(Application.dataPath, "WebGLTemplates", TemplateName);
-        private static string StampPath => Path.Combine(Application.dataPath, "WebGLTemplates", StampFileName);
+        /// <summary>Replaces the package's template folder, so tests don't need the real one.</summary>
+        internal static string SourcePathOverride { get; set; }
+
+        /// <summary>Replaces <c>Assets/WebGLTemplates</c>, so tests don't touch the project's template.</summary>
+        internal static string TemplatesRootOverride { get; set; }
+
+        private static string TemplatesRoot => TemplatesRootOverride ?? Path.Combine(Application.dataPath, "WebGLTemplates");
+        private static string InstalledPath => Path.Combine(TemplatesRoot, TemplateName);
+        private static string StampPath => Path.Combine(TemplatesRoot, StampFileName);
 
         [MenuItem(ReinstallMenuPath)]
         public static void ReinstallTemplate()
@@ -59,6 +66,14 @@ namespace ElympicsPlayPad.Editor.Build
                 Debug.Log("Elympics PlayPad WebGL template reinstalled.");
             else
                 Debug.LogWarning("Failed to install Elympics PlayPad WebGL template.");
+        }
+
+        /// <summary>The Editor-load check runs from delayCall, which comes too late for builds started with -executeMethod.</summary>
+        internal static void UpdateTemplateBeforeBuild()
+        {
+#if !ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
+            UpdateTemplateIfNeeded(refreshAssetDatabase: false);
+#endif
         }
 
         internal static void UpdateTemplateIfNeeded(bool refreshAssetDatabase = true)
@@ -186,7 +201,9 @@ namespace ElympicsPlayPad.Editor.Build
 
         private static bool TryGetSourcePath(out string sourcePath)
         {
-            sourcePath = null;
+            sourcePath = SourcePathOverride;
+            if (sourcePath != null)
+                return true;
             var packagePath = PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly())?.resolvedPath;
             if (string.IsNullOrEmpty(packagePath))
             {

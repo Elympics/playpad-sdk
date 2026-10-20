@@ -23,7 +23,12 @@ namespace ElympicsPlayPad.Editor.Tests
         }
 
         [TearDown]
-        public void DeleteDirectory() => Directory.Delete(_directory, true);
+        public void DeleteDirectory()
+        {
+            PlayPadWebGLTemplateInstaller.SourcePathOverride = null;
+            PlayPadWebGLTemplateInstaller.TemplatesRootOverride = null;
+            Directory.Delete(_directory, true);
+        }
 
         [TestCase(null, null, ExpectedResult = nameof(TemplateAction.Install), TestName = "Missing copy is installed")]
         [TestCase(Shipped, null, ExpectedResult = nameof(TemplateAction.UpToDate), TestName = "Unstamped current copy is up to date")]
@@ -98,6 +103,26 @@ namespace ElympicsPlayPad.Editor.Tests
             Assert.That(File.Exists(Path.Combine(destination, "assets/old.js.meta")), Is.False);
             Assert.That(Directory.Exists(Path.Combine(destination, "gone")), Is.False);
             Assert.That(File.Exists(Path.Combine(destination, "gone.meta")), Is.False);
+        }
+
+        [Test]
+        public void BeforeBuildUpdateRespectsDisableDefine()
+        {
+            Write("source/index.html", "new");
+            Write("templates/ElympicsLobby/index.html", "old");
+            var stamp = PlayPadWebGLTemplateInstaller.ComputeHash(Path.Combine(_directory, "templates/ElympicsLobby"));
+            Write("templates/ElympicsLobby.installed.json", "{\"hash\":\"" + stamp + "\"}");
+            PlayPadWebGLTemplateInstaller.SourcePathOverride = Path.Combine(_directory, "source");
+            PlayPadWebGLTemplateInstaller.TemplatesRootOverride = Path.Combine(_directory, "templates");
+
+            PlayPadWebGLTemplateInstaller.UpdateTemplateBeforeBuild();
+
+            var installed = File.ReadAllText(Path.Combine(_directory, "templates/ElympicsLobby/index.html"));
+#if ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
+            Assert.That(installed, Is.EqualTo("old"));
+#else
+            Assert.That(installed, Is.EqualTo("new"));
+#endif
         }
 
         private void Write(string relativePath, string content) => WriteBytes(relativePath, Encoding.UTF8.GetBytes(content));
