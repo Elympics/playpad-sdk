@@ -20,3 +20,6 @@ MonoBehaviour:
   - name: ELYMPICS_DISABLE_PLAYPAD
     description: "Lets a player build run outside the PlayPad website by mocking PlayPad, as the Editor does. Use it only for local test builds."
     buildTargets: []
+  - name: ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
+    description: "Stops PlayPad from installing and updating Assets/WebGLTemplates/ElympicsLobby on Editor load and before WebGL builds. Use Tools/PlayPad/Reinstall WebGL Template to update it by hand."
+    buildTargets: []

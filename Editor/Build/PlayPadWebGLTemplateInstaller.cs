@@ -45,7 +45,9 @@ namespace ElympicsPlayPad.Editor.Build
             public string package;
         }
 
+#if !ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
         static PlayPadWebGLTemplateInstaller() => EditorApplication.delayCall += () => UpdateTemplateIfNeeded();
+#endif
 
         private static string InstalledPath => Path.Combine(Application.dataPath, "WebGLTemplates", TemplateName);
         private static string StampPath => Path.Combine(Application.dataPath, "WebGLTemplates", StampFileName);

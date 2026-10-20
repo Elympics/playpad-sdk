@@ -32,8 +32,10 @@ namespace ElympicsPlayPad.Editor.Build
             if (PlayerSettings.WebGL.template != ElympicsTemplateName)
                 return;
 
+#if !ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
             // The Editor-load check runs from delayCall, which comes too late for builds started with -executeMethod.
             PlayPadWebGLTemplateInstaller.UpdateTemplateIfNeeded(refreshAssetDatabase: false);
+#endif
 
             Console.WriteLine("Setting Elympics PlayPad WebGL template custom values.");
 
