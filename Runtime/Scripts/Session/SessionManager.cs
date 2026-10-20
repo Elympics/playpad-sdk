@@ -232,7 +232,6 @@ namespace ElympicsPlayPad.Session
                 if (_authProvider.IsAuthenticated)
                     _authProvider.SignOut();
 
-                Debug.Log($"CachedData is {cachedData.AuthType}.");
                 await _authProvider.Authenticate(cachedData, region);
             }
             catch (Exception e)
