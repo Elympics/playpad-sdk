@@ -88,6 +88,8 @@ namespace ElympicsPlayPad.Editor.Build
                     Debug.LogWarning($"Assets/WebGLTemplates/{TemplateName} differs from the version PlayPad installed, so it was left as it is "
                         + $"and doesn't get template updates. To replace it with the package's template, use {ReinstallMenuPath}.");
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
         }
 
