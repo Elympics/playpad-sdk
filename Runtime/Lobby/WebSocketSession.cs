@@ -40,7 +40,8 @@ namespace ElympicsPlayPad.Lobby
         private readonly WebSocketFactory _wsFactory;
 
         private readonly ILobbySerializer _serializer;
-        private Stopwatch? _timer;
+        // A Stopwatch timestamp, written by the WebSocket's thread.
+        private long _lastPingTimestamp;
         private readonly IWebSocketSessionController _controller;
 
         public bool IsConnected { get; private set; }
@@ -83,8 +84,7 @@ namespace ElympicsPlayPad.Lobby
                 ElympicsLogger.State.SetRegion(regionName);
                 logger.LogInfo("Connection to lobby completed.");
                 SetConnectedState();
-                _timer = new Stopwatch();
-                _timer.Start();
+                _ = Interlocked.Exchange(ref _lastPingTimestamp, Stopwatch.GetTimestamp());
                 AutoDisconnectOnTimeout(_cts.Token).Forget();
                 return gameData;
             }
@@ -231,11 +231,7 @@ namespace ElympicsPlayPad.Lobby
 #endif
                 if (message is PingDto)
                 {
-                    DispatchWithCancellation(() =>
-                    {
-                        _timer?.Reset();
-                        _timer?.Start();
-                    });
+                    _ = Interlocked.Exchange(ref _lastPingTimestamp, Stopwatch.GetTimestamp());
                     SendMessage(new PongDto());
                     return;
                 }
@@ -273,7 +269,7 @@ namespace ElympicsPlayPad.Lobby
             RunOnMainThread(() => DisconnectInternal(IsConnected && code == WebSocketCloseCode.Away ? DisconnectionReason.Timeout : DisconnectionReason.Closed));
         }
 
-        // The native WebSocket and the heartbeat check run on thread-pool threads, while Connect and Disconnect run on the main thread.
+        // The native WebSocket raises events on thread-pool threads, while Connect and Disconnect run on the main thread.
         private void RunOnMainThread(Action action)
         {
             if (PlayerLoopHelper.IsMainThread)
@@ -291,33 +287,26 @@ namespace ElympicsPlayPad.Lobby
             });
         }
 
-        private async UniTaskVoid AutoDisconnectOnTimeout(CancellationToken cancellationToken) => await UniTask.RunOnThreadPool(() =>
+        // Runs on the player loop, so a paused player can't time out pings that the network thread did receive.
+        private async UniTaskVoid AutoDisconnectOnTimeout(CancellationToken cancellationToken)
+        {
+            while (true)
             {
-                while (true)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
-
-                    if (_timer is null)
-                        return;
-
-                    if (!(_timer.Elapsed.TotalSeconds > LobbyTimeout.WebSocketHeartbeatTimeout.TotalSeconds))
-                        continue;
-
-                    if (!IsConnected)
-                        return;
-
-                    var logger = _logger.WithMethodName();
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
-
-                    logger.LogError("We have not received a response from the server. You have been disconnected. Please check your internet connection and try reconnecting.");
-                    RunOnMainThread(() => DisconnectInternal(DisconnectionReason.Closed));
+                if (await UniTask.Delay(LobbyTimeout.WebSocketHeartbeatCheckInterval, DelayType.Realtime, cancellationToken: cancellationToken).SuppressCancellationThrow())
                     return;
-                }
-            },
-            true,
-            cancellationToken);
+
+                var sinceLastPing = Stopwatch.GetTimestamp() - Interlocked.Read(ref _lastPingTimestamp);
+                if (sinceLastPing <= LobbyTimeout.WebSocketHeartbeatTimeout.TotalSeconds * Stopwatch.Frequency)
+                    continue;
+
+                if (!IsConnected)
+                    return;
+
+                _logger.WithMethodName().LogError("We have not received a response from the server. You have been disconnected. Please check your internet connection and try reconnecting.");
+                DisconnectInternal(DisconnectionReason.Closed);
+                return;
+            }
+        }
 
         private void DisconnectInternal(DisconnectionReason reason)
         {
@@ -332,7 +321,6 @@ namespace ElympicsPlayPad.Lobby
                 throw new ObjectDisposedException(GetType().FullName);
             if (_cts is null)
                 return;
-            _timer?.Stop();
             _cts.Cancel();
             _cts.Dispose();
             _cts = null;

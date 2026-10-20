@@ -41,6 +41,8 @@ namespace ElympicsPlayPad.Tests.Lobby
 
         private static readonly TimeSpan DefaultOpeningTimeout = LobbyTimeout.WebSocketOpeningTimeout;
         private static readonly TimeSpan DefaultOperationTimeout = LobbyTimeout.WebSocketOperationTimeout;
+        private static readonly TimeSpan DefaultHeartbeatTimeout = LobbyTimeout.WebSocketHeartbeatTimeout;
+        private static readonly TimeSpan DefaultHeartbeatCheckInterval = LobbyTimeout.WebSocketHeartbeatCheckInterval;
 
         private static CancellationTokenSource cts = new();
         private record UnknownMessage : IFromLobby, IToLobby;
@@ -384,6 +386,67 @@ namespace ElympicsPlayPad.Tests.Lobby
         });
 
         [UnityTest]
+        public IEnumerator MissingPingsShouldDisconnect() => UniTask.ToCoroutine(async () =>
+        {
+            using var session = CreateDefaultWebSocketSession();
+            await ConnectWebSocketSessionAndAssert(session);
+            LobbyTimeout.WebSocketHeartbeatTimeout = TimeSpan.FromSeconds(0.3);
+            LobbyTimeout.WebSocketHeartbeatCheckInterval = TimeSpan.FromSeconds(0.05);
+
+            LogAssert.Expect(LogType.Error, new Regex("We have not received a response from the server"));
+            await UniTask.WaitUntil(() => !session.IsConnected).Timeout(TimeSpan.FromSeconds(5));
+        });
+
+        [UnityTest]
+        public IEnumerator PingsReceivedWhileTheMainThreadQueueIsHeldShouldKeepTheSession() => UniTask.ToCoroutine(async () =>
+        {
+            _ = WebSocketMock.SetupOpenCloseDefaultBehaviour().SetupJoinLobby(false, AuthData.UserId, Nickname, null);
+            var dispatcher = new HoldingDispatcher(Dispatcher);
+            using var session = new WebSocketSession(Substitute.For<IWebSocketSessionController>(), dispatcher, LobbyTestSerialization.Options, (_, _) => WebSocketMock, LobbySerializer);
+            await ConnectWebSocketSessionAndAssert(session);
+            LobbyTimeout.WebSocketHeartbeatTimeout = TimeSpan.FromSeconds(0.3);
+            LobbyTimeout.WebSocketHeartbeatCheckInterval = TimeSpan.FromSeconds(0.05);
+            var ping = MessagePackSerializer.Serialize<IFromLobby>(new PingDto(), LobbyTestSerialization.Options);
+
+            // Like a player whose loop is paused: the network thread keeps receiving pings, nothing it posts runs yet.
+            dispatcher.Hold = true;
+            var end = DateTime.UtcNow + TimeSpan.FromSeconds(1);
+            while (DateTime.UtcNow < end)
+            {
+                await UniTask.RunOnThreadPool(() => WebSocketMock.OnMessage += Raise.Event<WebSocketMessageEventHandler>(ping), false);
+                await UniTask.Delay(TimeSpan.FromSeconds(0.1), DelayType.Realtime);
+            }
+            dispatcher.Release();
+
+            Assert.True(session.IsConnected);
+        });
+
+        private sealed class HoldingDispatcher : IAsyncEventsDispatcher
+        {
+            private readonly IAsyncEventsDispatcher _inner;
+            private readonly System.Collections.Concurrent.ConcurrentQueue<Action> _held = new();
+
+            public HoldingDispatcher(IAsyncEventsDispatcher inner) => _inner = inner;
+
+            public bool Hold { get; set; }
+
+            public void Enqueue(Action action)
+            {
+                if (Hold)
+                    _held.Enqueue(action);
+                else
+                    _inner.Enqueue(action);
+            }
+
+            public void Release()
+            {
+                Hold = false;
+                while (_held.TryDequeue(out var action))
+                    _inner.Enqueue(action);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator WebSocketShouldBeClosedWhenSessionIsDisposed() => UniTask.ToCoroutine(async () =>
         {
             using var session = CreateDefaultWebSocketSession();
@@ -481,6 +544,8 @@ namespace ElympicsPlayPad.Tests.Lobby
             cts.Cancel();
             LobbyTimeout.WebSocketOpeningTimeout = DefaultOpeningTimeout;
             LobbyTimeout.WebSocketOperationTimeout = DefaultOperationTimeout;
+            LobbyTimeout.WebSocketHeartbeatTimeout = DefaultHeartbeatTimeout;
+            LobbyTimeout.WebSocketHeartbeatCheckInterval = DefaultHeartbeatCheckInterval;
         }
     }
 }
