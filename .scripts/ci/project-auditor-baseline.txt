@@ -11,6 +11,7 @@ UAL0010 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/ExternalCommu
 UAL0010 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/JWT/JsonWebToken.cs | Issue with AutoStaticsCleanup
 UAL0010 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/JWT/JwtPayload.cs | Issue with AutoStaticsCleanup
 UAL0010 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/Session/SessionManager.cs | Issue with AutoStaticsCleanup
+UAL0010 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/Wrappers/ClientSecretAuth.cs | Issue with AutoStaticsCleanup
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Auth/LobbyModels/CoinIcons.cs | Issue with AutoStaticsCleanup
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Lobby/Auth/RemoteAuthClient.cs | Issue with AutoStaticsCleanup
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Lobby/LobbyTimeout.cs | Issue with AutoStaticsCleanup
@@ -24,6 +25,7 @@ UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/ExternalCommu
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/JWT/JsonWebToken.cs | Issue with AutoStaticsCleanup
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/JWT/JwtPayload.cs | Issue with AutoStaticsCleanup
 UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/Session/SessionManager.cs | Issue with AutoStaticsCleanup
+UAL0013 | Packages/com.daftmobile.elympics-playpad/Runtime/Scripts/Wrappers/ClientSecretAuth.cs | Issue with AutoStaticsCleanup
 UDR0001 | Packages/com.daftmobile.elympics-playpad/Runtime/Lobby/Auth/RemoteAuthClient.cs | No method with RuntimeInitializeOnLoadMethod attribute
 UDR0001 | Packages/com.daftmobile.elympics-playpad/Runtime/Lobby/LobbyTimeout.cs | No method with RuntimeInitializeOnLoadMethod attribute
 UDR0001 | Packages/com.daftmobile.elympics-playpad/Runtime/Lobby/StringIReadOnlyDictionaryEqualityComparer.cs | No method with RuntimeInitializeOnLoadMethod attribute
