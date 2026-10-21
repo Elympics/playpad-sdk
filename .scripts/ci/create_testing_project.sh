@@ -27,6 +27,7 @@ cp -r Editor{,.meta} "$PACKAGE_FOLDER"
 cp -r Runtime{,.meta} "$PACKAGE_FOLDER"
 cp -r Tests{,.meta} "$PACKAGE_FOLDER"
 cp package.json{,.meta} "$PACKAGE_FOLDER"
+cp -r WebGLTemplates~ "$PACKAGE_FOLDER"
 cp -r Samples~ "$PACKAGE_FOLDER"
 mv "${PACKAGE_FOLDER}Samples~" "${PACKAGE_FOLDER}Samples"
 
