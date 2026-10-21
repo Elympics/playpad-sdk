@@ -1184,48 +1184,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -1970892285926819546, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: config
-      value: 
-      objectReference: {fileID: 11400000, guid: 7c5b26fa4e98f7248b29087c8bc807e2,
-        type: 2}
-    - target: {fileID: -1970892285926819546, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: _browserJsConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: b154aaeee03492849a0e79b0f1375958,
-        type: 2}
-    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: scsConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: 7c5b26fa4e98f7248b29087c8bc807e2,
-        type: 2}
-    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: standaloneAuthConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: aeecf359a25d64f428df8ea908f75d0d,
-        type: 2}
-    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: standaloneWalletConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: b154aaeee03492849a0e79b0f1375958,
-        type: 2}
-    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: standaloneGameStatusConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: ad14d764588c5d449876736fa13971d9,
-        type: 2}
-    - target: {fileID: 773821390082990742, guid: 915e03586cf042848bb2b1552a123930,
-        type: 3}
-      propertyPath: standaloneTournamentConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: 924a6e597d09f204db2b1bc37b89b148,
-        type: 2}
     - target: {fileID: 773821390082990743, guid: 915e03586cf042848bb2b1552a123930,
         type: 3}
       propertyPath: m_Name

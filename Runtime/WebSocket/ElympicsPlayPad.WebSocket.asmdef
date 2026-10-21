@@ -1,0 +1,16 @@
+{
+    "name": "ElympicsPlayPad.WebSocket",
+    "rootNamespace": "ElympicsPlayPad.WebSockets",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

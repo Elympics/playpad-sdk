@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
 using Elympics.SnapshotAnalysis.Retrievers;
@@ -15,7 +15,6 @@ using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Serialization.Resolvers;
 using MessagePack;
 using MessagePack.Resolvers;
-using Plugins.Elympics.Plugins.ParrelSync;
 using LobbyRoutes = ElympicsPlayPad.Lobby.InternalModels.Routes;
 #endif
 using ElympicsPlayPad.Utility;
@@ -67,12 +66,11 @@ namespace ElympicsPlayPad.Wrappers
                 ?? throw new InvalidOperationException($"No {nameof(ElympicsGameConfig)} instance found. Make sure {nameof(ElympicsConfig)} is set up correctly.");
             var parameters = ApplicationParameters.Parameters;
             var lobbyUrl = parameters.LobbyEndpoint.GetValue(config.GetV2Endpoint("lobby")).GetAbsoluteOrRelativeString().AppendPathSegments(LobbyRoutes.Base).ToString();
-            var authUrl = parameters.AuthEndpoint.GetValue(config.GetV2Endpoint("auth")).GetAbsoluteOrRelativeString();
             var serializerOptions = CreateSerializerOptions();
 
             _client = new LobbyClient(
-                new RemoteAuthClient(authUrl),
-                GetOrCreateClientSecret(),
+                new RemoteAuthClient(ClientSecretAuth.GetAuthUrl(config)),
+                ClientSecretAuth.GetOrCreateClientSecret(),
                 new DefaultRegionRetriever(),
                 ElympicsMatchLauncher.Instance,
                 gameConfig,
@@ -106,31 +104,6 @@ namespace ElympicsPlayPad.Wrappers
             Client.GetRollTournamentsFee(requestData, ct);
 
         void IElympicsLobbyWrapper.WatchReplay(SnapshotAnalysisRetriever retriever) => Client.WatchReplay(retriever);
-
-        private const string ClientSecretPlayerPrefsKeyBase = "Elympics/AuthToken";
-
-        private static string ClientSecretPlayerPrefsKey =>
-            ElympicsClonesManager.IsClone() ? $"{ClientSecretPlayerPrefsKeyBase}_clone_{ElympicsClonesManager.GetCloneNumber()}" : ClientSecretPlayerPrefsKeyBase;
-
-        private static string GetOrCreateClientSecret()
-        {
-            var parameterValue = ApplicationParameters.Parameters.ClientSecret.GetValue();
-            if (!string.IsNullOrEmpty(parameterValue))
-                return parameterValue!;
-
-            if (parameterValue == "")
-                return CreateNewClientSecret();
-
-            var key = ClientSecretPlayerPrefsKey;
-            if (!PlayerPrefs.HasKey(key))
-            {
-                PlayerPrefs.SetString(key, CreateNewClientSecret());
-                PlayerPrefs.Save();
-            }
-            return PlayerPrefs.GetString(key);
-        }
-
-        private static string CreateNewClientSecret() => Guid.NewGuid().ToString();
 #endif
     }
 }

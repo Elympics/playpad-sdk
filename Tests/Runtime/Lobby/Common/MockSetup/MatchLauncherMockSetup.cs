@@ -2,8 +2,8 @@
 
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using NSubstitute;
 
 namespace ElympicsPlayPad.Tests.Lobby.Common.MockSetup

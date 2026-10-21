@@ -1,6 +1,6 @@
 #nullable enable
 using System;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
 {

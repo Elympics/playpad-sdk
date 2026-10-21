@@ -1,8 +1,8 @@
 #nullable enable
 using System;
 using System.Runtime.InteropServices;
-using Cysharp.Threading.Tasks;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Utility;
 using JetBrains.Annotations;
 using UnityEngine;

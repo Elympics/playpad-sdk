@@ -27,6 +27,7 @@ cp -r Editor{,.meta} "$PACKAGE_FOLDER"
 cp -r Runtime{,.meta} "$PACKAGE_FOLDER"
 cp -r Tests{,.meta} "$PACKAGE_FOLDER"
 cp package.json{,.meta} "$PACKAGE_FOLDER"
+cp -r WebGLTemplates~ "$PACKAGE_FOLDER"
 cp -r Samples~ "$PACKAGE_FOLDER"
 mv "${PACKAGE_FOLDER}Samples~" "${PACKAGE_FOLDER}Samples"
 
@@ -52,3 +53,10 @@ echo "Using Elympics SDK commit ref: $CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"
 yq -iPo json '.dependencies."'"$ELYMPICS_SDK_PACKAGE_NAME"'".hash = "'"$CI_ELYMPICS_SDK_COMMIT_REF_OVERRIDE"'"' "$PACKAGES_LOCK_PATH"
 
 echo "Elympics SDK dependency added ✅"
+
+# Rider: generate_solution_files.sh calls its SyncSolution
+yq -iPo json '.dependencies."com.unity.ide.rider" = "3.0.39"' "$PACKAGES_MANIFEST_PATH"
+
+
+# Keeps com.unity.webrtc's native context stopped in the Editor until a test needs it; it can crash Unity during reloads.
+"$(dirname "${BASH_SOURCE[0]}")/set_scripting_defines.sh" "ELYMPICS_LAZY_WEBRTC_CONTEXT"

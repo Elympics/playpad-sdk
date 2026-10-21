@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Lobby.InternalModels;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;

@@ -1,0 +1,29 @@
+﻿{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "checkJs": true,
+    "allowJs": true,
+    "declaration": true,
+    "target": "es2020",
+    "module": "es6",
+    "outDir": "dist"
+  },
+  "include": [
+    "./**/*.js",
+    "./DoNotTryPuttingPatternsForOtherExtensionsLikeJslibHereAsTheyWillNotBeSupportedWhatsoever.js"
+  ],
+  "exclude": [
+    ".scripts",
+    "WebGLTemplates~",
+    "TestingProject"
+  ],
+  "verbose": true
+}

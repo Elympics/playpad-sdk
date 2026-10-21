@@ -3,8 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js

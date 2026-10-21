@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 
 namespace ElympicsPlayPad.Wrappers
 {

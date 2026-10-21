@@ -2,9 +2,9 @@
 #nullable enable
 
 using System;
-using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.Auth;
 using ElympicsPlayPad.Auth.Models;

@@ -2,8 +2,8 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Editor.Editor.Util;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using Microsoft.Win32;
@@ -122,7 +122,7 @@ namespace ElympicsPlayPad.Editor.Editor.UI
             _unsupportedSystemLabel.visible = false;
 
             var isInstalled = CheckManifestRegistration();
-            if (isInstalled is false)
+            if (!isInstalled)
             {
                 _installButton.visible = true;
                 _installButton.RegisterCallback<ClickEvent>(OnInstallClick);
@@ -174,7 +174,7 @@ namespace ElympicsPlayPad.Editor.Editor.UI
                     return false;
 
                 var isManifestRegistered = string.Equals(registryValue, WinManifestFileAbsolutePath());
-                if (isManifestRegistered is false)
+                if (!isManifestRegistered)
                     return false;
 
                 var manifestJson = GetManifestJson(WinManifestFileAbsolutePath());

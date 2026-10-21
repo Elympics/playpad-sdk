@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.Auth.Models;
 using AuthRoutes = ElympicsPlayPad.Auth.Models.Routes;
