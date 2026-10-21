@@ -10,6 +10,7 @@ using ElympicsPlayPad.Lobby.InternalModels.Rooms;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms.FromRooms;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Rooms.Models;
+using ElympicsPlayPad.Tests.Lobby.Common;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -159,11 +160,14 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             (InitialPublicState with { MatchmakingData = Defaults.CreatePublicMatchmakingData(MatchmakingStateDto.Matchmaking) }, new[] { nameof(ElympicsPlayPad.Rooms.RoomsManager.RoomListUpdated) }),
         };
 
+        private static readonly List<NamedCase<(PublicRoomState ModifiedState, string[] ExpectedEvents)>> NamedAvailableRoomListUpdateTestCases = NamedCase.ByIndex(availableRoomListUpdateTestCases);
+
         [Test]
         public void AvailableRoomListShouldBeModifiedCorrectlyWhenRoomListUpdateIsReceived(
-            [ValueSource(nameof(availableRoomListUpdateTestCases))]
-            (PublicRoomState ModifiedState, string[] ExpectedEvents) testCase)
+            [ValueSource(nameof(NamedAvailableRoomListUpdateTestCases))]
+            NamedCase<(PublicRoomState ModifiedState, string[] ExpectedEvents)> namedCase)
         {
+            var testCase = namedCase.Value;
             RoomsClientMock.RoomListChanged += Raise.Event<Action<RoomListChangedDto>>(InitialRoomList);
 
             var modifiedState = testCase.ModifiedState with { LastUpdate = Timer++ };
@@ -275,11 +279,14 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             ),
         };
 
+        private static readonly List<NamedCase<(RoomStateChangedDto ModifiedState, string[] ExpectedEvents)>> NamedRoomUpdateTestCases = NamedCase.ByIndex(roomUpdateTestCases);
+
         [Test]
         public void AvailableRoomListShouldBeModifiedCorrectlyWhenRoomUpdateIsReceived(
-            [ValueSource(nameof(roomUpdateTestCases))]
-            (RoomStateChangedDto ModifiedState, string[] ExpectedEvents) testCase)
+            [ValueSource(nameof(NamedRoomUpdateTestCases))]
+            NamedCase<(RoomStateChangedDto ModifiedState, string[] ExpectedEvents)> namedCase)
         {
+            var testCase = namedCase.Value;
             EmitRoomUpdate(InitialRoomState);
 
             Assert.That(RoomsManager.CurrentRoom, Is.Not.Null);
