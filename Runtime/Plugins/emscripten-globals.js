@@ -84,3 +84,9 @@ function mergeInto(target, source) {}
 
 /** @type {{ library: Object }} */
 var LibraryManager;
+
+/**
+ * Installed on `window` by the PlayPad page.
+ * @type {(eventName: string, params: string) => void}
+ */
+var dispatchReactUnityEvent;

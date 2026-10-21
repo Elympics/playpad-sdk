@@ -11,14 +11,6 @@
  * }} ElympicsConnect
  */
 
-/**
- * Installed by the PlayPad page.
- * Accessed through a cast, as library files can only declare types, not globals.
- * @typedef {Window & {
- *   dispatchReactUnityEvent: (eventName: string, params: string) => void,
- * }} PlayPadWindow
- */
-
 /* eslint-disable no-unassigned-vars */
 // noinspection ES6ConvertVarToLetConst
 /** @type {RequestHandler} */ var requestHandler;
@@ -28,7 +20,7 @@
 const elympicsconnect = {
   $requestHandler: {
     handleSignTypedData: (eventName, params) => {
-      /** @type {PlayPadWindow} */ (/** @type {unknown} */ (window)).dispatchReactUnityEvent(eventName, params);
+      dispatchReactUnityEvent(eventName, params);
     },
   },
 
