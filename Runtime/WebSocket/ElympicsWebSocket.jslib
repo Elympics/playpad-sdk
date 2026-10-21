@@ -27,10 +27,8 @@ const ElympicsLibraryWebSocket = {
          */
         instances: {},
 
-        /* Last instance ID */
         lastId: 0,
 
-        /* Event listeners */
         onOpen: null,
         onMessage: null,
         onError: null,
@@ -39,8 +37,6 @@ const ElympicsLibraryWebSocket = {
 
     /**
      * Set onOpen callback
-     *
-     * @param callback Reference to C# static function
      */
     ElympicsWebSocketSetOnOpen: function(callback) {
 
@@ -50,8 +46,6 @@ const ElympicsLibraryWebSocket = {
 
     /**
      * Set onMessage callback
-     *
-     * @param callback Reference to C# static function
      */
     ElympicsWebSocketSetOnMessage: function(callback) {
 
@@ -61,8 +55,6 @@ const ElympicsLibraryWebSocket = {
 
     /**
      * Set onError callback
-     *
-     * @param callback Reference to C# static function
      */
     ElympicsWebSocketSetOnError: function(callback) {
 
@@ -72,8 +64,6 @@ const ElympicsLibraryWebSocket = {
 
     /**
      * Set onClose callback
-     *
-     * @param callback Reference to C# static function
      */
     ElympicsWebSocketSetOnClose: function(callback) {
 
@@ -107,8 +97,7 @@ const ElympicsLibraryWebSocket = {
     /**
      * Remove reference to WebSocket instance
      *
-     * If socket is not closed function will close it but onClose event will not be emitted because
-     * this function should be invoked by C# WebSocket destructor.
+     * Closes a socket that is still open, without emitting onClose: C# frees an instance only once it is done with it.
      *
      * @param instanceId Instance ID
      */
@@ -118,11 +107,9 @@ const ElympicsLibraryWebSocket = {
 
         if (!instance) return 0;
 
-        // Close if not closed
         if (instance.ws !== null && instance.ws.readyState < 2)
             instance.ws.close();
 
-        // Remove reference
         delete elympicsWebSocketState.instances[instanceId];
 
         return 0;

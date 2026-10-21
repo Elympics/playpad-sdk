@@ -88,7 +88,7 @@ workflow:
 
 .unity_image:
   image: unityci/editor:ubuntu-$UNITY_VERSION-$UNITY_ARCH
-  # Unity can hang after a crash on quit.
+  # Retry once on timeout: Unity can hang on quit after a crash.
   retry:
     max: 1
     when:

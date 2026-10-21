@@ -123,7 +123,7 @@ namespace ElympicsPlayPad.WebSockets
         event WebSocketErrorEventHandler OnError;
 
         /// <summary>
-        /// Occurs when the socked was closed.
+        /// Occurs when the socket was closed.
         /// </summary>
         event WebSocketCloseEventHandler OnClose;
     }
@@ -148,7 +148,7 @@ namespace ElympicsPlayPad.WebSockets
         /// <summary>
         /// Return an exception instance based on int code.
         ///
-        /// Used for resolving JSLIB errors to meaninfull messages.
+        /// Used for resolving JSLIB errors to meaningful messages.
         /// </summary>
         /// <returns>Instance of an exception.</returns>
         /// <param name="errorCode">Error code.</param>
