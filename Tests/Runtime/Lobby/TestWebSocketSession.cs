@@ -157,6 +157,18 @@ namespace ElympicsPlayPad.Tests.Lobby
         });
 
         [UnityTest]
+        public IEnumerator FailedWebSocketConnectShouldAllowAnotherAttempt() => UniTask.ToCoroutine(async () =>
+        {
+            var webSocket = Substitute.For<IWebSocket>();
+            webSocket.When(x => x.Connect()).Do(_ => throw new WebSocketInvalidArgumentException("rejected URL"));
+            using var session = new WebSocketSession(Substitute.For<IWebSocketSessionController>(), Dispatcher, LobbyTestSerialization.Options, (_, _) => webSocket, LobbySerializer);
+
+            _ = await AssertThrowsAsync<WebSocketInvalidArgumentException>(async () => await session.Connect(ConnectionDetails));
+            _ = await AssertThrowsAsync<WebSocketInvalidArgumentException>(async () => await session.Connect(ConnectionDetails));
+            Assert.False(session.IsConnected);
+        });
+
+        [UnityTest]
         public IEnumerator ConnectionShouldBeAbortedWhenThereIsAnErrorBeforeWsReceivesResponse() => UniTask.ToCoroutine(async () =>
         {
             const string errorMessage = "test error message";

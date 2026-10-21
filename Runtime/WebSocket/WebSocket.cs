@@ -164,6 +164,7 @@ namespace ElympicsPlayPad.WebSockets
                 -5 => new WebSocketInvalidStateException("WebSocket is already closed.", inner),
                 -6 => new WebSocketInvalidStateException("WebSocket is not in open state.", inner),
                 -7 => new WebSocketInvalidArgumentException("Cannot close WebSocket. An invalid code was specified or reason is too long.", inner),
+                -8 => new WebSocketInvalidArgumentException("Cannot connect WebSocket. The browser rejected the URL.", inner),
                 _ => new WebSocketUnexpectedException("Unknown error.", inner),
             };
         }

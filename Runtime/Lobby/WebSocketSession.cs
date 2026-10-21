@@ -71,13 +71,13 @@ namespace ElympicsPlayPad.Lobby
                 throw logger.LogExceptionAndReturn(new InvalidOperationException("Connecting already in progress."));
             _cts = new CancellationTokenSource();
             var (url, protocol) = wsUrl.ToWebSocketAddress(authData.JwtToken);
-            _ws = _wsFactory(url, protocol);
-            _ws.OnError += HandleError;
-            _ws.OnClose += HandleClose;
-            _ws.OnMessage += HandleMessage;
-            using var ctr = ct.RegisterWithoutCaptureExecutionContext(() => DisconnectInternal(DisconnectionReason.Unknown));
             try
             {
+                _ws = _wsFactory(url, protocol);
+                _ws.OnError += HandleError;
+                _ws.OnClose += HandleClose;
+                _ws.OnMessage += HandleMessage;
+                using var ctr = ct.RegisterWithoutCaptureExecutionContext(() => DisconnectInternal(DisconnectionReason.Unknown));
                 await OpenWebSocket(_ws);
                 var gameData = await SendRequestInternal<GameDataResponseDto>(new JoinLobbyDto(ElympicsConfig.SdkVersion, gameId, gameVersion, regionName), Token);
                 ConnectionDetails = details;
@@ -87,6 +87,11 @@ namespace ElympicsPlayPad.Lobby
                 _ = Interlocked.Exchange(ref _lastPingTimestamp, Stopwatch.GetTimestamp());
                 AutoDisconnectOnTimeout(_cts.Token).Forget();
                 return gameData;
+            }
+            catch (WebSocketException)
+            {
+                CleanupSession();
+                throw;
             }
             catch (OperationCanceledException)
             {

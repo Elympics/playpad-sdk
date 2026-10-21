@@ -142,7 +142,13 @@ const ElympicsLibraryWebSocket = {
         if (instance.ws !== null)
             return -2;
 
-        var ws = new WebSocket(instance.url, instance.protocol);
+        var ws;
+        try {
+            ws = new WebSocket(instance.url, instance.protocol);
+        } catch (e) {
+            // SyntaxError for a malformed URL, SecurityError e.g. for ws:// from an https page.
+            return -8;
+        }
         instance.ws = ws;
 
         ws.binaryType = 'arraybuffer';
