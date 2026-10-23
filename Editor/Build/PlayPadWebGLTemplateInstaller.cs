@@ -110,6 +110,39 @@ namespace ElympicsPlayPad.Editor.Build
             }
         }
 
+        internal sealed class TemplateStatus
+        {
+            public TemplateAction Action;
+            public string InstalledPath;
+            public string SourcePath;
+            public string InstalledHash;
+            public string StampHash;
+            public string ShippedHash;
+        }
+
+        /// <returns>What <see cref="UpdateTemplateIfNeeded"/> would do, without doing it; null when the package's template can't be found.</returns>
+        internal static TemplateStatus GetStatus()
+        {
+            if (!TryGetSourcePath(out var sourcePath))
+                return null;
+            var installedPath = InstalledPath;
+            var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
+            var stampHash = ReadStampHash();
+            var shippedHash = ComputeHash(sourcePath);
+            return new TemplateStatus
+            {
+                Action = Decide(installedHash, stampHash, shippedHash, UnstampedShippedHash),
+                InstalledPath = installedPath,
+                SourcePath = sourcePath,
+                InstalledHash = installedHash,
+                StampHash = stampHash,
+                ShippedHash = shippedHash,
+            };
+        }
+
+        /// <summary>Installs the package's template over the project's copy, customized or not.</summary>
+        internal static bool Install() => TryInstallTemplate();
+
         /// <param name="installedHash">Hash of the installed copy, or null when it's missing or has no index.html.</param>
         /// <param name="stampHash">Hash recorded when PlayPad installed the copy, or null for copies installed before stamping.</param>
         internal static TemplateAction Decide(string installedHash, string stampHash, string shippedHash, string unstampedShippedHash)

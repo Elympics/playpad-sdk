@@ -1,0 +1,20 @@
+{
+    "name": "ElympicsPlayPad.Editor.UnityCli",
+    "rootNamespace": "ElympicsPlayPad.Editor.UnityCli",
+    "references": [
+        "ElympicsPlayPad.Editor",
+        "Elympics.Editor.UnityCli",
+        "Unity.Pipeline.Attributes"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

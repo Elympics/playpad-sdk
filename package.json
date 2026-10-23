@@ -24,6 +24,7 @@
   ],
   "dependencies": {
     "com.daftmobile.elympics": "0.29.0",
+    "com.unity.pipeline": "0.8.0-exp.1",
     "com.unity.modules.unitywebrequesttexture": "1.0.0",
     "com.unity.ugui": "2.0.0"
   }
