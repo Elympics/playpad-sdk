@@ -78,13 +78,11 @@ namespace ElympicsPlayPad.Editor.Build
 
         internal static void UpdateTemplateIfNeeded(bool refreshAssetDatabase = true)
         {
-            if (!TryGetSourcePath(out var sourcePath))
+            var status = GetStatus();
+            if (status == null)
                 return;
 
-            var installedPath = InstalledPath;
-            var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
-            var stampHash = ReadStampHash();
-            var action = Decide(installedHash, stampHash, ComputeHash(sourcePath), UnstampedShippedHash);
+            var action = status.Action;
             switch (action)
             {
                 case TemplateAction.Install:
@@ -95,8 +93,8 @@ namespace ElympicsPlayPad.Editor.Build
                     _ = TryInstallTemplate(refreshAssetDatabase);
                     break;
                 case TemplateAction.UpToDate:
-                    if (stampHash != installedHash)
-                        WriteStamp(installedHash);
+                    if (status.StampHash != status.InstalledHash)
+                        WriteStamp(status.InstalledHash);
                     break;
                 case TemplateAction.KeepCustomized:
                     if (SessionState.GetBool(CustomizedWarningShownKey, false))
