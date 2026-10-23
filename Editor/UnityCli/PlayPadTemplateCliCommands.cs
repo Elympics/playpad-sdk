@@ -72,17 +72,13 @@ namespace ElympicsPlayPad.Editor.UnityCli
             [CliArg("queue", "Matchmaking queue the lobby joins. Builds default to solo.")] string queue = "") => CliRun.Sync(() =>
         {
             var requested = new Dictionary<string, string> { ["ENVIRONMENT"] = environment, ["REGION"] = region, ["QUEUE"] = queue };
-            var changes = requested.Where(pair => !string.IsNullOrEmpty(pair.Value)).ToList();
-            foreach (var (name, value) in changes)
-                if (string.IsNullOrWhiteSpace(value))
-                    throw ElympicsCliErrors.InvalidArgumentException($"--{name.ToLowerInvariant()} is blank.",
-                        $"pass a value, or leave --{name.ToLowerInvariant()} out to keep the current one.");
+            var changes = requested.Where(pair => !string.IsNullOrEmpty(pair.Value))
+                .Select(pair => (name: pair.Key, value: CliArgs.Require(pair.Value, pair.Key.ToLowerInvariant()))).ToList();
 
             var changed = new List<string>();
-            foreach (var (name, value) in changes)
+            foreach (var (name, trimmed) in changes)
             {
                 var key = CustomValueKey(name);
-                var trimmed = value.Trim();
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;
                 PlayerSettings.SetTemplateCustomValue(key, trimmed);
