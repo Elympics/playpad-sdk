@@ -1,0 +1,23 @@
+using ElympicsPlayPad.Editor.Build;
+using NUnit.Framework;
+using UnityEditor.Build;
+
+namespace ElympicsPlayPad.Editor.Tests
+{
+    public class TestPlayPadPreProcessBuild
+    {
+        [TestCase("eu", "us", ExpectedResult = "eu", TestName = "Environment variable wins")]
+        [TestCase("", " us ", ExpectedResult = "us", TestName = "Custom value is used without the variable")]
+        [TestCase("  ", "us", ExpectedResult = "us", TestName = "Blank variable is ignored")]
+        public string RequireRegion(string fromEnvironment, string fromCustomValue) =>
+            PlayPadPreProcessBuild.RequireRegion(fromEnvironment, fromCustomValue);
+
+        [TestCase(null, null)]
+        [TestCase("", " ")]
+        public void RequireRegionFailsTheBuildWithoutARegion(string fromEnvironment, string fromCustomValue)
+        {
+            var exception = Assert.Throws<BuildFailedException>(() => PlayPadPreProcessBuild.RequireRegion(fromEnvironment, fromCustomValue));
+            Assert.That(exception.Message, Does.Contain("playpad_template_values --region").And.Contain(PlayPadPreProcessBuild.RegionVariable));
+        }
+    }
+}

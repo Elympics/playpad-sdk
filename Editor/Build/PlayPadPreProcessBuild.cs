@@ -16,7 +16,22 @@ namespace ElympicsPlayPad.Editor.Build
         private const string DefaultEnvironment = "prod";
 
         /// <summary>How <see cref="PlayerSettings.WebGL.template"/> names the template installed by <see cref="PlayPadWebGLTemplateInstaller"/>.</summary>
-        private const string ElympicsTemplateName = "PROJECT:" + PlayPadWebGLTemplateInstaller.TemplateName;
+        internal const string ElympicsTemplateName = "PROJECT:" + PlayPadWebGLTemplateInstaller.TemplateName;
+
+        internal const string RegionVariable = "TEMPLATE_REGION";
+        internal const string RegionCustomValue = "ELYMPICS_REGION";
+
+        /// <summary>The ElympicsLobby template can't start matches without a region, so a build without one fails instead of shipping a broken lobby.</summary>
+        /// <exception cref="BuildFailedException">Neither the environment variable nor the template custom value sets a region.</exception>
+        internal static string RequireRegion(string fromEnvironment, string fromCustomValue)
+        {
+            var region = string.IsNullOrWhiteSpace(fromEnvironment) ? fromCustomValue : fromEnvironment;
+            if (string.IsNullOrWhiteSpace(region))
+                throw new BuildFailedException($"The {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template needs an Elympics region, but none is set. "
+                    + $"Set it in Player Settings > Resolution and Presentation ({RegionCustomValue}), with the CLI command playpad_template_values --region <name>, "
+                    + $"or with the {RegionVariable} environment variable (elympics_regions_list lists the game's regions).");
+            return region.Trim();
+        }
 
         private static string GetEnvOrDefault(string envVarName, string defaultValue)
         {
@@ -61,10 +76,8 @@ namespace ElympicsPlayPad.Editor.Build
                 environment = DefaultEnvironment;
             PlayerSettings.SetTemplateCustomValue("ELYMPICS_ENVIRONMENT", environment);
 
-            var region = GetEnvOrDefault("TEMPLATE_REGION",
-                PlayerSettings.GetTemplateCustomValue("ELYMPICS_REGION"));
-            if (!string.IsNullOrEmpty(region))
-                PlayerSettings.SetTemplateCustomValue("ELYMPICS_REGION", region);
+            var region = RequireRegion(Environment.GetEnvironmentVariable(RegionVariable), PlayerSettings.GetTemplateCustomValue(RegionCustomValue));
+            PlayerSettings.SetTemplateCustomValue(RegionCustomValue, region);
 
             Debug.Log($"Elympics WebGL template values set: GameId={gameId}, "
                       + $"GameName={gameName}, BuildIdentifier={buildIdentifier}, "
