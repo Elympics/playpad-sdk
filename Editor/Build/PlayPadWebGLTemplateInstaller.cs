@@ -110,15 +110,26 @@ namespace ElympicsPlayPad.Editor.Build
 
         internal sealed class TemplateStatus
         {
-            public TemplateAction Action;
-            public string InstalledPath;
-            public string SourcePath;
-            public string InstalledHash;
-            public string StampHash;
-            public string ShippedHash;
+            public TemplateStatus(TemplateAction action, string installedPath, string sourcePath, string installedHash, string stampHash, string shippedHash)
+            {
+                Action = action;
+                InstalledPath = installedPath;
+                SourcePath = sourcePath;
+                InstalledHash = installedHash;
+                StampHash = stampHash;
+                ShippedHash = shippedHash;
+            }
+
+
+            public TemplateAction Action { get; }
+            public string InstalledPath { get; }
+            public string SourcePath { get; }
+            public string InstalledHash { get; }
+            public string StampHash { get; }
+            public string ShippedHash { get; }
         }
 
-        /// <returns>What <see cref="UpdateTemplateIfNeeded"/> would do, without doing it; null when the package's template can't be found.</returns>
+        /// <returns>Null when the template is missing.</returns>
         internal static TemplateStatus GetStatus()
         {
             if (!TryGetSourcePath(out var sourcePath))
@@ -127,19 +138,8 @@ namespace ElympicsPlayPad.Editor.Build
             var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
             var stampHash = ReadStampHash();
             var shippedHash = ComputeHash(sourcePath);
-            return new TemplateStatus
-            {
-                Action = Decide(installedHash, stampHash, shippedHash, UnstampedShippedHash),
-                InstalledPath = installedPath,
-                SourcePath = sourcePath,
-                InstalledHash = installedHash,
-                StampHash = stampHash,
-                ShippedHash = shippedHash,
-            };
+            return new TemplateStatus(Decide(installedHash, stampHash, shippedHash, UnstampedShippedHash), installedPath, sourcePath, installedHash, stampHash, shippedHash);
         }
-
-        /// <summary>Installs the package's template over the project's copy, customized or not.</summary>
-        internal static bool Install() => TryInstallTemplate();
 
         /// <param name="installedHash">Hash of the installed copy, or null when it's missing or has no index.html.</param>
         /// <param name="stampHash">Hash recorded when PlayPad installed the copy, or null for copies installed before stamping.</param>
@@ -182,7 +182,8 @@ namespace ElympicsPlayPad.Editor.Build
             return string.Concat(sha.Hash.Select(b => b.ToString("x2")));
         }
 
-        private static bool TryInstallTemplate(bool refreshAssetDatabase = true)
+        /// <summary>Overwrites the project's copy even if customized.</summary>
+        internal static bool TryInstallTemplate(bool refreshAssetDatabase = true)
         {
             if (!TryGetSourcePath(out var sourcePath))
                 return false;

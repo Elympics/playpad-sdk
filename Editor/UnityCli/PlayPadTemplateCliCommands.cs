@@ -16,7 +16,11 @@ namespace ElympicsPlayPad.Editor.UnityCli
         internal const string TemplateInstallFailed = "ELYMPICS_PLAYPAD_TEMPLATE_INSTALL_FAILED";
         internal const string TemplateValueNotSaved = "ELYMPICS_PLAYPAD_TEMPLATE_VALUE_NOT_SAVED";
 
-        private static readonly string[] BuildValues = { "GAME_ID", "GAME_NAME", "BUILD_IDENTIFIER", "PROTOCOL_VERSION", "QUEUE", "ENVIRONMENT", "REGION" };
+        private static readonly (string Name, string Variable, string CustomValue)[] BuildValues =
+        {
+            Value("GAME_ID"), Value("GAME_NAME"), Value("BUILD_IDENTIFIER"), Value("PROTOCOL_VERSION"), Value("QUEUE"), Value("ENVIRONMENT"),
+            ("REGION", PlayPadPreProcessBuild.RegionVariable, PlayPadPreProcessBuild.RegionCustomValue),
+        };
 
         [CliCommand("playpad_template_status",
             "Report the ElympicsLobby WebGL template: whether Assets/WebGLTemplates/ElympicsLobby matches the PlayPad package's copy, "
@@ -55,7 +59,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             if (before.Action == TemplateAction.UpToDate && !force)
                 return new { status = "up_to_date", previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
 
-            if (!PlayPadWebGLTemplateInstaller.Install())
+            if (!PlayPadWebGLTemplateInstaller.TryInstallTemplate())
                 throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.",
                     "check the Console (console --level error) for the reason, fix it and retry.");
             return new { status = "installed", previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
@@ -78,7 +82,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             var changed = new List<string>();
             foreach (var (name, trimmed) in changes)
             {
-                var key = CustomValueKey(name);
+                var key = BuildValues.Single(value => value.Name == name).CustomValue;
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;
                 PlayerSettings.SetTemplateCustomValue(key, trimmed);
@@ -90,22 +94,29 @@ namespace ElympicsPlayPad.Editor.UnityCli
             if (changed.Count > 0)
                 AssetDatabase.SaveAssets();
 
+            var values = new Dictionary<string, string>();
+            var environmentOverrides = new Dictionary<string, string>();
+            foreach (var (name, variable, customValue) in BuildValues)
+            {
+                values[name.ToLowerInvariant()] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(customValue));
+                var overridden = Environment.GetEnvironmentVariable(variable);
+                if (!string.IsNullOrEmpty(overridden))
+                    environmentOverrides[variable] = overridden;
+            }
+
             return new
             {
                 status = changed.Count > 0 ? "updated" : "ok",
                 changed,
                 selected = IsTemplateSelected,
-                values = BuildValues.ToDictionary(name => name.ToLowerInvariant(), name => NullIfEmpty(PlayerSettings.GetTemplateCustomValue(CustomValueKey(name)))),
-                environmentOverrides = BuildValues
-                    .Select(name => "TEMPLATE_" + name)
-                    .Where(variable => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(variable)))
-                    .ToDictionary(variable => variable, Environment.GetEnvironmentVariable),
+                values,
+                environmentOverrides,
             };
         });
 
         private static bool IsTemplateSelected => PlayerSettings.WebGL.template == PlayPadPreProcessBuild.ElympicsTemplateName;
 
-        private static string CustomValueKey(string name) => "ELYMPICS_" + name;
+        private static (string Name, string Variable, string CustomValue) Value(string name) => (name, "TEMPLATE_" + name, "ELYMPICS_" + name);
 
         private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 
