@@ -57,12 +57,14 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 throw new ElympicsCliException(TemplateCustomized, $"{before.InstalledPath} differs from the version PlayPad installed, so it was left as it is.",
                     "keep the customized copy, or repeat with --force true to replace it with the package's template.");
             if (before.Action == TemplateAction.UpToDate && !force)
-                return new { status = "up_to_date", previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
+                return Result("up_to_date");
 
             if (!PlayPadWebGLTemplateInstaller.TryInstallTemplate())
                 throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.",
                     "check the Console (console --level error) for the reason, fix it and retry.");
-            return new { status = "installed", previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
+            return Result("installed");
+
+            object Result(string status) => new { status, previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
         });
 
         [CliCommand("playpad_template_values",
@@ -75,13 +77,14 @@ namespace ElympicsPlayPad.Editor.UnityCli
             string region = "",
             [CliArg("queue", "Matchmaking queue the lobby joins. Builds default to solo.")] string queue = "") => CliRun.Sync(() =>
         {
-            var requested = new Dictionary<string, string> { ["ENVIRONMENT"] = environment, ["REGION"] = region, ["QUEUE"] = queue };
-            var changes = requested.Where(pair => !string.IsNullOrEmpty(pair.Value))
-                .Select(pair => (name: pair.Key, value: CliArgs.Require(pair.Value, pair.Key.ToLowerInvariant()))).ToList();
+            var requested = new[] { ("ENVIRONMENT", environment), ("REGION", region), ("QUEUE", queue) };
 
             var changed = new List<string>();
-            foreach (var (name, trimmed) in changes)
+            foreach (var (name, raw) in requested)
             {
+                if (string.IsNullOrEmpty(raw))
+                    continue;
+                var trimmed = CliArgs.Require(raw, name.ToLowerInvariant());
                 var key = BuildValues.Single(value => value.Name == name).CustomValue;
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;

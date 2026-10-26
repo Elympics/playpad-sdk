@@ -13,7 +13,9 @@ namespace ElympicsPlayPad.Editor.Tests
     {
         private string _directory;
 
-        private string Installed => Path.Combine(_directory, "templates", PlayPadWebGLTemplateInstaller.TemplateName, "index.html");
+        private static readonly string InstalledIndex = $"templates/{PlayPadWebGLTemplateInstaller.TemplateName}/index.html";
+
+        private string Installed => Path.Combine(_directory, InstalledIndex);
 
         [SetUp]
         public void CreateTemplates()
@@ -60,7 +62,7 @@ namespace ElympicsPlayPad.Editor.Tests
         public void InstallRefusesACustomizedTemplate()
         {
             _ = PlayPadTemplateCliCommands.Install();
-            Write("templates/ElympicsLobby/index.html", "edited");
+            Write(InstalledIndex, "edited");
 
             AssertCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.Install()), PlayPadTemplateCliCommands.TemplateCustomized);
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("edited"));
@@ -70,7 +72,7 @@ namespace ElympicsPlayPad.Editor.Tests
         public void ForcedInstallReplacesACustomizedTemplate()
         {
             _ = PlayPadTemplateCliCommands.Install();
-            Write("templates/ElympicsLobby/index.html", "edited");
+            Write(InstalledIndex, "edited");
 
             Assert.That(Get(PlayPadTemplateCliCommands.Install(force: true), "previousAction"), Is.EqualTo("keep_customized"));
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("shipped"));

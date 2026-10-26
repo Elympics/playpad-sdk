@@ -82,12 +82,11 @@ namespace ElympicsPlayPad.Editor.Build
             if (status == null)
                 return;
 
-            var action = status.Action;
-            switch (action)
+            switch (status.Action)
             {
                 case TemplateAction.Install:
                 case TemplateAction.Refresh:
-                    Debug.Log(action == TemplateAction.Install
+                    Debug.Log(status.Action == TemplateAction.Install
                         ? "Installing ElympicsLobby WebGL template."
                         : "Updating the ElympicsLobby WebGL template to the version in the package.");
                     _ = TryInstallTemplate(refreshAssetDatabase);
@@ -104,7 +103,7 @@ namespace ElympicsPlayPad.Editor.Build
                         + $"and doesn't get template updates. To replace it with the package's template, use {ReinstallMenuPath}.");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
+                    throw new ArgumentOutOfRangeException(nameof(status.Action), status.Action, null);
             }
         }
 
