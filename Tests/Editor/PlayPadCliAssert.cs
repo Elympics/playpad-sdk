@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using Elympics.Editor.UnityCli;
 using NUnit.Framework;
 
 namespace ElympicsPlayPad.Editor.Tests
@@ -12,7 +13,7 @@ namespace ElympicsPlayPad.Editor.Tests
         {
             Assert.That(exception, Is.Not.Null, $"Expected {code}.");
             Assert.That(exception!.Message, Does.StartWith(code + ": "));
-            Assert.That(exception.Message, Does.Match(@" Fix: \S"));
+            Assert.That(exception.Message, Does.Match(ElympicsCliErrors.FixMarker + @"\S"));
         }
     }
 }
