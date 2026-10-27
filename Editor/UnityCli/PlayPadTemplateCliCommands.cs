@@ -103,12 +103,21 @@ namespace ElympicsPlayPad.Editor.UnityCli
             if (Array.TrueForAll(requested, request => string.IsNullOrEmpty(request.Item2)))
                 throw ElympicsCliErrors.InvalidArgumentException("Nothing to set.", "pass at least one of --environment, --region, --queue.");
 
-            var changed = new List<string>();
+            var validated = new List<(PlayPadPreProcessBuild.TemplateValue Value, string Trimmed)>();
             foreach (var (value, raw) in requested)
             {
                 if (string.IsNullOrEmpty(raw))
                     continue;
                 var trimmed = CliArgs.Require(raw, value.Key);
+                if (!PlayPadPreProcessBuild.IsSafeTemplateValue(trimmed))
+                    throw ElympicsCliErrors.InvalidArgumentException($"--{value.Key} contains a quote, backslash, angle bracket or control character.",
+                        $"remove those characters from --{value.Key}; the template can't embed them in index.html.");
+                validated.Add((value, trimmed));
+            }
+
+            var changed = new List<string>();
+            foreach (var (value, trimmed) in validated)
+            {
                 var key = value.CustomValue;
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;
@@ -131,7 +140,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             {
                 values[value.Key] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(value.CustomValue));
                 var overridden = Environment.GetEnvironmentVariable(value.Variable);
-                if (!string.IsNullOrEmpty(overridden))
+                if (!string.IsNullOrWhiteSpace(overridden))
                     environmentOverrides[value.Variable] = overridden;
             }
 

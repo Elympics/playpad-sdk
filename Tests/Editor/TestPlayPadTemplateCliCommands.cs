@@ -109,6 +109,14 @@ namespace ElympicsPlayPad.Editor.Tests
         public void SetTemplateValuesRejectsBlankArguments(string environment, string region, string queue) =>
             PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.SetTemplateValues(environment, region, queue)), ElympicsCliErrors.InvalidArgument);
 
+        [TestCase("a\"b")]
+        [TestCase("a\\b")]
+        [TestCase("a<b")]
+        [TestCase("a>b")]
+        [TestCase("a\nb")]
+        public void SetTemplateValuesRejectsCharactersTheTemplateCantEmbed(string region) =>
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.SetTemplateValues(region: region)), ElympicsCliErrors.InvalidArgument);
+
         [Test]
         public void SetTemplateValuesNeedsAValue() =>
             PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.SetTemplateValues()), ElympicsCliErrors.InvalidArgument);

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using UnityEditor;
@@ -25,14 +26,12 @@ namespace ElympicsPlayPad.Editor.Build
         {
             public TemplateValue(string name)
             {
-                Name = name;
                 Key = name.ToLowerInvariant();
                 Variable = "TEMPLATE_" + name;
                 CustomValue = "ELYMPICS_" + name;
             }
 
-            public string Name { get; }
-            /// <summary>The name in CLI arguments and output, e.g. <c>region</c>.</summary>
+            /// <summary>CLI name, e.g. <c>region</c>.</summary>
             public string Key { get; }
             public string Variable { get; }
             public string CustomValue { get; }
@@ -58,6 +57,14 @@ namespace ElympicsPlayPad.Editor.Build
                     + $"or with the {Region.Variable} environment variable ({ListRegionsCommand} lists the game's regions).");
             return region.Trim();
         }
+
+        internal static bool IsSafeTemplateValue(string value) => !value.Any(c => c is '"' or '\\' or '<' or '>' || char.IsControl(c));
+
+        private static string RequireSafe(TemplateValue templateValue, string value) =>
+            IsSafeTemplateValue(value)
+                ? value
+                : throw new BuildFailedException($"The {templateValue.Variable} value \"{value}\" contains a quote, backslash, angle bracket or control character, which the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template can't embed in index.html. "
+                    + $"Remove those characters from it ({templateValue.CustomValue} in Player Settings or the {templateValue.Variable} environment variable).");
 
         private static string GetEnvOrDefault(string envVarName, string defaultValue)
         {
@@ -86,23 +93,20 @@ namespace ElympicsPlayPad.Editor.Build
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig()
                 ?? throw new ElympicsException("Elympics config not found");
 
-            var gameId = GetEnvOrDefault(GameId.Variable, config.GameId);
-            var gameName = GetEnvOrDefault(GameName.Variable, config.GameName);
-            var buildIdentifier = GetEnvOrDefault(BuildIdentifier.Variable, config.GameVersion);
-            var protocolVersion = GetEnvOrDefault(ProtocolVersion.Variable, PlayPadMessagingSystem.ProtocolVersion);
+            var gameId = RequireSafe(GameId, GetEnvOrDefault(GameId.Variable, config.GameId));
+            var gameName = RequireSafe(GameName, GetEnvOrDefault(GameName.Variable, config.GameName));
+            var buildIdentifier = RequireSafe(BuildIdentifier, GetEnvOrDefault(BuildIdentifier.Variable, config.GameVersion));
+            var protocolVersion = RequireSafe(ProtocolVersion, GetEnvOrDefault(ProtocolVersion.Variable, PlayPadMessagingSystem.ProtocolVersion));
+            var queue = RequireSafe(Queue, GetEnvOrCustomValueOrDefault(Queue, DefaultQueue));
+            var environment = RequireSafe(LobbyEnvironment, GetEnvOrCustomValueOrDefault(LobbyEnvironment, DefaultEnvironment));
+            var region = RequireSafe(Region, RequireRegion(Environment.GetEnvironmentVariable(Region.Variable), PlayerSettings.GetTemplateCustomValue(Region.CustomValue)));
 
             PlayerSettings.SetTemplateCustomValue(GameId.CustomValue, gameId);
             PlayerSettings.SetTemplateCustomValue(GameName.CustomValue, gameName);
             PlayerSettings.SetTemplateCustomValue(BuildIdentifier.CustomValue, buildIdentifier);
             PlayerSettings.SetTemplateCustomValue(ProtocolVersion.CustomValue, protocolVersion);
-
-            var queue = GetEnvOrCustomValueOrDefault(Queue, DefaultQueue);
             PlayerSettings.SetTemplateCustomValue(Queue.CustomValue, queue);
-
-            var environment = GetEnvOrCustomValueOrDefault(LobbyEnvironment, DefaultEnvironment);
             PlayerSettings.SetTemplateCustomValue(LobbyEnvironment.CustomValue, environment);
-
-            var region = RequireRegion(Environment.GetEnvironmentVariable(Region.Variable), PlayerSettings.GetTemplateCustomValue(Region.CustomValue));
             PlayerSettings.SetTemplateCustomValue(Region.CustomValue, region);
 
             Debug.Log($"Elympics WebGL template values set: GameId={gameId}, "
