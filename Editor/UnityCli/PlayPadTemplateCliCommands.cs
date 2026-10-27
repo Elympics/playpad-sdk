@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Elympics.Editor.UnityCli;
 using ElympicsPlayPad.Editor.Build;
 using Unity.Pipeline.Commands;
@@ -14,6 +16,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
     {
         internal const string TemplateNotFound = "ELYMPICS_PLAYPAD_TEMPLATE_NOT_FOUND";
         internal const string TemplateCustomized = "ELYMPICS_PLAYPAD_TEMPLATE_CUSTOMIZED";
+        internal const string TemplateUnrecognized = "ELYMPICS_PLAYPAD_TEMPLATE_UNRECOGNIZED";
         internal const string TemplateInstallFailed = "ELYMPICS_PLAYPAD_TEMPLATE_INSTALL_FAILED";
         internal const string TemplateValueNotSaved = "ELYMPICS_PLAYPAD_TEMPLATE_VALUE_NOT_SAVED";
 
@@ -42,10 +45,10 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
         [CliCommand("playpad_install_template",
             "Install the PlayPad package's ElympicsLobby WebGL template into Assets/WebGLTemplates, or update it. "
-            + "Refuses to overwrite a customized copy unless --force true. Doesn't change which template Player Settings select.",
+            + "Refuses to overwrite a customized copy or an unrecognised non-empty folder unless --force true. Doesn't change which template Player Settings select.",
             Tags = new[] { "elympics/playpad/template" })]
         public static object InstallTemplate(
-            [CliArg("force", "Overwrite the installed template even when it was customized after PlayPad installed it.")] bool force = false) => CliRun.Run(() =>
+            [CliArg("force", "Overwrite the installed template even when it was customized or the folder isn't recognised.")] bool force = false) => CliRun.Run(() =>
         {
             var before = RequireStatus();
             if (before.Action == TemplateAction.KeepCustomized && !force)
@@ -54,9 +57,23 @@ namespace ElympicsPlayPad.Editor.UnityCli
             if (before.Action == TemplateAction.UpToDate && !force)
                 return CreateResult("up_to_date");
 
-            if (!PlayPadWebGLTemplateInstaller.TryInstallTemplate())
-                throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.",
-                    "check the Console (console --level error) for the reason, fix it and retry.");
+            if (before.Action == TemplateAction.Install && !force && IsNonEmptyDirectory(before.InstalledPath))
+                throw new ElympicsCliException(TemplateUnrecognized, $"{before.InstalledPath} isn't empty and has no index.html, so it isn't a template PlayPad can recognise.",
+                    "move or delete the folder, or repeat with --force true to overwrite it with the package's template.");
+
+            const string installFailedFix = "check the Console (console --level error) for the reason, fix it and retry.";
+            bool installed;
+            try
+            {
+                installed = PlayPadWebGLTemplateInstaller.TryInstallTemplate();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed: {e.Message}",
+                    "close programs that use the files in Assets/WebGLTemplates, check their permissions, and retry.");
+            }
+            if (!installed)
+                throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.", installFailedFix);
             return CreateResult("installed");
 
             object CreateResult(string status) => new { status, previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
@@ -127,6 +144,8 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 environmentOverrides,
             };
         }
+
+        private static bool IsNonEmptyDirectory(string path) => Directory.Exists(path) && Directory.EnumerateFileSystemEntries(path).Any();
 
         private static bool IsTemplateSelected => PlayerSettings.WebGL.template == PlayPadPreProcessBuild.ElympicsTemplateName;
 

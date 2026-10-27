@@ -83,6 +83,26 @@ namespace ElympicsPlayPad.Editor.Tests
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("shipped"));
         }
 
+        [Test]
+        public void InstallTemplateRefusesAnUnrecognisedNonEmptyFolder()
+        {
+            var other = $"templates/{PlayPadWebGLTemplateInstaller.TemplateName}/other.txt";
+            Write(other, "mine");
+
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.InstallTemplate()), PlayPadTemplateCliCommands.TemplateUnrecognized);
+            Assert.That(File.Exists(Installed), Is.False);
+            Assert.That(File.ReadAllText(Path.Combine(_directory, other)), Is.EqualTo("mine"));
+        }
+
+        [Test]
+        public void ForcedInstallReplacesAnUnrecognisedNonEmptyFolder()
+        {
+            Write($"templates/{PlayPadWebGLTemplateInstaller.TemplateName}/other.txt", "mine");
+
+            Assert.That(Get(PlayPadTemplateCliCommands.InstallTemplate(force: true), "status"), Is.EqualTo("installed"));
+            Assert.That(File.ReadAllText(Installed), Is.EqualTo("shipped"));
+        }
+
         [TestCase(" ", "", "")]
         [TestCase("", "\t", "")]
         [TestCase("", "", "  ")]
