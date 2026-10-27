@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using Elympics;
 using Elympics.Editor.Config;
 using UnityEditor;
@@ -28,27 +27,13 @@ namespace ElympicsPlayPad.Editor.Build
             var clientBuildPath = EditorPrefs.GetString(ClientBuildPathKey, string.Empty);
 
             container.Add(new VisualElement { style = { height = 9 } });
-            AddField(container, "Client version", ClientVersionTooltip, _clientVersion, value => _clientVersion = value);
-            AddField(container, "Client build path", "Path to the directory containing the client build that will be uploaded.", clientBuildPath, value => clientBuildPath = value);
+            ManageGameSectionRows.AddTextField(container, "Client version", ClientVersionTooltip, _clientVersion, value => _clientVersion = value);
+            ManageGameSectionRows.AddTextField(container, "Client build path", "Path to the directory containing the client build that will be uploaded.", clientBuildPath,
+                value => clientBuildPath = value);
 
             var uploadButton = new Button(() => Upload(config, clientBuildPath)) { text = "Upload client" };
             uploadButton.AddToClassList("elympics-wide-button");
             container.Add(uploadButton);
-        }
-
-        private static void AddField(VisualElement container, string label, string tooltip, string value, Action<string> setValue)
-        {
-            var row = new VisualElement();
-            row.AddToClassList("elympics-field-row");
-            var labelElement = new Label(label) { tooltip = tooltip };
-            labelElement.AddToClassList("elympics-field-label");
-            var field = new TextField();
-            field.AddToClassList("elympics-endpoint-field");
-            field.SetValueWithoutNotify(value);
-            _ = field.RegisterValueChangedCallback(evt => setValue(evt.newValue));
-            row.Add(labelElement);
-            row.Add(field);
-            container.Add(row);
         }
 
         private void Upload(ElympicsConfig config, string clientBuildPath)
