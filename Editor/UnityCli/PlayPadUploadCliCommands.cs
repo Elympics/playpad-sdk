@@ -27,9 +27,12 @@ namespace ElympicsPlayPad.Editor.UnityCli
             {
                 var resolvedPath = CliArgs.ResolveProjectPath(CliArgs.Require(clientBuildPath, "client_build_path"), "client_build_path", allowExternalPath);
                 clientGameVersion = CliArgs.ValidateVersion(clientGameVersion, "client_game_version");
+                if (!string.IsNullOrWhiteSpace(serverGameVersion))
+                    serverGameVersion = CliArgs.ValidateVersion(serverGameVersion, "server_game_version");
                 CliArgs.RequireConfirm(confirm, "Uploading a client build");
                 var game = CliGames.ResolveGame(gameId);
-                serverGameVersion = string.IsNullOrWhiteSpace(serverGameVersion) ? game.GameVersion : CliArgs.ValidateVersion(serverGameVersion, "server_game_version");
+                if (string.IsNullOrWhiteSpace(serverGameVersion))
+                    serverGameVersion = game.GameVersion;
                 if (!Directory.Exists(resolvedPath))
                     throw new ElympicsCliException(ElympicsCliErrors.BuildDirNotFound, $"The client build directory {resolvedPath} doesn't exist.",
                         "build the WebGL client first (build --target WebGL), then pass its output folder.");
@@ -74,12 +77,12 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 versionName = CliArgs.ValidateVersion(versionName, "version_name");
                 var parsedLayout = ParseLayout(layout);
                 var resolvedPath = CliArgs.ResolveProjectPath(streamingAssetsPath, "streaming_assets_path", allowExternalPath);
-                if (!Directory.Exists(resolvedPath))
-                    throw new ElympicsCliException(ElympicsCliErrors.BuildDirNotFound, $"The StreamingAssets directory {resolvedPath} doesn't exist.",
-                        "build the Addressables content first, then pass its output folder.");
                 CliArgs.RequireConfirm(confirm, "Uploading a StreamingAssets version");
                 var usedActiveGameConfig = string.IsNullOrWhiteSpace(gameId);
                 var resolvedGameId = CliGames.ResolveGameId(gameId);
+                if (!Directory.Exists(resolvedPath))
+                    throw new ElympicsCliException(ElympicsCliErrors.BuildDirNotFound, $"The StreamingAssets directory {resolvedPath} doesn't exist.",
+                        "build the Addressables content first, then pass its output folder.");
 
                 int fileCount;
                 try

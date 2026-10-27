@@ -53,11 +53,11 @@ namespace ElympicsPlayPad.Editor.Tests
         [Test]
         public void UploadStreamingAssetsAllowsAnExternalDirectoryWhenAsked() =>
             PlayPadCliAssert.HasCodeAndFix(Assert.CatchAsync(async () => await PlayPadUploadCliCommands.UploadStreamingAssets(Path.Combine(Path.GetTempPath(), "NoSuchContent_" + Guid.NewGuid().ToString("N")),
-                "1.0", confirm: true, allowExternalPath: true)), ElympicsCliErrors.BuildDirNotFound);
+                "1.0", Guid.NewGuid().ToString(), confirm: true, allowExternalPath: true)), ElympicsCliErrors.BuildDirNotFound);
 
         [Test]
         public void UploadStreamingAssetsNeedsAnExistingDirectory() =>
-            PlayPadCliAssert.HasCodeAndFix(Assert.CatchAsync(async () => await PlayPadUploadCliCommands.UploadStreamingAssets("NoSuchContent_" + Guid.NewGuid().ToString("N"), "1.0", confirm: true)),
+            PlayPadCliAssert.HasCodeAndFix(Assert.CatchAsync(async () => await PlayPadUploadCliCommands.UploadStreamingAssets("NoSuchContent_" + Guid.NewGuid().ToString("N"), "1.0", Guid.NewGuid().ToString(), confirm: true)),
                 ElympicsCliErrors.BuildDirNotFound);
 
         [Test]
