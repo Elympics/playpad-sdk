@@ -29,7 +29,7 @@ namespace ElympicsPlayPad.Editor.Build
             if (string.IsNullOrWhiteSpace(region))
                 throw new BuildFailedException($"The {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template needs an Elympics region, but none is set. "
                     + $"Set it in Player Settings > Resolution and Presentation ({RegionCustomValue}), with the CLI command playpad_template_values --region <name>, "
-                    + $"or with the {RegionVariable} environment variable (elympics_regions_list lists the game's regions).");
+                    + $"or with the {RegionVariable} environment variable (elympics_list_regions lists the game's regions).");
             return region.Trim();
         }
 

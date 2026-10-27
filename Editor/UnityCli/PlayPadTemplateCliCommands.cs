@@ -26,7 +26,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             "Report the ElympicsLobby WebGL template: whether Assets/WebGLTemplates/ElympicsLobby matches the PlayPad package's copy, "
             + "what an Editor load or a build would do with it, and whether Player Settings select it.",
             Tags = new[] { "elympics", "playpad", "read" })]
-        public static object Status() => CliRun.Sync(() =>
+        public static object Status() => CliRun.Run(() =>
         {
             var status = RequireStatus();
             return new
@@ -50,7 +50,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             + "Refuses to overwrite a customized copy unless --force true. Doesn't change which template Player Settings select.",
             Tags = new[] { "elympics", "playpad", "write" })]
         public static object Install(
-            [CliArg("force", "Overwrite the installed template even when it was customized after PlayPad installed it.")] bool force = false) => CliRun.Sync(() =>
+            [CliArg("force", "Overwrite the installed template even when it was customized after PlayPad installed it.")] bool force = false) => CliRun.Run(() =>
         {
             var before = RequireStatus();
             if (before.Action == TemplateAction.KeepCustomized && !force)
@@ -73,9 +73,9 @@ namespace ElympicsPlayPad.Editor.UnityCli
             Tags = new[] { "elympics", "playpad", "write" })]
         public static object Values(
             [CliArg("environment", "Elympics environment the lobby connects to, e.g. prod or stg. Builds default to prod.")] string environment = "",
-            [CliArg("region", "Elympics region the lobby plays in (elympics_regions_list lists the game's regions). WebGL builds with the template fail without one.")]
+            [CliArg("region", "Elympics region the lobby plays in (elympics_list_regions lists the game's regions). WebGL builds with the template fail without one.")]
             string region = "",
-            [CliArg("queue", "Matchmaking queue the lobby joins. Builds default to solo.")] string queue = "") => CliRun.Sync(() =>
+            [CliArg("queue", "Matchmaking queue the lobby joins. Builds default to solo.")] string queue = "") => CliRun.Run(() =>
         {
             var requested = new[] { ("ENVIRONMENT", environment), ("REGION", region), ("QUEUE", queue) };
 
