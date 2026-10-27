@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,7 +99,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
             if (changed.Count > 0)
                 AssetDatabase.SaveAssets();
 
-            var values = new Dictionary<string, string>();
+            var values = new Dictionary<string, string?>();
             var environmentOverrides = new Dictionary<string, string>();
             foreach (var (name, variable, customValue) in BuildValues)
             {
@@ -121,7 +123,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
         private static (string Name, string Variable, string CustomValue) Value(string name) => (name, "TEMPLATE_" + name, "ELYMPICS_" + name);
 
-        private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
+        private static string? NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 
         private static string ToName(TemplateAction action) => action switch
         {

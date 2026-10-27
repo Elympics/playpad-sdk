@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.IO;
 using System.Text;
@@ -11,7 +13,7 @@ namespace ElympicsPlayPad.Editor.Tests
     [Category("UnityCli")]
     public class TestPlayPadTemplateCliCommands
     {
-        private string _directory;
+        private string _directory = null!;
 
         private static readonly string InstalledIndex = $"templates/{PlayPadWebGLTemplateInstaller.TemplateName}/index.html";
 
@@ -88,12 +90,12 @@ namespace ElympicsPlayPad.Editor.Tests
         public void ValuesWithoutArgumentsChangeNothing() =>
             Assert.That(Get(PlayPadTemplateCliCommands.Values(), "status"), Is.EqualTo("ok"));
 
-        private static object Get(object result, string property) => result.GetType().GetProperty(property)!.GetValue(result);
+        private static object? Get(object result, string property) => result.GetType().GetProperty(property)!.GetValue(result);
 
-        private static void AssertCodeAndFix(Exception exception, string code)
+        private static void AssertCodeAndFix(Exception? exception, string code)
         {
             Assert.That(exception, Is.Not.Null, $"Expected {code}.");
-            Assert.That(exception.Message, Does.StartWith(code + ": "));
+            Assert.That(exception!.Message, Does.StartWith(code + ": "));
             Assert.That(exception.Message, Does.Match(@" Fix: \S"));
         }
 

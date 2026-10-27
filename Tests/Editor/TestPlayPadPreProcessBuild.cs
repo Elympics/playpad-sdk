@@ -1,3 +1,5 @@
+#nullable enable
+
 using ElympicsPlayPad.Editor.Build;
 using NUnit.Framework;
 using UnityEditor.Build;
@@ -14,7 +16,7 @@ namespace ElympicsPlayPad.Editor.Tests
 
         [TestCase(null, null)]
         [TestCase("", " ")]
-        public void RequireRegionFailsTheBuildWithoutARegion(string fromEnvironment, string fromCustomValue)
+        public void RequireRegionFailsTheBuildWithoutARegion(string? fromEnvironment, string? fromCustomValue)
         {
             var exception = Assert.Throws<BuildFailedException>(() => PlayPadPreProcessBuild.RequireRegion(fromEnvironment, fromCustomValue));
             Assert.That(exception.Message, Does.Contain("playpad_template_values --region").And.Contain(PlayPadPreProcessBuild.RegionVariable));
