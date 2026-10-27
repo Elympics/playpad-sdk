@@ -14,7 +14,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
         [CliCommand("playpad_upload_client_build",
             "Upload a WebGL client build (its root or Build folder) to the Elympics cloud as a client version linked to a server version. "
             + "Irreversible: needs --confirm true. Large builds take minutes: run it with --detach.",
-            Tags = new[] { "elympics", "playpad", "upload" })]
+            Tags = new[] { "elympics/playpad/upload" })]
         public static Task<object> UploadClientBuild(
             [CliArg("client_build_path", "The WebGL build's root or its Build folder, inside the project unless --allow_external_path true; absolute or relative to the project.", Required = true)] string clientBuildPath,
             [CliArg("client_game_version", "Client version name: 1-63 Latin letters, digits, dashes and dots.", Required = true)] string clientGameVersion,

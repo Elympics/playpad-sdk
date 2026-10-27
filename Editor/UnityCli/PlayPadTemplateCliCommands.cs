@@ -27,7 +27,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
         [CliCommand("playpad_template_status",
             "Report the ElympicsLobby WebGL template: whether Assets/WebGLTemplates/ElympicsLobby matches the PlayPad package's copy, "
             + "what an Editor load or a build would do with it, and whether Player Settings select it.",
-            Tags = new[] { "elympics", "playpad", "read" })]
+            Tags = new[] { "elympics/playpad/template" })]
         public static object Status() => CliRun.Run(() =>
         {
             var status = RequireStatus();
@@ -50,7 +50,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
         [CliCommand("playpad_template_install",
             "Install the PlayPad package's ElympicsLobby WebGL template into Assets/WebGLTemplates, or update it. "
             + "Refuses to overwrite a customized copy unless --force true. Doesn't change which template Player Settings select.",
-            Tags = new[] { "elympics", "playpad", "write" })]
+            Tags = new[] { "elympics/playpad/template" })]
         public static object Install(
             [CliArg("force", "Overwrite the installed template even when it was customized after PlayPad installed it.")] bool force = false) => CliRun.Run(() =>
         {
@@ -72,7 +72,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
         [CliCommand("playpad_template_values",
             "Get the ElympicsLobby template custom values from Player Settings, or set ENVIRONMENT, REGION and QUEUE (empty arguments are left unchanged). "
             + "Builds fill the other values from the active game config, and TEMPLATE_* environment variables override all of them.",
-            Tags = new[] { "elympics", "playpad", "write" })]
+            Tags = new[] { "elympics/playpad/template" })]
         public static object Values(
             [CliArg("environment", "Elympics environment the lobby connects to, e.g. prod or stg. Builds default to prod.")] string environment = "",
             [CliArg("region", "Elympics region the lobby plays in (elympics_list_regions lists the game's regions). WebGL builds with the template fail without one.")]
