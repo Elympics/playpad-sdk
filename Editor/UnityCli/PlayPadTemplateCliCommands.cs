@@ -61,7 +61,6 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 throw new ElympicsCliException(TemplateUnrecognized, $"{before.InstalledPath} isn't empty and has no index.html, so it isn't a template PlayPad can recognise.",
                     "move or delete the folder, or repeat with --force true to overwrite it with the package's template.");
 
-            const string installFailedFix = "check the Console (console --level error) for the reason, fix it and retry.";
             bool installed;
             try
             {
@@ -73,7 +72,8 @@ namespace ElympicsPlayPad.Editor.UnityCli
                     "close programs that use the files in Assets/WebGLTemplates, check their permissions, and retry.");
             }
             if (!installed)
-                throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.", installFailedFix);
+                throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.",
+                    "check the Console (console --level error) for the reason, fix it and retry.");
             return CreateResult("installed");
 
             object CreateResult(string status) => new { status, previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
