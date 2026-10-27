@@ -5,7 +5,8 @@
         "GUID:42097347dcde8e94b9982a255d4fed9c",
         "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
         "Elympics.UniTask",
-        "GUID:645313404a2d0c44abd9febb05cd1212"
+        "GUID:645313404a2d0c44abd9febb05cd1212",
+        "GUID:b87f80278e7c96a4e97e35027104a010"
     ],
     "includePlatforms": [
         "Editor"
