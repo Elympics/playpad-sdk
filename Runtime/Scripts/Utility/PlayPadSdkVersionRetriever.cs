@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Elympics;
 using JetBrains.Annotations;
 
 namespace ElympicsPlayPad.Utility
@@ -11,7 +12,7 @@ namespace ElympicsPlayPad.Utility
 
         public static Version GetVersionFromAssembly()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = LoadedAssemblies.Get();
             return assemblies.Select(x => x.GetName()).FirstOrDefault(x => x.Name.ToLowerInvariant() == ElympicsName)?.Version;
         }
 
