@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Elympics.Editor.UnityCli;
 using ElympicsPlayPad.Editor.Build;
 using Unity.Pipeline.Commands;
@@ -18,17 +17,11 @@ namespace ElympicsPlayPad.Editor.UnityCli
         internal const string TemplateInstallFailed = "ELYMPICS_PLAYPAD_TEMPLATE_INSTALL_FAILED";
         internal const string TemplateValueNotSaved = "ELYMPICS_PLAYPAD_TEMPLATE_VALUE_NOT_SAVED";
 
-        private static readonly (string Name, string Variable, string CustomValue)[] BuildValues =
-        {
-            Value("GAME_ID"), Value("GAME_NAME"), Value("BUILD_IDENTIFIER"), Value("PROTOCOL_VERSION"), Value("QUEUE"), Value("ENVIRONMENT"),
-            ("REGION", PlayPadPreProcessBuild.RegionVariable, PlayPadPreProcessBuild.RegionCustomValue),
-        };
-
-        [CliCommand("playpad_template_status",
+        [CliCommand("playpad_get_template_status",
             "Report the ElympicsLobby WebGL template: whether Assets/WebGLTemplates/ElympicsLobby matches the PlayPad package's copy, "
             + "what an Editor load or a build would do with it, and whether Player Settings select it.",
             Tags = new[] { "elympics/playpad/template" })]
-        public static object Status() => CliRun.Run(() =>
+        public static object GetTemplateStatus() => CliRun.Run(() =>
         {
             var status = RequireStatus();
             return new
@@ -47,11 +40,11 @@ namespace ElympicsPlayPad.Editor.UnityCli
             };
         });
 
-        [CliCommand("playpad_template_install",
+        [CliCommand("playpad_install_template",
             "Install the PlayPad package's ElympicsLobby WebGL template into Assets/WebGLTemplates, or update it. "
             + "Refuses to overwrite a customized copy unless --force true. Doesn't change which template Player Settings select.",
             Tags = new[] { "elympics/playpad/template" })]
-        public static object Install(
+        public static object InstallTemplate(
             [CliArg("force", "Overwrite the installed template even when it was customized after PlayPad installed it.")] bool force = false) => CliRun.Run(() =>
         {
             var before = RequireStatus();
@@ -59,41 +52,45 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 throw new ElympicsCliException(TemplateCustomized, $"{before.InstalledPath} differs from the version PlayPad installed, so it was left as it is.",
                     "keep the customized copy, or repeat with --force true to replace it with the package's template.");
             if (before.Action == TemplateAction.UpToDate && !force)
-                return Result("up_to_date");
+                return CreateResult("up_to_date");
 
             if (!PlayPadWebGLTemplateInstaller.TryInstallTemplate())
                 throw new ElympicsCliException(TemplateInstallFailed, $"Installing the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template failed.",
                     "check the Console (console --level error) for the reason, fix it and retry.");
-            return Result("installed");
+            return CreateResult("installed");
 
-            object Result(string status) => new { status, previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
+            object CreateResult(string status) => new { status, previousAction = ToName(before.Action), installedPath = before.InstalledPath, selected = IsTemplateSelected };
         });
 
-        [CliCommand("playpad_template_values",
+        [CliCommand(PlayPadPreProcessBuild.GetTemplateValuesCommand,
             "Get the ElympicsLobby template custom values from Player Settings, or set ENVIRONMENT, REGION and QUEUE (empty arguments are left unchanged). "
             + "Builds fill the other values from the active game config, and TEMPLATE_* environment variables override all of them.",
             Tags = new[] { "elympics/playpad/template" })]
-        public static object Values(
+        public static object GetTemplateValues(
             [CliArg("environment", "Elympics environment the lobby connects to, e.g. prod or stg. Builds default to prod.")] string environment = "",
-            [CliArg("region", "Elympics region the lobby plays in (elympics_list_regions lists the game's regions). WebGL builds with the template fail without one.")]
+            [CliArg("region", "Elympics region the lobby plays in (" + PlayPadPreProcessBuild.ListRegionsCommand + " lists the game's regions). WebGL builds with the template fail without one.")]
             string region = "",
             [CliArg("queue", "Matchmaking queue the lobby joins. Builds default to solo.")] string queue = "") => CliRun.Run(() =>
         {
-            var requested = new[] { ("ENVIRONMENT", environment), ("REGION", region), ("QUEUE", queue) };
+            var requested = new[]
+            {
+                (PlayPadPreProcessBuild.LobbyEnvironment, environment), (PlayPadPreProcessBuild.Region, region), (PlayPadPreProcessBuild.Queue, queue),
+            };
 
             var changed = new List<string>();
-            foreach (var (name, raw) in requested)
+            foreach (var (value, raw) in requested)
             {
                 if (string.IsNullOrEmpty(raw))
                     continue;
+                var name = value.Name;
                 var trimmed = CliArgs.Require(raw, name.ToLowerInvariant());
-                var key = BuildValues.Single(value => value.Name == name).CustomValue;
+                var key = value.CustomValue;
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;
                 PlayerSettings.SetTemplateCustomValue(key, trimmed);
                 if (PlayerSettings.GetTemplateCustomValue(key) != trimmed)
                     throw new ElympicsCliException(TemplateValueNotSaved, $"Player Settings didn't keep {key} = \"{trimmed}\".",
-                        $"select the template first (PlayerSettings.WebGL.template = \"PROJECT:{PlayPadWebGLTemplateInstaller.TemplateName}\"; playpad_template_status shows it), then retry.");
+                        $"select the template first (PlayerSettings.WebGL.template = \"PROJECT:{PlayPadWebGLTemplateInstaller.TemplateName}\"; playpad_get_template_status shows it), then retry.");
                 changed.Add(name.ToLowerInvariant());
             }
             if (changed.Count > 0)
@@ -101,12 +98,12 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
             var values = new Dictionary<string, string?>();
             var environmentOverrides = new Dictionary<string, string>();
-            foreach (var (name, variable, customValue) in BuildValues)
+            foreach (var value in PlayPadPreProcessBuild.TemplateValues)
             {
-                values[name.ToLowerInvariant()] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(customValue));
-                var overridden = Environment.GetEnvironmentVariable(variable);
+                values[value.Name.ToLowerInvariant()] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(value.CustomValue));
+                var overridden = Environment.GetEnvironmentVariable(value.Variable);
                 if (!string.IsNullOrEmpty(overridden))
-                    environmentOverrides[variable] = overridden;
+                    environmentOverrides[value.Variable] = overridden;
             }
 
             return new
@@ -120,8 +117,6 @@ namespace ElympicsPlayPad.Editor.UnityCli
         });
 
         private static bool IsTemplateSelected => PlayerSettings.WebGL.template == PlayPadPreProcessBuild.ElympicsTemplateName;
-
-        private static (string Name, string Variable, string CustomValue) Value(string name) => (name, "TEMPLATE_" + name, "ELYMPICS_" + name);
 
         private static string? NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 

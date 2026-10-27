@@ -37,67 +37,60 @@ namespace ElympicsPlayPad.Editor.Tests
         }
 
         [Test]
-        public void StatusReportsAMissingTemplate()
+        public void GetTemplateStatusReportsAMissingTemplate()
         {
-            var result = PlayPadTemplateCliCommands.Status();
+            var result = PlayPadTemplateCliCommands.GetTemplateStatus();
             Assert.That(Get(result, "action"), Is.EqualTo("install"));
             Assert.That(Get(result, "installed"), Is.False);
         }
 
         [Test]
-        public void InstallInstallsAMissingTemplate()
+        public void InstallTemplateInstallsAMissingTemplate()
         {
-            var result = PlayPadTemplateCliCommands.Install();
+            var result = PlayPadTemplateCliCommands.InstallTemplate();
             Assert.That(Get(result, "status"), Is.EqualTo("installed"));
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("shipped"));
-            Assert.That(Get(PlayPadTemplateCliCommands.Status(), "action"), Is.EqualTo("up_to_date"));
+            Assert.That(Get(PlayPadTemplateCliCommands.GetTemplateStatus(), "action"), Is.EqualTo("up_to_date"));
         }
 
         [Test]
-        public void InstallLeavesAnUpToDateTemplate()
+        public void InstallTemplateLeavesAnUpToDateTemplate()
         {
-            _ = PlayPadTemplateCliCommands.Install();
-            Assert.That(Get(PlayPadTemplateCliCommands.Install(), "status"), Is.EqualTo("up_to_date"));
+            _ = PlayPadTemplateCliCommands.InstallTemplate();
+            Assert.That(Get(PlayPadTemplateCliCommands.InstallTemplate(), "status"), Is.EqualTo("up_to_date"));
         }
 
         [Test]
-        public void InstallRefusesACustomizedTemplate()
+        public void InstallTemplateRefusesACustomizedTemplate()
         {
-            _ = PlayPadTemplateCliCommands.Install();
+            _ = PlayPadTemplateCliCommands.InstallTemplate();
             Write(InstalledIndex, "edited");
 
-            AssertCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.Install()), PlayPadTemplateCliCommands.TemplateCustomized);
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.InstallTemplate()), PlayPadTemplateCliCommands.TemplateCustomized);
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("edited"));
         }
 
         [Test]
         public void ForcedInstallReplacesACustomizedTemplate()
         {
-            _ = PlayPadTemplateCliCommands.Install();
+            _ = PlayPadTemplateCliCommands.InstallTemplate();
             Write(InstalledIndex, "edited");
 
-            Assert.That(Get(PlayPadTemplateCliCommands.Install(force: true), "previousAction"), Is.EqualTo("keep_customized"));
+            Assert.That(Get(PlayPadTemplateCliCommands.InstallTemplate(force: true), "previousAction"), Is.EqualTo("keep_customized"));
             Assert.That(File.ReadAllText(Installed), Is.EqualTo("shipped"));
         }
 
         [TestCase(" ", "", "")]
         [TestCase("", "\t", "")]
         [TestCase("", "", "  ")]
-        public void ValuesRejectBlankArguments(string environment, string region, string queue) =>
-            AssertCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.Values(environment, region, queue)), "ELYMPICS_INVALID_ARGUMENT");
+        public void GetTemplateValuesRejectsBlankArguments(string environment, string region, string queue) =>
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.GetTemplateValues(environment, region, queue)), "ELYMPICS_INVALID_ARGUMENT");
 
         [Test]
-        public void ValuesWithoutArgumentsChangeNothing() =>
-            Assert.That(Get(PlayPadTemplateCliCommands.Values(), "status"), Is.EqualTo("ok"));
+        public void GetTemplateValuesWithoutArgumentsChangesNothing() =>
+            Assert.That(Get(PlayPadTemplateCliCommands.GetTemplateValues(), "status"), Is.EqualTo("ok"));
 
         private static object? Get(object result, string property) => result.GetType().GetProperty(property)!.GetValue(result);
-
-        private static void AssertCodeAndFix(Exception? exception, string code)
-        {
-            Assert.That(exception, Is.Not.Null, $"Expected {code}.");
-            Assert.That(exception!.Message, Does.StartWith(code + ": "));
-            Assert.That(exception.Message, Does.Match(@" Fix: \S"));
-        }
 
         private void Write(string relativePath, string content)
         {
