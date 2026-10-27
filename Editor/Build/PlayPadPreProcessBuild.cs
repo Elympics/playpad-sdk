@@ -15,14 +15,12 @@ namespace ElympicsPlayPad.Editor.Build
         private const string DefaultQueue = "solo";
         private const string DefaultEnvironment = "prod";
 
-        /// <summary>How <see cref="PlayerSettings.WebGL.template"/> names the template installed by <see cref="PlayPadWebGLTemplateInstaller"/>.</summary>
         internal const string ElympicsTemplateName = "PROJECT:" + PlayPadWebGLTemplateInstaller.TemplateName;
 
         internal const string ListRegionsCommand = "elympics_list_regions";
         internal const string GetTemplateValuesCommand = "playpad_get_template_values";
         internal const string SetTemplateValuesCommand = "playpad_set_template_values";
 
-        /// <summary>One value of the ElympicsLobby template: a <c>TEMPLATE_*</c> environment variable (which wins) and an <c>ELYMPICS_*</c> template custom value.</summary>
         internal readonly struct TemplateValue
         {
             public TemplateValue(string name)
@@ -50,8 +48,7 @@ namespace ElympicsPlayPad.Editor.Build
 
         internal static readonly TemplateValue[] TemplateValues = { GameId, GameName, BuildIdentifier, ProtocolVersion, Queue, LobbyEnvironment, Region };
 
-        /// <summary>The ElympicsLobby template can't start matches without a region, so a build without one fails instead of shipping a broken lobby.</summary>
-        /// <exception cref="BuildFailedException">Neither the environment variable nor the template custom value sets a region.</exception>
+        /// <summary>The template can't start matches without a region, so a build without one fails.</summary>
         internal static string RequireRegion(string fromEnvironment, string fromCustomValue)
         {
             var region = string.IsNullOrWhiteSpace(fromEnvironment) ? fromCustomValue : fromEnvironment;

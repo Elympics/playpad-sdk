@@ -13,7 +13,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
     {
         [CliCommand("playpad_upload_client_build",
             "Upload a WebGL client build (its root or Build folder) to the Elympics cloud as a client version linked to a server version. "
-            + "Irreversible: needs --confirm true. Large builds take minutes: run it with --detach.",
+            + "Irreversible: needs --confirm true. Run with --detach for large builds.",
             Tags = new[] { "elympics/playpad/upload" })]
         public static Task<object> UploadClientBuild(
             [CliArg("client_build_path", "The WebGL build's root or its Build folder, inside the project unless --allow_external_path true; absolute or relative to the project.", Required = true)] string clientBuildPath,
@@ -53,12 +53,12 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
         [CliCommand("playpad_upload_streaming_assets",
             "Upload a directory of StreamingAssets variants to the Elympics cloud as a new content version, with the Editor's current login and "
-            + "the active game config unless --game_id is given. Versions are write-once - a burnt version name cannot be reused, and the upload "
-            + "is not undoable, so it needs --confirm true. Large bundles take minutes: run it with --detach.",
+            + "the active game config unless --game_id is given. Not undoable: needs --confirm true. "
+            + "Run with --detach for large bundles.",
             Tags = new[] { "elympics/playpad/upload" })]
         public static Task<object> UploadStreamingAssets(
             [CliArg("streaming_assets_path", "Local directory to upload, inside the project unless --allow_external_path true. Absolute, or relative to the project root.", Required = true)] string streamingAssetsPath,
-            [CliArg("version_name", "Content version to publish. Write-once - a version name that has already been used (or failed mid-upload) cannot be reused. "
+            [CliArg("version_name", "Content version to publish. Write-once: a used or failed name can't be reused. "
                 + "Only Latin letters, digits, dashes, and dots are allowed.", Required = true)]
             string versionName,
             [CliArg("game_id", CliWeb.GameIdDescription)] string gameId = "",

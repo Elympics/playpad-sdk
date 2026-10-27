@@ -8,12 +8,12 @@ namespace ElympicsPlayPad.Utility
     [PublicAPI]
     public static class PlayPadSdkVersionRetriever
     {
-        private const string ElympicsName = "elympicsplaypad";
+        private const string PlayPadAssemblyName = "ElympicsPlayPad";
 
         public static Version GetVersionFromAssembly()
         {
             var assemblies = LoadedAssemblies.Get();
-            return assemblies.Select(x => x.GetName()).FirstOrDefault(x => x.Name.ToLowerInvariant() == ElympicsName)?.Version;
+            return assemblies.Select(x => x.GetName()).FirstOrDefault(x => string.Equals(x.Name, PlayPadAssemblyName, StringComparison.OrdinalIgnoreCase))?.Version;
         }
 
         public static string GetVersionStringFromAssembly() => GetVersionFromAssembly()?.ToString(3) ?? string.Empty;
