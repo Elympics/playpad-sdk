@@ -26,9 +26,9 @@ namespace ElympicsPlayPad.Editor.Build
 
         private static readonly StreamingAssetsLayout[] Layouts = (StreamingAssetsLayout[])Enum.GetValues(typeof(StreamingAssetsLayout));
 
-        private string? _path;
-        private string? _version;
-        private StreamingAssetsLayout _layout;
+        private string _path = EditorPrefs.GetString(PathKey, string.Empty);
+        private string _version = EditorPrefs.GetString(VersionKey, string.Empty);
+        private StreamingAssetsLayout _layout = LoadLayout();
 
         public int Order => 1;
 
@@ -37,21 +37,13 @@ namespace ElympicsPlayPad.Editor.Build
 
         public void CreateGUI(VisualElement container, ElympicsConfig config)
         {
-            if (_path == null)
-            {
-                _path = EditorPrefs.GetString(PathKey, string.Empty);
-                _version = EditorPrefs.GetString(VersionKey, string.Empty);
-                var storedLayout = EditorPrefs.GetInt(LayoutKey, (int)StreamingAssetsLayout.AddressableVariants);
-                _layout = Enum.IsDefined(typeof(StreamingAssetsLayout), storedLayout) ? (StreamingAssetsLayout)storedLayout : StreamingAssetsLayout.AddressableVariants;
-            }
-
-            container.Add(new VisualElement { style = { height = 9 } });
+            container.AddSectionSpacer();
             var info = new Label("Upload StreamingAssets content under its own content version, independent of client builds.");
             info.AddToClassList("elympics-info");
             info.AddToClassList("elympics-centered");
             container.Add(info);
 
-            var choices = Layouts.Select(LayoutLabel).ToList();
+            var choices = Layouts.Select(GetLayoutLabel).ToList();
             var layoutField = new DropdownField(choices, Array.IndexOf(Layouts, _layout));
             _ = layoutField.RegisterValueChangedCallback(evt =>
             {
@@ -59,16 +51,22 @@ namespace ElympicsPlayPad.Editor.Build
                 if (index >= 0)
                     _layout = Layouts[index];
             });
-            ManageGameSectionRows.AddRow(container, "Content layout", LayoutTooltip, layoutField);
-            ManageGameSectionRows.AddTextField(container, "Content version", VersionTooltip, _version ?? string.Empty, value => _version = value);
-            ManageGameSectionRows.AddTextField(container, "Content path", PathTooltip, _path, value => _path = value);
+            container.AddRow("Content layout", LayoutTooltip, layoutField);
+            container.AddTextField("Content version", VersionTooltip, _version, value => _version = value);
+            container.AddTextField("Content path", PathTooltip, _path, value => _path = value);
 
             var uploadButton = new Button(() => Upload(config)) { text = "Upload StreamingAssets" };
             uploadButton.AddToClassList("elympics-wide-button");
             container.Add(uploadButton);
         }
 
-        private static string LayoutLabel(StreamingAssetsLayout layout) => layout switch
+        private static StreamingAssetsLayout LoadLayout()
+        {
+            var storedLayout = EditorPrefs.GetInt(LayoutKey, (int)StreamingAssetsLayout.AddressableVariants);
+            return Enum.IsDefined(typeof(StreamingAssetsLayout), storedLayout) ? (StreamingAssetsLayout)storedLayout : StreamingAssetsLayout.AddressableVariants;
+        }
+
+        private static string GetLayoutLabel(StreamingAssetsLayout layout) => layout switch
         {
             StreamingAssetsLayout.AddressableVariants => "Directory of Addressable-based variants",
             StreamingAssetsLayout.UnstructuredAssets => "Unstructured assets",
@@ -88,7 +86,7 @@ namespace ElympicsPlayPad.Editor.Build
             if (!ElympicsWebIntegration.IsConnectedToElympics())
                 return;
 
-            ElympicsWebIntegration.UploadStreamingAssets(activeGameConfig.GameId, _path ?? string.Empty, _version ?? string.Empty, _layout);
+            ElympicsWebIntegration.UploadStreamingAssets(activeGameConfig.GameId, _path, _version, _layout);
         }
     }
 }

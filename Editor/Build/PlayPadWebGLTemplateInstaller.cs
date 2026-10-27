@@ -103,7 +103,7 @@ namespace ElympicsPlayPad.Editor.Build
                         + $"and doesn't get template updates. To replace it with the package's template, use {ReinstallMenuPath}.");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(status.Action), status.Action, null);
+                    throw new ArgumentOutOfRangeException(nameof(TemplateStatus.Action), status.Action, null);
             }
         }
 
@@ -118,7 +118,6 @@ namespace ElympicsPlayPad.Editor.Build
                 StampHash = stampHash;
                 ShippedHash = shippedHash;
             }
-
 
             public TemplateAction Action { get; }
             public string InstalledPath { get; }

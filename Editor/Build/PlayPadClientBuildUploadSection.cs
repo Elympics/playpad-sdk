@@ -26,9 +26,9 @@ namespace ElympicsPlayPad.Editor.Build
             _clientVersion ??= config.GetCurrentGameConfig()?.GameVersion ?? string.Empty;
             var clientBuildPath = EditorPrefs.GetString(ClientBuildPathKey, string.Empty);
 
-            container.Add(new VisualElement { style = { height = 9 } });
-            ManageGameSectionRows.AddTextField(container, "Client version", ClientVersionTooltip, _clientVersion, value => _clientVersion = value);
-            ManageGameSectionRows.AddTextField(container, "Client build path", "Path to the directory containing the client build that will be uploaded.", clientBuildPath,
+            container.AddSectionSpacer();
+            container.AddTextField("Client version", ClientVersionTooltip, _clientVersion, value => _clientVersion = value);
+            container.AddTextField("Client build path", "Path to the directory containing the client build that will be uploaded.", clientBuildPath,
                 value => clientBuildPath = value);
 
             var uploadButton = new Button(() => Upload(config, clientBuildPath)) { text = "Upload client" };
