@@ -34,9 +34,9 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 selectedTemplate = PlayerSettings.WebGL.template,
                 installedPath = status.InstalledPath,
                 sourcePath = status.SourcePath,
-                status.InstalledHash,
-                status.StampHash,
-                status.ShippedHash,
+                installedHash = status.InstalledHash,
+                stampHash = status.StampHash,
+                shippedHash = status.ShippedHash,
             };
         });
 
@@ -63,10 +63,17 @@ namespace ElympicsPlayPad.Editor.UnityCli
         });
 
         [CliCommand(PlayPadPreProcessBuild.GetTemplateValuesCommand,
-            "Get the ElympicsLobby template custom values from Player Settings, or set ENVIRONMENT, REGION and QUEUE (empty arguments are left unchanged). "
-            + "Builds fill the other values from the active game config, and TEMPLATE_* environment variables override all of them.",
+            "Get the ElympicsLobby template custom values from Player Settings and the TEMPLATE_* environment variables that override them. "
+            + "Builds fill GAME_ID, GAME_NAME, BUILD_IDENTIFIER and PROTOCOL_VERSION from the active game config; "
+            + PlayPadPreProcessBuild.SetTemplateValuesCommand + " sets the others.",
             Tags = new[] { "elympics/playpad/template" })]
-        public static object GetTemplateValues(
+        public static object GetTemplateValues() => CliRun.Run(() => CreateValuesResult("ok", new List<string>()));
+
+        [CliCommand(PlayPadPreProcessBuild.SetTemplateValuesCommand,
+            "Set the ElympicsLobby template's ENVIRONMENT, REGION and QUEUE custom values in Player Settings (omitted arguments are left unchanged), "
+            + "and report all values like " + PlayPadPreProcessBuild.GetTemplateValuesCommand + ". TEMPLATE_* environment variables still override them in builds.",
+            Tags = new[] { "elympics/playpad/template" })]
+        public static object SetTemplateValues(
             [CliArg("environment", "Elympics environment the lobby connects to, e.g. prod or stg. Builds default to prod.")] string environment = "",
             [CliArg("region", "Elympics region the lobby plays in (" + PlayPadPreProcessBuild.ListRegionsCommand + " lists the game's regions). WebGL builds with the template fail without one.")]
             string region = "",
@@ -76,14 +83,15 @@ namespace ElympicsPlayPad.Editor.UnityCli
             {
                 (PlayPadPreProcessBuild.LobbyEnvironment, environment), (PlayPadPreProcessBuild.Region, region), (PlayPadPreProcessBuild.Queue, queue),
             };
+            if (Array.TrueForAll(requested, request => string.IsNullOrEmpty(request.Item2)))
+                throw ElympicsCliErrors.InvalidArgumentException("Nothing to set.", "pass at least one of --environment, --region, --queue.");
 
             var changed = new List<string>();
             foreach (var (value, raw) in requested)
             {
                 if (string.IsNullOrEmpty(raw))
                     continue;
-                var name = value.Name;
-                var trimmed = CliArgs.Require(raw, name.ToLowerInvariant());
+                var trimmed = CliArgs.Require(raw, value.Key);
                 var key = value.CustomValue;
                 if (PlayerSettings.GetTemplateCustomValue(key) == trimmed)
                     continue;
@@ -91,16 +99,20 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 if (PlayerSettings.GetTemplateCustomValue(key) != trimmed)
                     throw new ElympicsCliException(TemplateValueNotSaved, $"Player Settings didn't keep {key} = \"{trimmed}\".",
                         $"select the template first (PlayerSettings.WebGL.template = \"PROJECT:{PlayPadWebGLTemplateInstaller.TemplateName}\"; playpad_get_template_status shows it), then retry.");
-                changed.Add(name.ToLowerInvariant());
+                changed.Add(value.Key);
             }
             if (changed.Count > 0)
                 AssetDatabase.SaveAssets();
+            return CreateValuesResult(changed.Count > 0 ? "updated" : "ok", changed);
+        });
 
+        private static object CreateValuesResult(string status, List<string> changed)
+        {
             var values = new Dictionary<string, string?>();
             var environmentOverrides = new Dictionary<string, string>();
             foreach (var value in PlayPadPreProcessBuild.TemplateValues)
             {
-                values[value.Name.ToLowerInvariant()] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(value.CustomValue));
+                values[value.Key] = NullIfEmpty(PlayerSettings.GetTemplateCustomValue(value.CustomValue));
                 var overridden = Environment.GetEnvironmentVariable(value.Variable);
                 if (!string.IsNullOrEmpty(overridden))
                     environmentOverrides[value.Variable] = overridden;
@@ -108,13 +120,13 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
             return new
             {
-                status = changed.Count > 0 ? "updated" : "ok",
+                status,
                 changed,
                 selected = IsTemplateSelected,
                 values,
                 environmentOverrides,
             };
-        });
+        }
 
         private static bool IsTemplateSelected => PlayerSettings.WebGL.template == PlayPadPreProcessBuild.ElympicsTemplateName;
 

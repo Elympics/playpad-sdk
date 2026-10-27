@@ -20,6 +20,7 @@ namespace ElympicsPlayPad.Editor.Build
 
         internal const string ListRegionsCommand = "elympics_list_regions";
         internal const string GetTemplateValuesCommand = "playpad_get_template_values";
+        internal const string SetTemplateValuesCommand = "playpad_set_template_values";
 
         /// <summary>One value of the ElympicsLobby template: a <c>TEMPLATE_*</c> environment variable (which wins) and an <c>ELYMPICS_*</c> template custom value.</summary>
         internal readonly struct TemplateValue
@@ -27,11 +28,14 @@ namespace ElympicsPlayPad.Editor.Build
             public TemplateValue(string name)
             {
                 Name = name;
+                Key = name.ToLowerInvariant();
                 Variable = "TEMPLATE_" + name;
                 CustomValue = "ELYMPICS_" + name;
             }
 
             public string Name { get; }
+            /// <summary>The name in CLI arguments and output, e.g. <c>region</c>.</summary>
+            public string Key { get; }
             public string Variable { get; }
             public string CustomValue { get; }
         }
@@ -53,7 +57,7 @@ namespace ElympicsPlayPad.Editor.Build
             var region = string.IsNullOrWhiteSpace(fromEnvironment) ? fromCustomValue : fromEnvironment;
             if (string.IsNullOrWhiteSpace(region))
                 throw new BuildFailedException($"The {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template needs an Elympics region, but none is set. "
-                    + $"Set it in Player Settings > Resolution and Presentation ({Region.CustomValue}), with the CLI command {GetTemplateValuesCommand} --region <name>, "
+                    + $"Set it in Player Settings > Resolution and Presentation ({Region.CustomValue}), with the CLI command {SetTemplateValuesCommand} --region <name>, "
                     + $"or with the {Region.Variable} environment variable ({ListRegionsCommand} lists the game's regions).");
             return region.Trim();
         }
@@ -61,7 +65,13 @@ namespace ElympicsPlayPad.Editor.Build
         private static string GetEnvOrDefault(string envVarName, string defaultValue)
         {
             var value = Environment.GetEnvironmentVariable(envVarName);
-            return string.IsNullOrEmpty(value) ? defaultValue : value;
+            return string.IsNullOrWhiteSpace(value) ? defaultValue : value;
+        }
+
+        private static string GetEnvOrCustomValueOrDefault(TemplateValue value, string defaultValue)
+        {
+            var resolved = GetEnvOrDefault(value.Variable, PlayerSettings.GetTemplateCustomValue(value.CustomValue));
+            return string.IsNullOrWhiteSpace(resolved) ? defaultValue : resolved;
         }
 
         public void OnPreprocessBuild(BuildReport report)
@@ -89,16 +99,10 @@ namespace ElympicsPlayPad.Editor.Build
             PlayerSettings.SetTemplateCustomValue(BuildIdentifier.CustomValue, buildIdentifier);
             PlayerSettings.SetTemplateCustomValue(ProtocolVersion.CustomValue, protocolVersion);
 
-            var queue = GetEnvOrDefault(Queue.Variable,
-                PlayerSettings.GetTemplateCustomValue(Queue.CustomValue));
-            if (string.IsNullOrEmpty(queue))
-                queue = DefaultQueue;
+            var queue = GetEnvOrCustomValueOrDefault(Queue, DefaultQueue);
             PlayerSettings.SetTemplateCustomValue(Queue.CustomValue, queue);
 
-            var environment = GetEnvOrDefault(LobbyEnvironment.Variable,
-                PlayerSettings.GetTemplateCustomValue(LobbyEnvironment.CustomValue));
-            if (string.IsNullOrEmpty(environment))
-                environment = DefaultEnvironment;
+            var environment = GetEnvOrCustomValueOrDefault(LobbyEnvironment, DefaultEnvironment);
             PlayerSettings.SetTemplateCustomValue(LobbyEnvironment.CustomValue, environment);
 
             var region = RequireRegion(Environment.GetEnvironmentVariable(Region.Variable), PlayerSettings.GetTemplateCustomValue(Region.CustomValue));

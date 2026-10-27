@@ -1,8 +1,11 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using Elympics.Editor.UnityCli;
 using ElympicsPlayPad.Editor.Build;
 using ElympicsPlayPad.Editor.UnityCli;
 using NUnit.Framework;
@@ -83,12 +86,21 @@ namespace ElympicsPlayPad.Editor.Tests
         [TestCase(" ", "", "")]
         [TestCase("", "\t", "")]
         [TestCase("", "", "  ")]
-        public void GetTemplateValuesRejectsBlankArguments(string environment, string region, string queue) =>
-            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.GetTemplateValues(environment, region, queue)), "ELYMPICS_INVALID_ARGUMENT");
+        public void SetTemplateValuesRejectsBlankArguments(string environment, string region, string queue) =>
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.SetTemplateValues(environment, region, queue)), ElympicsCliErrors.InvalidArgument);
 
         [Test]
-        public void GetTemplateValuesWithoutArgumentsChangesNothing() =>
-            Assert.That(Get(PlayPadTemplateCliCommands.GetTemplateValues(), "status"), Is.EqualTo("ok"));
+        public void SetTemplateValuesNeedsAValue() =>
+            PlayPadCliAssert.HasCodeAndFix(Assert.Catch(() => PlayPadTemplateCliCommands.SetTemplateValues()), ElympicsCliErrors.InvalidArgument);
+
+        [Test]
+        public void GetTemplateValuesReportsEveryValue()
+        {
+            var result = PlayPadTemplateCliCommands.GetTemplateValues();
+
+            Assert.That(Get(result, "status"), Is.EqualTo("ok"));
+            Assert.That(((Dictionary<string, string?>)Get(result, "values")!).Keys, Is.EquivalentTo(PlayPadPreProcessBuild.TemplateValues.Select(value => value.Key)));
+        }
 
         private static object? Get(object result, string property) => result.GetType().GetProperty(property)!.GetValue(result);
 
