@@ -11,10 +11,12 @@ namespace ElympicsPlayPad.Editor.Build
     {
         private const string ClientBuildPathKey = "ElympicsClientBuildPathForUpload";
 
-        private const string ClientVersionTooltip = "Name of the client build version that will be uploaded. It doesn't have to match the game version from Elympics game config. "
-            + "The game version from Elympics game config is used to match client with server version, so you can upload a new client version with UI fixes without uploading a new server version.";
+        private const string ClientVersionTooltip = "Name of the uploaded client version. It doesn't have to match the game version from the game config, "
+            + "which is used to match the client with the server version.";
 
-        private string? _clientVersion;
+        private string? _gameId;
+        private string _clientVersion = string.Empty;
+        private string _clientBuildPath = string.Empty;
 
         public int Order => 0;
 
@@ -23,31 +25,36 @@ namespace ElympicsPlayPad.Editor.Build
 
         public void CreateGUI(VisualElement container, ElympicsConfig config)
         {
-            _clientVersion ??= config.GetCurrentGameConfig()?.GameVersion ?? string.Empty;
-            var clientBuildPath = EditorPrefs.GetString(ClientBuildPathKey, string.Empty);
+            var game = config.GetCurrentGameConfig();
+            if (_gameId == null || _gameId != game?.GameId)
+            {
+                _gameId = game?.GameId ?? string.Empty;
+                _clientVersion = game?.GameVersion ?? string.Empty;
+                _clientBuildPath = EditorPrefs.GetString(ClientBuildPathKey, string.Empty);
+            }
 
             container.AddSectionSpacer();
             container.AddTextField("Client version", ClientVersionTooltip, _clientVersion, value => _clientVersion = value);
-            container.AddTextField("Client build path", "Path to the directory containing the client build that will be uploaded.", clientBuildPath,
-                value => clientBuildPath = value);
+            container.AddTextField("Client build path", "Directory containing the client build to upload.", _clientBuildPath,
+                value => _clientBuildPath = value);
 
-            var uploadButton = new Button(() => Upload(config, clientBuildPath)) { text = "Upload client" };
+            var uploadButton = new Button(() => Upload(config)) { text = "Upload client" };
             uploadButton.AddToClassList("elympics-wide-button");
             container.Add(uploadButton);
         }
 
-        private void Upload(ElympicsConfig config, string clientBuildPath)
+        private void Upload(ElympicsConfig config)
         {
             var activeGameConfig = config.GetCurrentGameConfig();
             if (activeGameConfig == null)
                 return;
 
-            EditorPrefs.SetString(ClientBuildPathKey, clientBuildPath);
+            EditorPrefs.SetString(ClientBuildPathKey, _clientBuildPath);
 
             if (!ElympicsWebIntegration.IsConnectedToElympics())
                 return;
 
-            ElympicsWebIntegration.UploadClientBuild(clientBuildPath, activeGameConfig.GameId, _clientVersion ?? string.Empty, activeGameConfig.GameVersion);
+            ElympicsWebIntegration.UploadClientBuild(_clientBuildPath, activeGameConfig.GameId, _clientVersion, activeGameConfig.GameVersion);
         }
     }
 }

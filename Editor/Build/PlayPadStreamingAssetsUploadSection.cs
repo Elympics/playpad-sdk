@@ -16,13 +16,10 @@ namespace ElympicsPlayPad.Editor.Build
         private const string VersionKey = "ElympicsStreamingAssetsVersionForUpload";
         private const string LayoutKey = "ElympicsStreamingAssetsLayoutForUpload";
 
-        private const string LayoutTooltip = "Directory of Addressable-based variants expects one folder per variant, each an Addressables content build with its own \"aa\" folder, "
-            + "and also uploads a generated variants.meta.json listing them. Files sitting directly in the path are uploaded too, with a warning. "
-            + "Unstructured assets validates nothing and just uploads everything below the path as-is.";
-        private const string VersionTooltip = "How this content is addressed later, so it must match the version the content was built against. "
-            + "Independent of the game version. Max 63 characters; only alphanumerics, \"-\" and \".\".";
-        private const string PathTooltip = "Local folder to upload. Subfolders are included. For Addressables content this is the content build output directory (e.g. ServerData), "
-            + "not Assets/StreamingAssets - the Addressables variant builder deletes that folder on every build.";
+        private const string LayoutTooltip = "Addressable-based variants: one folder per variant, each an Addressables content build with its own \"aa\" folder. "
+            + "Unstructured assets: everything below the path is uploaded as-is, without validation.";
+        private const string VersionTooltip = "Must match the version the content was built against. Independent of the game version. Max 63 characters; only alphanumerics, \"-\" and \".\".";
+        private const string PathTooltip = "Local folder to upload, subfolders included. For Addressables, the content build output directory (e.g. ServerData), not Assets/StreamingAssets.";
 
         private static readonly StreamingAssetsLayout[] Layouts = (StreamingAssetsLayout[])Enum.GetValues(typeof(StreamingAssetsLayout));
 
