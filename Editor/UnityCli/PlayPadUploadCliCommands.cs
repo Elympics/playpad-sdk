@@ -25,10 +25,11 @@ namespace ElympicsPlayPad.Editor.UnityCli
             [CliArg("timeout_seconds", CliWeb.UploadTimeoutDescription)] int timeoutSeconds = CliWeb.DefaultUploadTimeoutSeconds) =>
             CliWeb.RunAsync(timeoutSeconds, async ct =>
             {
-                var resolvedPath = CliArgs.ResolveProjectPath(CliArgs.Require(clientBuildPath, "client_build_path"), "client_build_path", allowExternalPath);
+                clientBuildPath = CliArgs.Require(clientBuildPath, "client_build_path");
                 clientGameVersion = CliArgs.ValidateVersion(clientGameVersion, "client_game_version");
                 if (!string.IsNullOrWhiteSpace(serverGameVersion))
                     serverGameVersion = CliArgs.ValidateVersion(serverGameVersion, "server_game_version");
+                var resolvedPath = CliArgs.ResolveProjectPath(clientBuildPath, "client_build_path", allowExternalPath);
                 CliArgs.RequireConfirm(confirm, "Uploading a client build");
                 var game = CliGames.ResolveGame(gameId);
                 if (string.IsNullOrWhiteSpace(serverGameVersion))
