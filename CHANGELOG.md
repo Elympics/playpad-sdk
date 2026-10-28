@@ -3,6 +3,7 @@
 
 ### Bug Fixes 🪲
 
+* **BREAKING:** Make the native WebSocket single-use and close it reliably ([c50a813](https://github.com/Elympics/playpad-sdk/commit/c50a81363898347bb0d3e8d6b383b54802a607f6))
 * **ci:** Copy WebGLTemplates~ into the testing project ([96f0191](https://github.com/Elympics/playpad-sdk/commit/96f01913e2877d70e16142956cadf6b2215a15ee))
 * **ci:** Restore ProjectSettings when Unity fails in run_with_defines.sh ([7d714ee](https://github.com/Elympics/playpad-sdk/commit/7d714ee7bd80685859f9e30f8b580a391cd9afb2))
 * **cli:** Align PlayPad upload errors with the SDK CLI ([03a0698](https://github.com/Elympics/playpad-sdk/commit/03a069825a6851a71bde422f825696d432acb9b9))
@@ -29,18 +30,12 @@
 * Update the ElympicsLobby WebGL template to v0.5.1 ([0af5d93](https://github.com/Elympics/playpad-sdk/commit/0af5d9376f82367edccc43cb4c11e6fdd699a8b3))
 * Update the WebGL template without an AssetDatabase refresh during builds and keep its GUIDs ([57f096b](https://github.com/Elympics/playpad-sdk/commit/57f096bf074c175a46eb08523a5f06bbbb1b04d0))
 
-
-* feat!: Fail ElympicsLobby WebGL builds without an Elympics region ([a0f52f9](https://github.com/Elympics/playpad-sdk/commit/a0f52f9a94bd624d6109f661ef56404e36da0090))
-* feat!: Require Unity 6.3 and Elympics 0.29.0 ([cf53054](https://github.com/Elympics/playpad-sdk/commit/cf53054d25c45f4cb37cdf872900609b0617e425))
-* chore!: Remove the unused Nethereum plugin ([45026f9](https://github.com/Elympics/playpad-sdk/commit/45026f966dd2f102304fdb7751c72279a8decd6d))
-* feat!: Own the WebSocket client and use ClientWebSocket outside WebGL ([5d5247c](https://github.com/Elympics/playpad-sdk/commit/5d5247c5bb1bfe44f6e19451b0dacbe15157f2e2))
-* refactor!: Reference the Elympics-named MessagePack assemblies ([72b7dc2](https://github.com/Elympics/playpad-sdk/commit/72b7dc20c271a7d2254f9e18cb89fddf0dd11915))
-* refactor!: Use the Elympics-namespaced UniTask ([c194435](https://github.com/Elympics/playpad-sdk/commit/c19443568b8f6cfa3ea0970bb1cd43aaf725ead0))
-* feat!: Key the stored client secret by Multiplayer Play Mode player ([cfa3502](https://github.com/Elympics/playpad-sdk/commit/cfa350215fd7564ada4ad42ca745375da0b9e39a))
-
-
 ### Features
 
+* **BREAKING:** Fail ElympicsLobby WebGL builds without an Elympics region ([a0f52f9](https://github.com/Elympics/playpad-sdk/commit/a0f52f9a94bd624d6109f661ef56404e36da0090))
+* **BREAKING:** Require Unity 6.3 and Elympics 0.29.0 ([cf53054](https://github.com/Elympics/playpad-sdk/commit/cf53054d25c45f4cb37cdf872900609b0617e425))
+* **BREAKING:** Own the WebSocket client and use ClientWebSocket outside WebGL ([5d5247c](https://github.com/Elympics/playpad-sdk/commit/5d5247c5bb1bfe44f6e19451b0dacbe15157f2e2))
+* **BREAKING:** Key the stored client secret by Multiplayer Play Mode player ([cfa3502](https://github.com/Elympics/playpad-sdk/commit/cfa350215fd7564ada4ad42ca745375da0b9e39a))
 * Add a define that stops automatic WebGL template updates ([1f32882](https://github.com/Elympics/playpad-sdk/commit/1f3288254c9c1b55eddc93054caa39f95f43f25b))
 * Add StandaloneAuthenticationCommunicator, a guest-login mock authenticator for running outside PlayPad ([a7f3634](https://github.com/Elympics/playpad-sdk/commit/a7f3634336a2cb0ea79a3e12310e6355bf35fa12))
 * **cli:** Add PlayPad WebGL template commands ([2a247c7](https://github.com/Elympics/playpad-sdk/commit/2a247c7881bb68781ee4b1f62f50e2462e1c020e))
@@ -50,24 +45,41 @@
 * Refresh outdated copies of the ElympicsLobby WebGL template ([0a47c83](https://github.com/Elympics/playpad-sdk/commit/0a47c8309e7c1249075562e51ec384c2a692cdf7))
 * Update the ElympicsLobby WebGL template to v0.5.0 ([be7b42f](https://github.com/Elympics/playpad-sdk/commit/be7b42f584e6f5e935a4e869b27f9576b1e9fece))
 
-
 ### Performance Improvements 🚀
 
 * Skip the message buffer for single-frame WebSocket messages ([e220aec](https://github.com/Elympics/playpad-sdk/commit/e220aec2e71ed75034d3ae1deffc8a75cc391eaa))
 
+### Code Refactoring
+
+* **BREAKING:** Reference the Elympics-named MessagePack assemblies ([72b7dc2](https://github.com/Elympics/playpad-sdk/commit/72b7dc20c271a7d2254f9e18cb89fddf0dd11915))
+* **BREAKING:** Use the Elympics-namespaced UniTask ([c194435](https://github.com/Elympics/playpad-sdk/commit/c19443568b8f6cfa3ea0970bb1cd43aaf725ead0))
+
+### Chores
+
+* **BREAKING:** Remove the unused Nethereum plugin ([45026f9](https://github.com/Elympics/playpad-sdk/commit/45026f966dd2f102304fdb7751c72279a8decd6d))
 
 ### BREAKING CHANGES :warning:
 
-* WebGL builds that use the ElympicsLobby template now fail
-when neither TEMPLATE_REGION nor the ELYMPICS_REGION template custom value
-(Player Settings > Resolution and Presentation) is set.
 * Unity versions older than 6000.3 are no longer supported.
-* games that used the Nethereum DLLs through PlayPad must vendor them.
-* the HybridWebSocket namespace is now ElympicsPlayPad.WebSockets.
-* requires Elympics with the renamed MessagePack assemblies.
-* requires Elympics with the renamed UniTask.
-* client secrets stored under the old _clone_<n> keys aren't read any more.
+* Games that used the Nethereum DLLs through PlayPad must vendor them.
+* The HybridWebSocket namespace is now ElympicsPlayPad.WebSockets.
+* Outside WebGL, a WebSocket can be connected only once: Connect throws once a connection was started, Close before Connect throws, and the initial state is Closed.
+* Requires Elympics with the renamed MessagePack assemblies.
+* Requires Elympics with the renamed UniTask.
+* Client secrets stored under the old _clone_<n> keys aren't read any more.
+* WebGL builds that use the ElympicsLobby template now fail when neither TEMPLATE_REGION nor the ELYMPICS_REGION template custom value (Player Settings > Resolution and Presentation) is set.
 
+### Migration notes
+
+- **Requires Unity 6.3 and Elympics 0.29.0**; declares `com.unity.ugui` 2.0.0 and `com.unity.modules.unitywebrequesttexture`.
+- **Owns the WebSocket client:** namespace `ElympicsPlayPad.WebSockets` (was `HybridWebSocket`). Outside WebGL it now uses `ClientWebSocket`.
+- **ElympicsLobby WebGL template v0.5.1:** a built template reads only `region` and `queue` from the page URL. Unmodified installed copies update automatically; customized copies keep their content (see `Tools/PlayPad/Reinstall WebGL Template`).
+- **ElympicsLobby builds need a region:** set the `ELYMPICS_REGION` template custom value (Player Settings > Resolution and Presentation, or `unity command playpad_set_template_values --region <name>`), or the `TEMPLATE_REGION` environment variable. `elympics_list_regions` lists the regions. Builds with other templates are unaffected.
+- **New CLI commands** (needs `com.unity.pipeline` 0.8.0-exp.1, now a dependency): `playpad_get_template_status`, `playpad_install_template` (`--force true` replaces a customized copy), `playpad_get_template_values`, `playpad_set_template_values` (`--environment`, `--region`, `--queue`). Errors follow Elympics' `ELYMPICS_<CODE>: … Fix: …` format.
+- **Client build and StreamingAssets uploads moved here from Elympics:** `playpad_upload_client_build` and `playpad_upload_streaming_assets` use the Editor's Elympics login, require `--confirm true`, and upload only folders inside the project unless `--allow_external_path true`. The Manage Games window shows both uploads in its PlayPad sections.
+- **Nethereum plugin removed** (unused since the Web3 removal in 3.0.0).
+- **Uses the renamed UniTask and MessagePack assemblies.**
+- **Stored client secrets per Multiplayer Play Mode player** (`Elympics/AuthToken_<PlayerName>`); the old `_clone_<n>` keys aren't read.
 
 
 ## [3.0.0](https://github.com/Elympics/playpad-sdk/compare/v2.1.0...v3.0.0) (2026-10-12)
