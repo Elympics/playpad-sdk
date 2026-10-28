@@ -21,5 +21,13 @@ namespace ElympicsPlayPad.Editor.Tests
             var exception = Assert.Throws<BuildFailedException>(() => PlayPadPreProcessBuild.RequireRegion(fromEnvironment, fromCustomValue));
             Assert.That(exception.Message, Does.Contain(PlayPadPreProcessBuild.SetTemplateValuesCommand + " --region").And.Contain(PlayPadPreProcessBuild.Region.Variable));
         }
+
+        [TestCase("https://example.com/a?b=c&d=e", ExpectedResult = true)]
+        [TestCase("", ExpectedResult = true)]
+        [TestCase("a\"b", ExpectedResult = false)]
+        [TestCase("a\\b", ExpectedResult = false)]
+        [TestCase("</script>", ExpectedResult = false)]
+        [TestCase("a\nb", ExpectedResult = false)]
+        public bool IsSafeTemplateValue(string value) => PlayPadPreProcessBuild.IsSafeTemplateValue(value);
     }
 }
