@@ -26,9 +26,10 @@ namespace ElympicsPlayPad.Editor.Build
         public void CreateGUI(VisualElement container, ElympicsConfig config)
         {
             var game = config.GetCurrentGameConfig();
-            if (_gameId == null || _gameId != game?.GameId)
+            var gameId = game?.GameId ?? string.Empty;
+            if (_gameId != gameId)
             {
-                _gameId = game?.GameId ?? string.Empty;
+                _gameId = gameId;
                 _clientVersion = game?.GameVersion ?? string.Empty;
                 _clientBuildPath = EditorPrefs.GetString(ClientBuildPathKey, string.Empty);
             }
