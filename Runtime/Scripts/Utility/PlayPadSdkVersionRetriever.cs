@@ -13,7 +13,7 @@ namespace ElympicsPlayPad.Utility
         public static Version GetVersionFromAssembly()
         {
             var assemblies = LoadedAssemblies.Get();
-            return assemblies.Select(x => x.GetName()).FirstOrDefault(x => string.Equals(x.Name, PlayPadAssemblyName, StringComparison.OrdinalIgnoreCase))?.Version;
+            return assemblies.Select(x => x.GetName()).FirstOrDefault(x => x.Name == PlayPadAssemblyName)?.Version;
         }
 
         public static string GetVersionStringFromAssembly() => GetVersionFromAssembly()?.ToString(3) ?? string.Empty;

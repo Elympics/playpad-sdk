@@ -42,12 +42,7 @@ namespace ElympicsPlayPad.Editor.Build
 
             var choices = Layouts.Select(GetLayoutLabel).ToList();
             var layoutField = new DropdownField(choices, Array.IndexOf(Layouts, _layout));
-            _ = layoutField.RegisterValueChangedCallback(evt =>
-            {
-                var index = choices.IndexOf(evt.newValue);
-                if (index >= 0)
-                    _layout = Layouts[index];
-            });
+            _ = layoutField.RegisterValueChangedCallback(_ => _layout = Layouts[layoutField.index]);
             container.AddRow("Content layout", LayoutTooltip, layoutField);
             container.AddTextField("Content version", VersionTooltip, _version, value => _version = value);
             container.AddTextField("Content path", PathTooltip, _path, value => _path = value);
