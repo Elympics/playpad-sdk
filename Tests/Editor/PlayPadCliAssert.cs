@@ -8,7 +8,6 @@ namespace ElympicsPlayPad.Editor.Tests
 {
     internal static class PlayPadCliAssert
     {
-        /// <summary>Also asserts a non-empty fix hint.</summary>
         public static void HasCodeAndFix(Exception? exception, string code)
         {
             Assert.That(exception, Is.Not.Null, $"Expected {code}.");

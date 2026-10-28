@@ -19,8 +19,9 @@ namespace ElympicsPlayPad.Editor.UnityCli
         internal const string TemplateUnrecognized = "ELYMPICS_PLAYPAD_TEMPLATE_UNRECOGNIZED";
         internal const string TemplateInstallFailed = "ELYMPICS_PLAYPAD_TEMPLATE_INSTALL_FAILED";
         internal const string TemplateValueNotSaved = "ELYMPICS_PLAYPAD_TEMPLATE_VALUE_NOT_SAVED";
+        private const string GetTemplateStatusCommand = "playpad_get_template_status";
 
-        [CliCommand("playpad_get_template_status",
+        [CliCommand(GetTemplateStatusCommand,
             "Report the ElympicsLobby WebGL template: whether Assets/WebGLTemplates/ElympicsLobby matches the PlayPad package's copy, "
             + "what an Editor load or a build would do with it, and whether Player Settings select it.",
             Tags = new[] { "elympics/playpad/template" })]
@@ -45,7 +46,8 @@ namespace ElympicsPlayPad.Editor.UnityCli
 
         [CliCommand("playpad_install_template",
             "Install the PlayPad package's ElympicsLobby WebGL template into Assets/WebGLTemplates, or update it. "
-            + "Refuses to overwrite a customized copy or an unrecognised non-empty folder unless --force true. Doesn't change which template Player Settings select.",
+            + "Refuses to overwrite a customized copy or an unrecognised non-empty folder unless --force true (the automatic install on Editor load and before a WebGL build doesn't). "
+            + "Doesn't change which template Player Settings select.",
             Tags = new[] { "elympics/playpad/template" })]
         public static object InstallTemplate(
             [CliArg("force", "Overwrite the installed template even when it was customized or the folder isn't recognised.")] bool force = false) => CliRun.Run(() =>
@@ -110,7 +112,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
                     continue;
                 var trimmed = CliArgs.Require(raw, value.Key);
                 if (!PlayPadPreProcessBuild.IsSafeTemplateValue(trimmed))
-                    throw ElympicsCliErrors.InvalidArgumentException($"--{value.Key} contains a quote, backslash, angle bracket or control character.",
+                    throw ElympicsCliErrors.InvalidArgumentException($"--{value.Key} contains {PlayPadPreProcessBuild.UnsafeTemplateCharacters}.",
                         $"remove those characters from --{value.Key}; the template can't embed them in index.html.");
                 validated.Add((value, trimmed));
             }
@@ -124,7 +126,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 PlayerSettings.SetTemplateCustomValue(key, trimmed);
                 if (PlayerSettings.GetTemplateCustomValue(key) != trimmed)
                     throw new ElympicsCliException(TemplateValueNotSaved, $"Player Settings didn't keep {key} = \"{trimmed}\".",
-                        $"select the template first (PlayerSettings.WebGL.template = \"PROJECT:{PlayPadWebGLTemplateInstaller.TemplateName}\"; playpad_get_template_status shows it), then retry.");
+                        $"select the template first (PlayerSettings.WebGL.template = \"{PlayPadPreProcessBuild.ElympicsTemplateName}\"; {GetTemplateStatusCommand} shows it), then retry.");
                 changed.Add(value.Key);
             }
             if (changed.Count > 0)

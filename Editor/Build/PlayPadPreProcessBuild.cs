@@ -21,6 +21,7 @@ namespace ElympicsPlayPad.Editor.Build
         internal const string ListRegionsCommand = "elympics_list_regions";
         internal const string GetTemplateValuesCommand = "playpad_get_template_values";
         internal const string SetTemplateValuesCommand = "playpad_set_template_values";
+        internal const string UnsafeTemplateCharacters = "a quote, backslash, angle bracket or control character";
 
         internal readonly struct TemplateValue
         {
@@ -63,7 +64,7 @@ namespace ElympicsPlayPad.Editor.Build
         private static string RequireSafe(TemplateValue templateValue, string value) =>
             IsSafeTemplateValue(value)
                 ? value
-                : throw new BuildFailedException($"The {templateValue.Variable} value \"{value}\" contains a quote, backslash, angle bracket or control character, which the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template can't embed in index.html. "
+                : throw new BuildFailedException($"The {templateValue.Variable} value \"{value}\" contains {UnsafeTemplateCharacters}, which the {PlayPadWebGLTemplateInstaller.TemplateName} WebGL template can't embed in index.html. "
                     + $"Remove those characters from it ({templateValue.CustomValue} in Player Settings or the {templateValue.Variable} environment variable).");
 
         private static string GetEnvOrDefault(string envVarName, string defaultValue)
