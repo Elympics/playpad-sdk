@@ -4,7 +4,11 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "ElympicsPlayPad.Editor"
+        "ElympicsPlayPad.Editor",
+        "ElympicsPlayPad.Editor.UnityCli",
+        "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
+        "GUID:b87f80278e7c96a4e97e35027104a010",
+        "GUID:585823f1028b48089b71446b73cf2285"
     ],
     "includePlatforms": [
         "Editor"

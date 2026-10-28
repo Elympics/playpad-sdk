@@ -78,25 +78,22 @@ namespace ElympicsPlayPad.Editor.Build
 
         internal static void UpdateTemplateIfNeeded(bool refreshAssetDatabase = true)
         {
-            if (!TryGetSourcePath(out var sourcePath))
+            var status = GetStatus();
+            if (status == null)
                 return;
 
-            var installedPath = InstalledPath;
-            var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
-            var stampHash = ReadStampHash();
-            var action = Decide(installedHash, stampHash, ComputeHash(sourcePath), UnstampedShippedHash);
-            switch (action)
+            switch (status.Action)
             {
                 case TemplateAction.Install:
                 case TemplateAction.Refresh:
-                    Debug.Log(action == TemplateAction.Install
+                    Debug.Log(status.Action == TemplateAction.Install
                         ? "Installing ElympicsLobby WebGL template."
                         : "Updating the ElympicsLobby WebGL template to the version in the package.");
                     _ = TryInstallTemplate(refreshAssetDatabase);
                     break;
                 case TemplateAction.UpToDate:
-                    if (stampHash != installedHash)
-                        WriteStamp(installedHash);
+                    if (status.StampHash != status.InstalledHash)
+                        WriteStamp(status.InstalledHash);
                     break;
                 case TemplateAction.KeepCustomized:
                     if (SessionState.GetBool(CustomizedWarningShownKey, false))
@@ -106,8 +103,40 @@ namespace ElympicsPlayPad.Editor.Build
                         + $"and doesn't get template updates. To replace it with the package's template, use {ReinstallMenuPath}.");
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
+                    throw new ArgumentOutOfRangeException(nameof(TemplateStatus.Action), status.Action, null);
             }
+        }
+
+        internal sealed class TemplateStatus
+        {
+            public TemplateStatus(TemplateAction action, string installedPath, string sourcePath, string installedHash, string stampHash, string shippedHash)
+            {
+                Action = action;
+                InstalledPath = installedPath;
+                SourcePath = sourcePath;
+                InstalledHash = installedHash;
+                StampHash = stampHash;
+                ShippedHash = shippedHash;
+            }
+
+            public TemplateAction Action { get; }
+            public string InstalledPath { get; }
+            public string SourcePath { get; }
+            public string InstalledHash { get; }
+            public string StampHash { get; }
+            public string ShippedHash { get; }
+        }
+
+        /// <returns>Null when the template is missing.</returns>
+        internal static TemplateStatus GetStatus()
+        {
+            if (!TryGetSourcePath(out var sourcePath))
+                return null;
+            var installedPath = InstalledPath;
+            var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
+            var stampHash = ReadStampHash();
+            var shippedHash = ComputeHash(sourcePath);
+            return new TemplateStatus(Decide(installedHash, stampHash, shippedHash, UnstampedShippedHash), installedPath, sourcePath, installedHash, stampHash, shippedHash);
         }
 
         /// <param name="installedHash">Hash of the installed copy, or null when it's missing or has no index.html.</param>
@@ -151,7 +180,8 @@ namespace ElympicsPlayPad.Editor.Build
             return string.Concat(sha.Hash.Select(b => b.ToString("x2")));
         }
 
-        private static bool TryInstallTemplate(bool refreshAssetDatabase = true)
+        /// <summary>Overwrites the project's copy even if customized.</summary>
+        internal static bool TryInstallTemplate(bool refreshAssetDatabase = true)
         {
             if (!TryGetSourcePath(out var sourcePath))
                 return false;
