@@ -50,10 +50,10 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 }
                 catch (ElympicsUploadInputException e)
                 {
-                    throw new ElympicsCliException(ElympicsCliErrors.InvalidArgument, e.Message, "fix the argument named in the message, then retry.");
+                    throw ElympicsCliErrors.InvalidArgumentException(e.Message, "fix the argument named in the message, then retry.");
                 }
-                return new { status = "uploaded", gameId = game.GameId, clientGameVersion, serverGameVersion, fileCount, usedCurrentLogin = true };
-            }, ElympicsCliErrors.UploadFailed);
+                return new { status = "uploaded", gameId = game.GameId, clientGameVersion, serverGameVersion, fileCount };
+            }, ElympicsCliErrors.UploadFailed, CliWeb.UploadTimeoutFix);
 
         [CliCommand("playpad_upload_streaming_assets",
             "Upload a directory of StreamingAssets variants to the Elympics cloud as a new content version, with the Editor's current login and "
@@ -92,8 +92,8 @@ namespace ElympicsPlayPad.Editor.UnityCli
                 }
                 catch (ElympicsUploadInputException e)
                 {
-                    throw new ElympicsCliException(ElympicsCliErrors.InvalidArgument, e.Message,
-                        "fix the directory layout described above (or pass --layout UnstructuredAssets to upload it as-is), then retry with a new --version_name.");
+                    throw ElympicsCliErrors.InvalidArgumentException(e.Message,
+                        "fix the directory layout described above (or pass --layout UnstructuredAssets to upload it as-is), then retry.");
                 }
 
                 return new
@@ -106,7 +106,7 @@ namespace ElympicsPlayPad.Editor.UnityCli
                     fileCount,
                     usedActiveGameConfig,
                 };
-            }, ElympicsCliErrors.UploadFailed);
+            }, ElympicsCliErrors.UploadFailed, CliWeb.UploadTimeoutFix);
 
         internal static StreamingAssetsLayout ParseLayout(string layout) =>
             string.IsNullOrWhiteSpace(layout) ? StreamingAssetsLayout.AddressableVariants : CliArgs.ParseEnum<StreamingAssetsLayout>(layout, "layout");
