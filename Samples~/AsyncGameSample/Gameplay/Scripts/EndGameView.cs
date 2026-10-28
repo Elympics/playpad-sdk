@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;

@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
 using Elympics.Models.Authentication;
@@ -103,8 +103,6 @@ namespace ElympicsPlayPad.Session
                 logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
                 _initializationStrategy = CreateInitializationStrategy(handshake.LaunchMode);
                 _authProvider = _authFactory?.GetAuthProvider(handshake.LaunchMode);
-                Debug.Log($"[CRITICAL] Auth provider: {_authProvider?.GetType().FullName}");
-                Debug.Log($"[CRITICAL] LaunchMode: {handshake.LaunchMode}, Int value: {(int)handshake.LaunchMode}");
                 _region = await GetClosestRegion(handshake.ClosestRegion);
                 var authData = await Authenticate();
 #if UNITY_EDITOR || !UNITY_WEBGL || ELYMPICS_PLAYPAD_KEEP_LOBBY
@@ -234,7 +232,6 @@ namespace ElympicsPlayPad.Session
                 if (_authProvider.IsAuthenticated)
                     _authProvider.SignOut();
 
-                Debug.Log($"CachedData is {cachedData.AuthType}.");
                 await _authProvider.Authenticate(cachedData, region);
             }
             catch (Exception e)

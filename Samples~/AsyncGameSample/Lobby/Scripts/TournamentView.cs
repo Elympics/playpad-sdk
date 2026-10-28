@@ -3,7 +3,7 @@ using ElympicsPlayPad.ExternalCommunicators;
 using TMPro;
 using ElympicsPlayPad.ExternalCommunicators.Ui;
 using JetBrains.Annotations;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using UnityEngine.UI;
 
 namespace ElympicsPlayPad.Samples.AsyncGame

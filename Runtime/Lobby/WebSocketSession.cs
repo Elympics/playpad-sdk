@@ -4,14 +4,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Core.Logger;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Lobby.InternalModels;
 using ElympicsPlayPad.Lobby.InternalModels.FromLobby;
 using ElympicsPlayPad.Lobby.InternalModels.ToLobby;
 using ElympicsPlayPad.Lobby.Serializers;
-using HybridWebSocket;
+using ElympicsPlayPad.WebSockets;
 using MessagePack;
 
 namespace ElympicsPlayPad.Lobby
@@ -40,7 +40,8 @@ namespace ElympicsPlayPad.Lobby
         private readonly WebSocketFactory _wsFactory;
 
         private readonly ILobbySerializer _serializer;
-        private Stopwatch? _timer;
+        // A Stopwatch timestamp, written by the WebSocket's thread.
+        private long _lastPingTimestamp;
         private readonly IWebSocketSessionController _controller;
 
         public bool IsConnected { get; private set; }
@@ -56,7 +57,7 @@ namespace ElympicsPlayPad.Lobby
         {
             _controller = controller;
             _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-            _wsFactory = wsFactory ?? HybridWebSocket.WebSocketFactory.CreateInstance;
+            _wsFactory = wsFactory ?? WebSockets.WebSocketFactory.CreateInstance;
             _serializer = serializer ?? new MessagePackLobbySerializer(serializerOptions);
         }
 
@@ -70,23 +71,27 @@ namespace ElympicsPlayPad.Lobby
                 throw logger.LogExceptionAndReturn(new InvalidOperationException("Connecting already in progress."));
             _cts = new CancellationTokenSource();
             var (url, protocol) = wsUrl.ToWebSocketAddress(authData.JwtToken);
-            _ws = _wsFactory(url, protocol);
-            _ws.OnError += HandleError;
-            _ws.OnClose += HandleClose;
-            _ws.OnMessage += HandleMessage;
-            using var ctr = ct.RegisterWithoutCaptureExecutionContext(() => DisconnectInternal(DisconnectionReason.Unknown));
             try
             {
+                _ws = _wsFactory(url, protocol);
+                _ws.OnError += HandleError;
+                _ws.OnClose += HandleClose;
+                _ws.OnMessage += HandleMessage;
+                using var ctr = ct.RegisterWithoutCaptureExecutionContext(() => DisconnectInternal(DisconnectionReason.Unknown));
                 await OpenWebSocket(_ws);
                 var gameData = await SendRequestInternal<GameDataResponseDto>(new JoinLobbyDto(ElympicsConfig.SdkVersion, gameId, gameVersion, regionName), Token);
                 ConnectionDetails = details;
                 ElympicsLogger.State.SetRegion(regionName);
                 logger.LogInfo("Connection to lobby completed.");
                 SetConnectedState();
-                _timer = new Stopwatch();
-                _timer.Start();
+                _ = Interlocked.Exchange(ref _lastPingTimestamp, Stopwatch.GetTimestamp());
                 AutoDisconnectOnTimeout(_cts.Token).Forget();
                 return gameData;
+            }
+            catch (WebSocketException)
+            {
+                CleanupSession();
+                throw;
             }
             catch (OperationCanceledException)
             {
@@ -231,11 +236,7 @@ namespace ElympicsPlayPad.Lobby
 #endif
                 if (message is PingDto)
                 {
-                    DispatchWithCancellation(() =>
-                    {
-                        _timer?.Reset();
-                        _timer?.Start();
-                    });
+                    _ = Interlocked.Exchange(ref _lastPingTimestamp, Stopwatch.GetTimestamp());
                     SendMessage(new PongDto());
                     return;
                 }
@@ -260,7 +261,7 @@ namespace ElympicsPlayPad.Lobby
         }
         private void HandleError(string message)
         {
-            DisconnectInternal(DisconnectionReason.Error);
+            RunOnMainThread(() => DisconnectInternal(DisconnectionReason.Error));
             _dispatcher.Enqueue(() => ElympicsLogger.LogError(message));
         }
 
@@ -270,36 +271,47 @@ namespace ElympicsPlayPad.Lobby
             _dispatcher.Enqueue(code != WebSocketCloseCode.Normal ? () => logger.LogError($"Connection closed abnormally [{code}] {reason}")
                 : () => logger.LogInfo($"Connection closed gracefully [{code}] {reason}"));
 
-            DisconnectInternal(IsConnected && code == WebSocketCloseCode.Away ? DisconnectionReason.Timeout : DisconnectionReason.Closed);
+            RunOnMainThread(() => DisconnectInternal(IsConnected && code == WebSocketCloseCode.Away ? DisconnectionReason.Timeout : DisconnectionReason.Closed));
         }
 
-        private async UniTaskVoid AutoDisconnectOnTimeout(CancellationToken cancellationToken) => await UniTask.RunOnThreadPool(() =>
+        // The native WebSocket raises events on thread-pool threads, while Connect and Disconnect run on the main thread.
+        private void RunOnMainThread(Action action)
+        {
+            if (PlayerLoopHelper.IsMainThread)
             {
-                while (true)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
+                action();
+                return;
+            }
 
-                    if (_timer is null)
-                        return;
+            var cts = _cts;
+            _dispatcher.Enqueue(() =>
+            {
+                // The session may have been disposed, disconnected or reconnected since.
+                if (!_isDisposed && _cts == cts)
+                    action();
+            });
+        }
 
-                    if (!(_timer.Elapsed.TotalSeconds > LobbyTimeout.WebSocketHeartbeatTimeout.TotalSeconds))
-                        continue;
-
-                    if (!IsConnected)
-                        return;
-
-                    var logger = _logger.WithMethodName();
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
-
-                    logger.LogError("We have not received a response from the server. You have been disconnected. Please check your internet connection and try reconnecting.");
-                    DisconnectInternal(DisconnectionReason.Closed);
+        // Runs on the player loop, so a paused player can't time out pings that the network thread did receive.
+        private async UniTaskVoid AutoDisconnectOnTimeout(CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                if (await UniTask.Delay(LobbyTimeout.WebSocketHeartbeatCheckInterval, DelayType.Realtime, cancellationToken: cancellationToken).SuppressCancellationThrow())
                     return;
-                }
-            },
-            true,
-            cancellationToken);
+
+                var sinceLastPing = Stopwatch.GetTimestamp() - Interlocked.Read(ref _lastPingTimestamp);
+                if (sinceLastPing <= LobbyTimeout.WebSocketHeartbeatTimeout.TotalSeconds * Stopwatch.Frequency)
+                    continue;
+
+                if (!IsConnected)
+                    return;
+
+                _logger.WithMethodName().LogError("We have not received a response from the server. You have been disconnected. Please check your internet connection and try reconnecting.");
+                DisconnectInternal(DisconnectionReason.Closed);
+                return;
+            }
+        }
 
         private void DisconnectInternal(DisconnectionReason reason)
         {
@@ -314,7 +326,6 @@ namespace ElympicsPlayPad.Lobby
                 throw new ObjectDisposedException(GetType().FullName);
             if (_cts is null)
                 return;
-            _timer?.Stop();
             _cts.Cancel();
             _cts.Dispose();
             _cts = null;

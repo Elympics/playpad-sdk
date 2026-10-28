@@ -5,15 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Communication.Authentication.Models;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.Auth.Models.Internal;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms.FromRooms;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Rooms.Models;
+using ElympicsPlayPad.Tests.Lobby.Common;
 using ElympicsPlayPad.Tests.Lobby.Common.RoomMocks;
 using NSubstitute;
 using NUnit.Framework;
@@ -451,11 +452,15 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             (nameof(IRoom.CancelMatchmaking), r => r.CancelMatchmaking(), CreateInitialRoomState() with { Users = new[] { new UserInfoDto(0, true, new Dictionary<string, string>(), new ElympicsUserDTO(HostId.ToString(), "", nameof(NicknameType.Common), "")) }, MatchmakingData = Defaults.CreateMatchmakingData(MatchmakingStateDto.Matchmaking) }),
         };
 
+        private static readonly List<NamedCase<(string Name, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState)>> NamedCancellingRoomOperationsTestCases =
+            cancellingRoomOperationsTestCases.Select(testCase => new NamedCase<(string Name, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState)>(testCase.Name, testCase)).ToList();
+
         [UnityTest]
         public IEnumerator SettingIsJoinedShouldCancelOperationsInProgress(
-            [ValueSource(nameof(cancellingRoomOperationsTestCases))]
-            (string _, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState) testCase) => UniTask.ToCoroutine(async () =>
+            [ValueSource(nameof(NamedCancellingRoomOperationsTestCases))]
+            NamedCase<(string Name, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState)> namedCase) => UniTask.ToCoroutine(async () =>
         {
+            var testCase = namedCase.Value;
             var roomClientMock = Substitute.For<IRoomsClient>();
             _ = roomClientMock.ChangeTeam(default, null)
                 .ReturnsForAnyArgs(UniTask.CompletedTask);
@@ -480,9 +485,10 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
         [UnityTest]
         public IEnumerator DisposingRoomShouldCancelOperationsInProgress(
-            [ValueSource(nameof(cancellingRoomOperationsTestCases))]
-            (string _, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState) testCase) => UniTask.ToCoroutine(async () =>
+            [ValueSource(nameof(NamedCancellingRoomOperationsTestCases))]
+            NamedCase<(string Name, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState)> namedCase) => UniTask.ToCoroutine(async () =>
         {
+            var testCase = namedCase.Value;
             var roomClientMock = Substitute.For<IRoomsClient>();
             _ = roomClientMock.ChangeTeam(default, null)
                 .ReturnsForAnyArgs(UniTask.CompletedTask);
@@ -507,9 +513,10 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
 
         [UnityTest]
         public IEnumerator LeavingRoomShouldCancelOperationsInProgress(
-            [ValueSource(nameof(cancellingRoomOperationsTestCases))]
-            (string _, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState) testCase) => UniTask.ToCoroutine(async () =>
+            [ValueSource(nameof(NamedCancellingRoomOperationsTestCases))]
+            NamedCase<(string Name, Func<IRoom, UniTask> Operation, RoomStateChangedDto RoomState)> namedCase) => UniTask.ToCoroutine(async () =>
         {
+            var testCase = namedCase.Value;
             var roomClientMock = Substitute.For<IRoomsClient>();
             _ = roomClientMock.ChangeTeam(default, null)
                 .ReturnsForAnyArgs(UniTask.CompletedTask);

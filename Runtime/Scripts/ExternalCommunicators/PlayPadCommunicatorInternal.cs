@@ -1,7 +1,7 @@
 #nullable enable
 using System;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Wrappers;

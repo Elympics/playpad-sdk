@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators.Lobby;
 using ElympicsPlayPad.ExternalCommunicators.Lobby.Models;

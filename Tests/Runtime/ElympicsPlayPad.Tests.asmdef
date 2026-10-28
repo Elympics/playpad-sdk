@@ -4,13 +4,14 @@
     "references": [
         "UnityEngine.TestRunner",
         "Elympics",
-        "UniTask",
-        "MessagePack",
+        "Elympics.UniTask",
+        "Elympics.MessagePack",
         "ElympicsPlayPad",
         "ElympicsPlayPad.Auth",
         "ElympicsPlayPad.Lobby",
         "ElympicsPlayPad.Rooms",
-        "Elympics.Core"
+        "Elympics.Core",
+        "ElympicsPlayPad.WebSocket"
     ],
     "includePlatforms": [],
     "excludePlatforms": [

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.ExternalCommunicators.Authentication;

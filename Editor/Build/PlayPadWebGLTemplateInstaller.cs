@@ -1,89 +1,270 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace ElympicsPlayPad.Editor.Build
 {
+    /// <summary>
+    /// Keeps <c>Assets/WebGLTemplates/ElympicsLobby</c> in line with the template shipped in the package.
+    /// The installed copy's version is the content hash recorded in a stamp file next to it, outside the template folder
+    /// so it never ends up in builds. A copy that no longer matches its stamp was edited in the project and is kept.
+    /// </summary>
     [InitializeOnLoad]
     internal static class PlayPadWebGLTemplateInstaller
     {
         internal const string TemplateName = "ElympicsLobby";
         private const string SourceFolder = "WebGLTemplates~";
+        private const string StampFileName = TemplateName + ".installed.json";
+        private const string CustomizedWarningShownKey = "ElympicsPlayPad.WebGLTemplate.CustomizedWarningShown";
+        private const string ReinstallMenuPath = "Tools/PlayPad/Reinstall WebGL Template";
 
-        static PlayPadWebGLTemplateInstaller() => EditorApplication.delayCall += InstallTemplateIfNeeded;
+        /// <summary>Hash of the template (v0.1.5) shipped before installed copies were stamped, so those copies can be refreshed.</summary>
+        internal const string UnstampedShippedHash = "a4ad21a1ff51ac65fb124b00a644b18e7d3bd47b3a81013f1856c07c0e89f08a";
 
-        [MenuItem("Tools/PlayPad/Install WebGL Template")]
-        public static void InstallTemplate()
+        private static readonly HashSet<string> TextExtensions = new(StringComparer.OrdinalIgnoreCase) { ".html", ".js", ".css", ".json", ".txt", ".svg", ".map" };
+
+        internal enum TemplateAction
         {
-            var destinationPath = Path.Combine(Application.dataPath, "WebGLTemplates", TemplateName);
-            if (Directory.Exists(destinationPath))
-            {
-                Debug.Log("Elympics PlayPad WebGL template is already installed.");
-                return;
-            }
+            UpToDate,
+            Install,
+            Refresh,
+            KeepCustomized,
+        }
 
+        [Serializable]
+        private class Stamp
+        {
+            public string hash;
+            public string package;
+        }
+
+#if !ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
+        static PlayPadWebGLTemplateInstaller() => EditorApplication.delayCall += () => UpdateTemplateIfNeeded();
+#endif
+
+        /// <summary>Replaces the package's template folder, so tests don't need the real one.</summary>
+        internal static string SourcePathOverride { get; set; }
+
+        /// <summary>Replaces <c>Assets/WebGLTemplates</c>, so tests don't touch the project's template.</summary>
+        internal static string TemplatesRootOverride { get; set; }
+
+        private static string TemplatesRoot => TemplatesRootOverride ?? Path.Combine(Application.dataPath, "WebGLTemplates");
+        private static string InstalledPath => Path.Combine(TemplatesRoot, TemplateName);
+        private static string StampPath => Path.Combine(TemplatesRoot, StampFileName);
+
+        [MenuItem(ReinstallMenuPath)]
+        public static void ReinstallTemplate()
+        {
             if (TryInstallTemplate())
-                Debug.Log("Elympics PlayPad WebGL template installed successfully.");
+                Debug.Log("Elympics PlayPad WebGL template reinstalled.");
             else
                 Debug.LogWarning("Failed to install Elympics PlayPad WebGL template.");
         }
 
-        private static void InstallTemplateIfNeeded()
+        /// <summary>The Editor-load check runs from delayCall, which comes too late for builds started with -executeMethod.</summary>
+        internal static void UpdateTemplateBeforeBuild()
         {
-            var destinationPath = Path.Combine(Application.dataPath, "WebGLTemplates", TemplateName);
-            if (Directory.Exists(destinationPath))
-                return;
-
-            _ = TryInstallTemplate();
+#if !ELYMPICS_PLAYPAD_DISABLE_TEMPLATE_UPDATE
+            UpdateTemplateIfNeeded(refreshAssetDatabase: false);
+#endif
         }
 
-        private static bool TryInstallTemplate()
+        internal static void UpdateTemplateIfNeeded(bool refreshAssetDatabase = true)
         {
-            Debug.Log("Installing ElympicsLobby WebGL template.");
-            var packagePath = GetPackageResolvedPath();
+            var status = GetStatus();
+            if (status == null)
+                return;
+
+            switch (status.Action)
+            {
+                case TemplateAction.Install:
+                case TemplateAction.Refresh:
+                    Debug.Log(status.Action == TemplateAction.Install
+                        ? "Installing ElympicsLobby WebGL template."
+                        : "Updating the ElympicsLobby WebGL template to the version in the package.");
+                    _ = TryInstallTemplate(refreshAssetDatabase);
+                    break;
+                case TemplateAction.UpToDate:
+                    if (status.StampHash != status.InstalledHash)
+                        WriteStamp(status.InstalledHash);
+                    break;
+                case TemplateAction.KeepCustomized:
+                    if (SessionState.GetBool(CustomizedWarningShownKey, false))
+                        break;
+                    SessionState.SetBool(CustomizedWarningShownKey, true);
+                    Debug.LogWarning($"Assets/WebGLTemplates/{TemplateName} differs from the version PlayPad installed, so it was left as it is "
+                        + $"and doesn't get template updates. To replace it with the package's template, use {ReinstallMenuPath}.");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(TemplateStatus.Action), status.Action, null);
+            }
+        }
+
+        internal sealed class TemplateStatus
+        {
+            public TemplateStatus(TemplateAction action, string installedPath, string sourcePath, string installedHash, string stampHash, string shippedHash)
+            {
+                Action = action;
+                InstalledPath = installedPath;
+                SourcePath = sourcePath;
+                InstalledHash = installedHash;
+                StampHash = stampHash;
+                ShippedHash = shippedHash;
+            }
+
+            public TemplateAction Action { get; }
+            public string InstalledPath { get; }
+            public string SourcePath { get; }
+            public string InstalledHash { get; }
+            public string StampHash { get; }
+            public string ShippedHash { get; }
+        }
+
+        /// <returns>Null when the template is missing.</returns>
+        internal static TemplateStatus GetStatus()
+        {
+            if (!TryGetSourcePath(out var sourcePath))
+                return null;
+            var installedPath = InstalledPath;
+            var installedHash = File.Exists(Path.Combine(installedPath, "index.html")) ? ComputeHash(installedPath) : null;
+            var stampHash = ReadStampHash();
+            var shippedHash = ComputeHash(sourcePath);
+            return new TemplateStatus(Decide(installedHash, stampHash, shippedHash, UnstampedShippedHash), installedPath, sourcePath, installedHash, stampHash, shippedHash);
+        }
+
+        /// <param name="installedHash">Hash of the installed copy, or null when it's missing or has no index.html.</param>
+        /// <param name="stampHash">Hash recorded when PlayPad installed the copy, or null for copies installed before stamping.</param>
+        internal static TemplateAction Decide(string installedHash, string stampHash, string shippedHash, string unstampedShippedHash)
+        {
+            if (installedHash == null)
+                return TemplateAction.Install;
+            if (installedHash == shippedHash)
+                return TemplateAction.UpToDate;
+            var unmodified = stampHash != null ? installedHash == stampHash : installedHash == unstampedShippedHash;
+            return unmodified ? TemplateAction.Refresh : TemplateAction.KeepCustomized;
+        }
+
+        /// <summary>
+        /// SHA-256 over the relative paths and contents of all files except <c>.meta</c> and hidden ones.
+        /// CR bytes are dropped from text files, because git may check the package out with either line ending.
+        /// </summary>
+        internal static string ComputeHash(string directory)
+        {
+            var root = Path.GetFullPath(directory);
+            var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories)
+                .Where(path => !path.EndsWith(".meta", StringComparison.OrdinalIgnoreCase) && !Path.GetFileName(path).StartsWith("."))
+                .Select(path => (path, relative: Path.GetRelativePath(root, path).Replace('\\', '/')))
+                .OrderBy(file => file.relative, StringComparer.Ordinal);
+
+            using var sha = SHA256.Create();
+            var separator = new byte[] { 0 };
+            foreach (var (path, relative) in files)
+            {
+                var content = File.ReadAllBytes(path);
+                if (TextExtensions.Contains(Path.GetExtension(path)))
+                    content = content.Where(b => b != (byte)'\r').ToArray();
+                var name = Encoding.UTF8.GetBytes(relative);
+                _ = sha.TransformBlock(name, 0, name.Length, null, 0);
+                _ = sha.TransformBlock(separator, 0, 1, null, 0);
+                _ = sha.TransformBlock(content, 0, content.Length, null, 0);
+                _ = sha.TransformBlock(separator, 0, 1, null, 0);
+            }
+            _ = sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            return string.Concat(sha.Hash.Select(b => b.ToString("x2")));
+        }
+
+        /// <summary>Overwrites the project's copy even if customized.</summary>
+        internal static bool TryInstallTemplate(bool refreshAssetDatabase = true)
+        {
+            if (!TryGetSourcePath(out var sourcePath))
+                return false;
+
+            var installedPath = InstalledPath;
+            SyncDirectory(sourcePath, installedPath);
+            WriteStamp(ComputeHash(installedPath));
+            SessionState.EraseBool(CustomizedWarningShownKey);
+            if (refreshAssetDatabase)
+                AssetDatabase.Refresh();
+            return true;
+        }
+
+        /// <summary>
+        /// Makes <paramref name="destination"/> match <paramref name="source"/>. Files the source no longer has (e.g. the previous hashed bundle names)
+        /// are removed together with their <c>.meta</c>; files that stay keep theirs, so asset GUIDs don't change.
+        /// </summary>
+        internal static void SyncDirectory(string source, string destination)
+        {
+            if (Directory.Exists(destination))
+            {
+                foreach (var file in Directory.GetFiles(destination))
+                {
+                    if (file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase) || File.Exists(Path.Combine(source, Path.GetFileName(file))))
+                        continue;
+                    File.Delete(file);
+                    File.Delete(file + ".meta");
+                }
+
+                foreach (var dir in Directory.GetDirectories(destination))
+                {
+                    if (Directory.Exists(Path.Combine(source, new DirectoryInfo(dir).Name)))
+                        continue;
+                    Directory.Delete(dir, true);
+                    File.Delete(dir + ".meta");
+                }
+            }
+
+            _ = Directory.CreateDirectory(destination);
+
+            foreach (var file in Directory.GetFiles(source))
+                File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), true);
+
+            foreach (var dir in Directory.GetDirectories(source))
+                SyncDirectory(dir, Path.Combine(destination, new DirectoryInfo(dir).Name));
+        }
+
+        private static bool TryGetSourcePath(out string sourcePath)
+        {
+            sourcePath = SourcePathOverride;
+            if (sourcePath != null)
+                return true;
+            var packagePath = PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly())?.resolvedPath;
             if (string.IsNullOrEmpty(packagePath))
             {
                 Debug.LogError("Could not resolve Elympics PlayPad package path.");
                 return false;
             }
 
-            var sourcePath = Path.Combine(packagePath, SourceFolder, TemplateName);
-            if (!Directory.Exists(sourcePath))
-            {
-                Debug.LogError($"WebGL template source not found at: {sourcePath}");
-                return false;
-            }
-
-            var destinationPath = Path.Combine(Application.dataPath, "WebGLTemplates", TemplateName);
-            CopyDirectory(sourcePath, destinationPath);
-            AssetDatabase.Refresh();
-            return true;
+            sourcePath = Path.Combine(packagePath, SourceFolder, TemplateName);
+            if (Directory.Exists(sourcePath))
+                return true;
+            Debug.LogError($"WebGL template source not found at: {sourcePath}");
+            return false;
         }
 
-        private static string GetPackageResolvedPath()
+        private static string ReadStampHash()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var info = PackageInfo.FindForAssembly(assembly);
-            return info?.resolvedPath;
+            try
+            {
+                return File.Exists(StampPath) ? JsonUtility.FromJson<Stamp>(File.ReadAllText(StampPath))?.hash : null;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
-        private static void CopyDirectory(string source, string destination)
+        private static void WriteStamp(string hash)
         {
-            _ = Directory.CreateDirectory(destination);
-
-            foreach (var file in Directory.GetFiles(source))
-            {
-                var destFile = Path.Combine(destination, Path.GetFileName(file));
-                File.Copy(file, destFile, true);
-            }
-
-            foreach (var dir in Directory.GetDirectories(source))
-            {
-                var destDir = Path.Combine(destination, new DirectoryInfo(dir).Name);
-                CopyDirectory(dir, destDir);
-            }
+            var package = PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly());
+            var stamp = new Stamp { hash = hash, package = package != null ? $"{package.name}@{package.version}" : "" };
+            File.WriteAllText(StampPath, JsonUtility.ToJson(stamp, true) + "\n");
         }
     }
 }

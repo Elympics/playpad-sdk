@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators;
 using ElympicsPlayPad.Session;
 using UnityEngine;
@@ -22,7 +22,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void Start()
         {
-            _sessionManager = FindObjectOfType<SessionManager>();
+            _sessionManager = FindAnyObjectByType<SessionManager>();
             Assert.IsNotNull(_sessionManager);
 
             OnLobbySceneLoaded().Forget();
@@ -68,6 +68,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
         private void OnDestroy()
         {
+            if (_sessionManager == null)
+                return;
             _sessionManager.StartSessionInfoUpdate -= SetAuthenticationScreenActive;
             _sessionManager.FinishSessionInfoUpdate -= SetAuthenticationScreenInactive;
             _sessionManager.FinishSessionInfoUpdate -= RejoinIfHasOngoingMatch;

@@ -1,7 +1,26 @@
+/**
+ * @typedef {{
+ *   handleSignTypedData: (eventName: string, params: string) => void,
+ * }} RequestHandler
+ */
+
+/**
+ * @typedef {{
+ *   $requestHandler: RequestHandler,
+ *   DispatchMessage: (eventName: number, json: number) => void,
+ * }} ElympicsConnect
+ */
+
+/* eslint-disable no-unassigned-vars */
+// noinspection ES6ConvertVarToLetConst
+/** @type {RequestHandler} */ var requestHandler;
+/* eslint-enable no-unassigned-vars */
+
+/** @type {ElympicsConnect} */
 const elympicsconnect = {
   $requestHandler: {
     handleSignTypedData: (eventName, params) => {
-      window.dispatchReactUnityEvent(eventName, params);
+      dispatchReactUnityEvent(eventName, params);
     },
   },
 

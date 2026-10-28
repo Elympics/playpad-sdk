@@ -711,7 +711,7 @@ MonoBehaviour:
   autoAssignNetworkId: 1
   networkId: 3
   predictableFor:
-    playerIndex: 0
+    playerIndex: -2
   isUpdatableForNonOwners: 0
   visibleFor:
     playerIndex: -3

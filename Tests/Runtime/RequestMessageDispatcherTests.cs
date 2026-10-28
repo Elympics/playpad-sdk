@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using Elympics.Cysharp.Threading.Tasks;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication;
 using ElympicsPlayPad.Protocol;
 using ElympicsPlayPad.Protocol.Responses;

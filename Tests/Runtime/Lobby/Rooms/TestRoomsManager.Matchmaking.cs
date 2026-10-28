@@ -4,14 +4,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using Elympics;
+using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsPlayPad.Lobby;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms;
 using ElympicsPlayPad.Lobby.InternalModels.Rooms.FromRooms;
 using ElympicsPlayPad.Rooms;
 using ElympicsPlayPad.Rooms.Models;
+using ElympicsPlayPad.Tests.Lobby.Common;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -35,12 +36,15 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             (null, Defaults.CreateMatchmakingData(MatchmakingStateDto.CancellingMatchmaking)),
         };
 
+        private static readonly List<NamedCase<(MatchmakingData?, MatchmakingData)>> NamedMatchmakingStartedTestCases = NamedCase.ByIndex(matchmakingStartedTestCases);
+
 
         [Test]
         public void TestMatchmakingStartedInvokedAndMatchmakingMatchmakingStateChangedInvoked(
-            [ValueSource(nameof(matchmakingStartedTestCases))]
-            (MatchmakingData cachedState, MatchmakingData newState) statesTuple)
+            [ValueSource(nameof(NamedMatchmakingStartedTestCases))]
+            NamedCase<(MatchmakingData?, MatchmakingData)> namedCase)
         {
+            (MatchmakingData cachedState, MatchmakingData newState) statesTuple = namedCase.Value;
             var matchmakingRoomState = InitialRoomState with
             {
                 MatchmakingData = statesTuple.cachedState,
@@ -78,11 +82,14 @@ namespace ElympicsPlayPad.Tests.Lobby.Rooms
             (Defaults.CreateMatchmakingData(MatchmakingStateDto.RequestingMatchmaking), null),
         };
 
+        private static readonly List<NamedCase<(MatchmakingData, MatchmakingData?)>> NamedMatchmakingEndedTestCases = NamedCase.ByIndex(matchmakingEndedTestCases);
+
         [Test]
         public void TestMatchmakingEndedAndMatchmakingMatchmakingStateChangedInvoked(
-            [ValueSource(nameof(matchmakingEndedTestCases))]
-            (MatchmakingData? cachedState, MatchmakingData? newState) statesTuple)
+            [ValueSource(nameof(NamedMatchmakingEndedTestCases))]
+            NamedCase<(MatchmakingData, MatchmakingData?)> namedCase)
         {
+            (MatchmakingData? cachedState, MatchmakingData? newState) statesTuple = namedCase.Value;
             var (cachedState, newState) = statesTuple;
             if (newState != null)
                 newState = newState with
