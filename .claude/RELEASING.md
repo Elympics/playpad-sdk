@@ -13,4 +13,6 @@ Same process and CI jobs as the Elympics SDK (see its `.claude/RELEASING.md` and
 6. **Publish:** trigger the manual `release:gitlab` job on `main`. It creates the tag and the GitLab release. The tag pipeline's `release:github` then publishes to GitHub. If it fails because the tag hasn't been mirrored yet, retry it.
 7. **Merge back:** open an MR from `main` to `develop`. Skipping this leaves the release tags off `develop`'s history, and the next changelog would then start from an older tag.
 
-CI needs these variables: `GITLAB_ACCESS_TOKEN` (for the bot commit), `GH_TOKEN` and `GH_REPO`.
+CI needs these variables: `GITLAB_ACCESS_TOKEN` (for the bot commit and the `main` release-merge check), `GH_TOKEN` and `GH_REPO`.
+
+Like the SDK, CI skips build, test and verify jobs for non-code changes, for tag pipelines and for already-tested release merges. "Run pipeline" runs everything, or only the release jobs when `RELEASE_ONLY=true`. Coverage runs only on `develop`. Details are in the SDK's `.claude/RELEASING.md`, "What CI runs".
