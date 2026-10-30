@@ -1,18 +1,23 @@
 using System;
+using System.Collections.Generic;
 using Elympics;
 using UnityEngine;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
     [RequireComponent(typeof(MatchEnder))]
-    public class GenericServerHandler : DefaultServerHandler, IUpdatable
+    public class GenericServerHandler : ElympicsMonoBehaviour, IServerHandlerGuid, IMatchStartHandler, IInitializable, IUpdatable
     {
+        [Tooltip("Ends the match with the " + nameof(MatchEnder) + " when any or all players leave after the match start. "
+            + "Set terminateWhenPlayersLeave in the game config to None, so the SDK doesn't end the match with the Elympics score instead.")]
+        [SerializeField] private TerminationOption autoTerminationOnLeft = TerminationOption.Any;
         [Tooltip("Viable only when " + nameof(autoTerminationOnLeft) + " is set to None.")]
         [SerializeField] private float rejoiningTimeoutInSeconds = 120f;
 
         private bool _gameJustStarted = false;
         private bool _anyPlayerJustRejoined = false;
 
+        private readonly HashSet<ElympicsPlayer> _playersConnected = new();
         private MatchEnder _matchEnder;
         [SerializeField] private SynchronizedRandomizerBase synchronizedRandomizer;
 
@@ -31,7 +36,14 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 throw new NullReferenceException($"Make sure that your randomization system inherits from {nameof(SynchronizedRandomizerBase)} and is assigned to the {nameof(GenericServerHandler)} component");
         }
 
-        public override void OnServerInit(InitialMatchPlayerDatasGuid initialMatchPlayerDatas)
+        public void Initialize()
+        {
+            // The match counts only once every player confirms that the game launched for them.
+            if (Elympics.IsClient)
+                Elympics.MarkReady();
+        }
+
+        public void OnServerInit(InitialMatchPlayerDatasGuid initialMatchPlayerDatas)
         {
             var seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue); // random seed for no tournament, editor testing
             if (initialMatchPlayerDatas.CustomMatchmakingData != null && initialMatchPlayerDatas.CustomMatchmakingData.TryGetValue(TournamentConst.TournamentIdKey, out var tournamentId))
@@ -41,24 +53,40 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             synchronizedRandomizer.InitializeRandomization(seed);
-
-            base.OnServerInit(initialMatchPlayerDatas);
         }
 
-        public override void OnPlayerDisconnected(ElympicsPlayer player)
+        public void OnPlayerConnected(ElympicsPlayer player)
         {
-            base.OnPlayerDisconnected(player);
+            _ = _playersConnected.Add(player);
+
+            if (Elympics.IsMatchStarted)
+                _anyPlayerJustRejoined = true;
+        }
+
+        public void OnPlayerDisconnected(ElympicsPlayer player)
+        {
+            _ = _playersConnected.Remove(player);
 
             PlayerDisconnected_ServerOnly?.Invoke();
+
+            if (!Elympics.IsMatchStarted)
+                return;
+
+            if (autoTerminationOnLeft == TerminationOption.Any
+                || (autoTerminationOnLeft == TerminationOption.All && _playersConnected.Count == 0))
+            {
+                Debug.Log($"[GenericServerHandler] - Player {player} disconnected. Ending the match ({nameof(autoTerminationOnLeft)}: {autoTerminationOnLeft})");
+                CloseMatch();
+            }
         }
 
-        protected override void CloseMatch() => _matchEnder.EndMatch();
-        protected override void OnPlayerRejoined() => _anyPlayerJustRejoined = true;
-        protected override void OnGameStarted()
+        public void OnMatchStarted(long startTick)
         {
-            base.OnGameStarted();
-            _gameJustStarted = true;
+            if (Elympics.IsServer)
+                _gameJustStarted = true;
         }
+
+        private void CloseMatch() => _matchEnder.EndMatch();
 
         public void ElympicsUpdate()
         {
@@ -80,7 +108,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 HandleRejoinAtClient(synchronizedRandomizer.InitialSeed);
             }
 
-            if (PlayersConnected.Count == 0 && GameStarted && autoTerminationOnLeft == TerminationOption.None)
+            if (_playersConnected.Count == 0 && Elympics.IsMatchStarted && autoTerminationOnLeft == TerminationOption.None)
             {
                 rejoiningTimeoutInSeconds -= Elympics.TickDuration;
 

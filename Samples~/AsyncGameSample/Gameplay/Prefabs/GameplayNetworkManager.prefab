@@ -68,9 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfd7f1ad7c0a686448f49de22f1e1380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoTerminateServer: 1
   autoTerminationOnLeft: 1
-  startGameTimeoutSeconds: 180
   rejoiningTimeoutInSeconds: 120
   synchronizedRandomizer: {fileID: 7114124055747847020}
 --- !u!114 &9214336655454983649

@@ -42,6 +42,9 @@ MonoBehaviour:
   forceJumpThresholdInTicks: 6
   prediction: 0
   predictionLimitInTicks: 8
+  readyTimeoutSeconds: 180
+  matchStartDelaySeconds: 1
+  terminateWhenPlayersLeave: 0
   detailedNetworkLog: 0
   mode: 1
   halfRemoteMode: 0
