@@ -7,7 +7,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 {
     // Its ElympicsBehaviour is predictable for World, so clients don't predict it:
     // the game state (e.g. points) changes only on the server, in RPCs.
-    public class SampleGameplayManager : ScoreProviderBase, IInitializable, IUpdatable, IClientHandlerGuid
+    public class SampleGameplayManager : ElympicsMonoBehaviour, IInitializable, IUpdatable, IClientHandlerGuid
     {
         [SerializeField] private int secondsToEndGameAutomatically = 30;
         [SerializeField] private ViewManager viewManager;
@@ -19,8 +19,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private bool gameStarted = false;
 
         private int CurrentGameTimeInSeconds => Mathf.FloorToInt((Elympics.Tick - _tickOfGameStarted.Value) * Elympics.TickDuration);
-
-        public override float[] Scores => new float[] { _points.Value };
 
         public void Initialize()
         {
@@ -72,13 +70,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
         private void RpcEndGame() => EndGameServer();
 
-        private void EndGameServer()
-        {
-            var matchEnder = FindAnyObjectByType<MatchEnder>();
-            Assert.IsNotNull(matchEnder);
-
-            matchEnder.EndMatch();
-        }
+        // Sends the Elympics score as the result.
+        private void EndGameServer() => Elympics.EndGame();
 
         [UsedImplicitly] // by BumpPointsButton
         public void RequestBumpPoints()
@@ -99,6 +92,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             Debug.Log("BumpPoints at server");
 
             _points.Value++;
+            // The SDK sends it as the result, also when the match ends because the player left.
+            Elympics.Score.SetScore(0, _points.Value);
             viewManager.RandomizeBackgroundColor();
         }
     }

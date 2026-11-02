@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 6505273636500013732}
   - component: {fileID: 3243345787180007073}
   - component: {fileID: 6432352403823856203}
-  - component: {fileID: 9214336655454983649}
   - component: {fileID: 6654560827073783884}
   - component: {fileID: 7114124055747847020}
   m_Layer: 0
@@ -68,23 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfd7f1ad7c0a686448f49de22f1e1380, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoTerminationOnLeft: 1
-  rejoiningTimeoutInSeconds: 120
   synchronizedRandomizer: {fileID: 7114124055747847020}
---- !u!114 &9214336655454983649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6505273636500013733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf9700b05bcc32343b2eda34c18a8a00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shouldZeroScoreBeInterpretedAsNotPlayedMatch: 1
-  scoreProvider: {fileID: 0}
 --- !u!114 &6654560827073783884
 MonoBehaviour:
   m_ObjectHideFlags: 0
