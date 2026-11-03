@@ -42,7 +42,7 @@ MonoBehaviour:
   forceJumpThresholdInTicks: 6
   prediction: 0
   predictionLimitInTicks: 8
-  readyTimeoutSeconds: 180
+  readyTimeoutSeconds: 30
   gameStartDelaySeconds: 1
   terminateWhenPlayersLeave: 1
   detailedNetworkLog: 0

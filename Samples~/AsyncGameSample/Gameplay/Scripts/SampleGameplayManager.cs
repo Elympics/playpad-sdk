@@ -11,6 +11,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
     {
         [SerializeField] private int secondsToEndGameAutomatically = 30;
         [SerializeField] private ViewManager viewManager;
+        [SerializeField] private GameObject readyButton;
 
         private readonly ElympicsInt _tickOfGameStarted = new ElympicsInt();
         private readonly ElympicsInt _remainingSecondsToEndGame = new ElympicsInt();
@@ -54,24 +55,25 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             _remainingSecondsToEndGame.Value = Mathf.Max(0, secondsToEndGameAutomatically - CurrentGameTimeInSeconds);
 
+            // Sends the Elympics score as the result.
             if (_remainingSecondsToEndGame.Value == 0)
-            {
-                EndGameServer();
-                return;
-            }
+                Elympics.EndGame();
         }
 
         // Runs only at the Client
         public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView(_points.Value);
 
+        // The game starts once every player has pressed Ready.
+        [UsedImplicitly] // by ReadyButton
+        public void RequestReady()
+        {
+            Elympics.MarkReady();
+            readyButton.SetActive(false);
+        }
+
         [UsedImplicitly] // by EndGameButton
-        public void RequestGameEnd() => RpcEndGame();
-
         [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
-        private void RpcEndGame() => EndGameServer();
-
-        // Sends the Elympics score as the result.
-        private void EndGameServer() => Elympics.EndGame();
+        public void RequestGameEnd() => Elympics.EndGame();
 
         [UsedImplicitly] // by BumpPointsButton
         public void RequestBumpPoints()
