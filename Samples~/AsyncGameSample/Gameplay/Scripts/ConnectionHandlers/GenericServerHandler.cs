@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
     // Ending the match when players leave is set by terminateWhenPlayersLeave in the game config.
-    public class GenericServerHandler : ElympicsMonoBehaviour, IServerHandlerGuid, IMatchStartHandler, IInitializable, IUpdatable
+    public class GenericServerHandler : ElympicsMonoBehaviour, IServerHandlerGuid, IGameStartHandler, IInitializable, IUpdatable
     {
         private bool _gameJustStarted = false;
         private bool _anyPlayerJustRejoined = false;
@@ -51,7 +51,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         {
             _ = _playersConnected.Add(player);
 
-            if (Elympics.IsMatchStarted)
+            if (Elympics.IsGameStarted)
                 _anyPlayerJustRejoined = true;
         }
 
@@ -62,7 +62,7 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             PlayerDisconnected_ServerOnly?.Invoke();
         }
 
-        public void OnMatchStarted(long startTick)
+        public void OnGameStarted(long startTick)
         {
             if (Elympics.IsServer)
                 _gameJustStarted = true;

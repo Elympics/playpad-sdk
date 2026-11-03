@@ -43,7 +43,7 @@ MonoBehaviour:
   prediction: 0
   predictionLimitInTicks: 8
   readyTimeoutSeconds: 180
-  matchStartDelaySeconds: 1
+  gameStartDelaySeconds: 1
   terminateWhenPlayersLeave: 1
   detailedNetworkLog: 0
   mode: 1
