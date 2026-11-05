@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Shared memory
+
+Use `.claude/MEMORY.md` as your memory for this package, instead of your local/auto memory. Append important findings there, following the format rules at its top (including regenerating `MEMORY.short.md`). The short version is imported below. Open `MEMORY.md` for details before acting on an entry.
+
+@MEMORY.short.md
+
 ## What this is
 
 `com.daftmobile.elympics-playpad` is the Elympics PlayPad SDK, a UPM package that depends on the Elympics SDK (`com.daftmobile.elympics`, version pinned in `package.json`). It's developed on GitLab (`elympics/sdk/playpad-sdk`) and mirrored to GitHub as `Elympics/playpad-sdk`.

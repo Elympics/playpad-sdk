@@ -7,10 +7,11 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 {
     // Its ElympicsBehaviour is predictable for World, so clients don't predict it:
     // the game state (e.g. points) changes only on the server, in RPCs.
-    public class SampleGameplayManager : ScoreProviderBase, IInitializable, IUpdatable, IClientHandlerGuid
+    public class SampleGameplayManager : ElympicsMonoBehaviour, IInitializable, IUpdatable, IClientHandlerGuid
     {
         [SerializeField] private int secondsToEndGameAutomatically = 30;
         [SerializeField] private ViewManager viewManager;
+        [SerializeField] private GameObject readyButton;
 
         private readonly ElympicsInt _tickOfGameStarted = new ElympicsInt();
         private readonly ElympicsInt _remainingSecondsToEndGame = new ElympicsInt();
@@ -19,8 +20,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
         private bool gameStarted = false;
 
         private int CurrentGameTimeInSeconds => Mathf.FloorToInt((Elympics.Tick - _tickOfGameStarted.Value) * Elympics.TickDuration);
-
-        public override float[] Scores => new float[] { _points.Value };
 
         public void Initialize()
         {
@@ -56,29 +55,25 @@ namespace ElympicsPlayPad.Samples.AsyncGame
 
             _remainingSecondsToEndGame.Value = Mathf.Max(0, secondsToEndGameAutomatically - CurrentGameTimeInSeconds);
 
+            // Sends the Elympics score as the result.
             if (_remainingSecondsToEndGame.Value == 0)
-            {
-                EndGameServer();
-                return;
-            }
+                Elympics.EndGame();
         }
 
         // Runs only at the Client
         public void OnMatchEnded(System.Guid _) => viewManager.ShowGameEndedView(_points.Value);
 
-        [UsedImplicitly] // by EndGameButton
-        public void RequestGameEnd() => RpcEndGame();
-
-        [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
-        private void RpcEndGame() => EndGameServer();
-
-        private void EndGameServer()
+        // The game starts once every player has pressed Ready.
+        [UsedImplicitly] // by ReadyButton
+        public void RequestReady()
         {
-            var matchEnder = FindAnyObjectByType<MatchEnder>();
-            Assert.IsNotNull(matchEnder);
-
-            matchEnder.EndMatch();
+            Elympics.MarkReady();
+            readyButton.SetActive(false);
         }
+
+        [UsedImplicitly] // by EndGameButton
+        [ElympicsRpc(ElympicsRpcDirection.PlayerToServer)]
+        public void RequestGameEnd() => Elympics.EndGame();
 
         [UsedImplicitly] // by BumpPointsButton
         public void RequestBumpPoints()
@@ -99,6 +94,8 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             Debug.Log("BumpPoints at server");
 
             _points.Value++;
+            // The SDK sends it as the result, also when the match ends because the player left.
+            Elympics.Score.SetScore(0, _points.Value);
             viewManager.RandomizeBackgroundColor();
         }
     }

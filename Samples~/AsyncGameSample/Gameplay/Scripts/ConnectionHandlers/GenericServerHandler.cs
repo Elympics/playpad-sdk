@@ -4,34 +4,26 @@ using UnityEngine;
 
 namespace ElympicsPlayPad.Samples.AsyncGame
 {
-    [RequireComponent(typeof(MatchEnder))]
-    public class GenericServerHandler : DefaultServerHandler, IUpdatable
+    // Ending the match when players leave is set by terminateWhenPlayersLeave in the game config.
+    public class GenericServerHandler : ElympicsMonoBehaviour, IServerHandlerGuid, IUpdatable
     {
-        [Tooltip("Viable only when " + nameof(autoTerminationOnLeft) + " is set to None.")]
-        [SerializeField] private float rejoiningTimeoutInSeconds = 120f;
+        private bool _gameplayStarted;
+        private bool _anyPlayerJustRejoined;
 
-        private bool _gameJustStarted = false;
-        private bool _anyPlayerJustRejoined = false;
-
-        private MatchEnder _matchEnder;
         [SerializeField] private SynchronizedRandomizerBase synchronizedRandomizer;
 
-
         public event Action GameJustStarted;
-        // Following events are meant for freezing game logic when waiting for the player to rejoin (if such a feature is enabled - with autoTerminationOnLeft set to None)
+        // For freezing the game logic while waiting for a player to rejoin.
         public event Action PlayerRejoined_ClientCallIncluded;
         public event Action PlayerDisconnected_ServerOnly;
 
-
         private void Awake()
         {
-            _matchEnder = GetComponent<MatchEnder>();
-
             if (synchronizedRandomizer == null)
                 throw new NullReferenceException($"Make sure that your randomization system inherits from {nameof(SynchronizedRandomizerBase)} and is assigned to the {nameof(GenericServerHandler)} component");
         }
 
-        public override void OnServerInit(InitialMatchPlayerDatasGuid initialMatchPlayerDatas)
+        public void OnServerInit(InitialMatchPlayerDatasGuid initialMatchPlayerDatas)
         {
             var seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue); // random seed for no tournament, editor testing
             if (initialMatchPlayerDatas.CustomMatchmakingData != null && initialMatchPlayerDatas.CustomMatchmakingData.TryGetValue(TournamentConst.TournamentIdKey, out var tournamentId))
@@ -41,34 +33,24 @@ namespace ElympicsPlayPad.Samples.AsyncGame
             }
 
             synchronizedRandomizer.InitializeRandomization(seed);
-
-            base.OnServerInit(initialMatchPlayerDatas);
         }
 
-        public override void OnPlayerDisconnected(ElympicsPlayer player)
+        public void OnPlayerConnected(ElympicsPlayer player)
         {
-            base.OnPlayerDisconnected(player);
-
-            PlayerDisconnected_ServerOnly?.Invoke();
+            if (Elympics.IsGameStarted)
+                _anyPlayerJustRejoined = true;
         }
 
-        protected override void CloseMatch() => _matchEnder.EndMatch();
-        protected override void OnPlayerRejoined() => _anyPlayerJustRejoined = true;
-        protected override void OnGameStarted()
-        {
-            base.OnGameStarted();
-            _gameJustStarted = true;
-        }
+        public void OnPlayerDisconnected(ElympicsPlayer player) => PlayerDisconnected_ServerOnly?.Invoke();
 
         public void ElympicsUpdate()
         {
-            // happens only on the server instance
             if (!Elympics.IsServer)
                 return;
 
-            if (_gameJustStarted)
+            if (Elympics.IsGameStarted && !_gameplayStarted)
             {
-                _gameJustStarted = false;
+                _gameplayStarted = true;
                 StartGameplay();
                 StartGameplayAtClient(synchronizedRandomizer.InitialSeed);
             }
@@ -78,17 +60,6 @@ namespace ElympicsPlayPad.Samples.AsyncGame
                 _anyPlayerJustRejoined = false;
                 HandleRejoin();
                 HandleRejoinAtClient(synchronizedRandomizer.InitialSeed);
-            }
-
-            if (PlayersConnected.Count == 0 && GameStarted && autoTerminationOnLeft == TerminationOption.None)
-            {
-                rejoiningTimeoutInSeconds -= Elympics.TickDuration;
-
-                if (rejoiningTimeoutInSeconds <= 0)
-                {
-                    Debug.LogWarning($"[GenericServerHandler] - Rejoining timeout {rejoiningTimeoutInSeconds}s reached. Forcing game server to quit because one of the players has disconnected. Current score saved as the results");
-                    CloseMatch();
-                }
             }
         }
 
