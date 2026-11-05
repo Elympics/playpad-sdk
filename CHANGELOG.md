@@ -1,3 +1,26 @@
+## [5.0.0](https://github.com/Elympics/playpad-sdk/compare/v4.0.0...v5.0.0) (2026-11-05)
+
+
+* feat!: Leave ending the async game sample's match to the SDK ([31e396c](https://github.com/Elympics/playpad-sdk/commit/31e396cd1c35f0d59214b1d6ca4fc9239addd2f1))
+* feat!: Start the async game sample at the SDK match start ([6c95a35](https://github.com/Elympics/playpad-sdk/commit/6c95a3543246572194cef0ccb200e5bee03e8052))
+
+
+### Features
+
+* Mark the player ready with a Ready button in the async game sample ([813ba35](https://github.com/Elympics/playpad-sdk/commit/813ba351838c1c873f81caa2f5cfd83a091865a0))
+
+
+### BREAKING CHANGES :warning:
+
+* GenericServerHandler's autoTerminationOnLeft and
+rejoiningTimeoutInSeconds, MatchEnder and ScoreProviderBase are removed.
+Set terminateWhenPlayersLeave in the game config and report scores through
+ElympicsScore. A match ended with all-zero scores now sends them instead of
+no result.
+* requires the Elympics SDK version with IElympics.MarkReady().
+
+
+
 ## [4.0.0](https://github.com/Elympics/playpad-sdk/compare/v3.0.0...v4.0.0) (2026-10-28)
 
 
