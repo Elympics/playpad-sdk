@@ -27,21 +27,21 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         [UsedImplicitly]
         public void HandleResponse(string responseObject)
         {
-            Debug.Log($"From JS: handle response {responseObject}");
+            Debug.Log($"From JS: handle response {HostMessageLogRedaction.Redact(responseObject)}");
             ResponseMessageReceived?.Invoke(responseObject);
         }
 
         [UsedImplicitly]
         public void HandleWebEvent(string messageObject)
         {
-            Debug.Log($"From JS: handle web event {messageObject}");
+            Debug.Log($"From JS: handle web event {HostMessageLogRedaction.Redact(messageObject)}");
             WebMessageReceived?.Invoke(messageObject);
         }
 
         [UsedImplicitly]
         public void HandleWebRequest(string messageObject)
         {
-            Debug.Log($"From JS: handle web request {messageObject}");
+            Debug.Log($"From JS: handle web request {HostMessageLogRedaction.Redact(messageObject)}");
             WebRequestMessageReceived?.Invoke(messageObject);
         }
 

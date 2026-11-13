@@ -102,7 +102,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         public void OnResponseObjectReceived(string responseMessageJson)
         {
             var logger = _logger.WithMethodName();
-            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseMessageJson}");
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {HostMessageLogRedaction.Redact(responseMessageJson)}");
             var response = JsonUtility.FromJson<ResponseMessage>(responseMessageJson);
 
             if (!TicketStatus.TryGetValue(response.ticket, out var ticketStatus))
