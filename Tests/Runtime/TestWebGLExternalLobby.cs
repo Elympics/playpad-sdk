@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Elympics;
 using Elympics.Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
@@ -111,6 +112,26 @@ namespace ElympicsPlayPad.Tests
             _sut.PlayMatch();
 
             _launcher.ReceivedLaunch<OnlineLaunchData>(1, GameId, data => data.MatchId == OtherMatchId);
+        }
+
+        [Test]
+        public void JoinTokenAndIceServersFromTheLobbyStatusReachTheLaunchData()
+        {
+            _sut.OnWebMessage(new WebMessage
+            {
+                type = WebMessageTypes.LobbyStatusUpdated,
+                message = "{\"matchId\":\"" + MatchId + "\",\"userSecret\":\"\",\"tcpUdpServerAddress\":\"1.2.3.4:5678\",\"webServerAddress\":\"https://gs.example/match\","
+                    + "\"matchedPlayers\":[\"" + UserId + "\"],\"joinToken\":\"join-token\","
+                    + "\"iceServers\":[{\"urls\":[\"turn:turn.example:3478\"],\"username\":\"u\",\"credential\":\"c\"}]}",
+            });
+
+            _sut.PlayMatch();
+
+            _launcher.ReceivedLaunch<OnlineLaunchData>(1, GameId, data => data.JoinToken == "join-token"
+                && data.IceServers is { Count: 1 } servers
+                && servers[0].urls.SequenceEqual(new[] { "turn:turn.example:3478" })
+                && servers[0].username == "u"
+                && servers[0].credential == "c");
         }
     }
 }

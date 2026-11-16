@@ -1,4 +1,5 @@
 using System;
+using Elympics;
 
 namespace ElympicsPlayPad.Protocol.Responses
 {
@@ -14,5 +15,7 @@ namespace ElympicsPlayPad.Protocol.Responses
         public string tcpUdpServerAddress;
         public string webServerAddress;
         public string[] matchedPlayers;
+        public string joinToken;
+        public IceServer[] iceServers;
     }
 }

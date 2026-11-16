@@ -29,7 +29,9 @@ namespace ElympicsPlayPad.Wrappers
         IReadOnlyList<byte> GameEngineData,
         IReadOnlyList<float> MatchmakerData,
         string QueueName,
-        string RegionName);
+        string RegionName,
+        string JoinToken = "",
+        IReadOnlyList<IceServer>? IceServers = null);
 
     internal static class MatchLaunching
     {
@@ -51,7 +53,10 @@ namespace ElympicsPlayPad.Wrappers
 
             var useTcpUdp = !useWeb;
             var data = new OnlineLaunchData(useTcpUdp ? match.TcpUdpServerAddress : match.WebServerAddress, useTcpUdp, match.MatchId, match.UserSecret, userId,
-                match.MatchedPlayers, match.RegionName, match.GameEngineData, match.MatchmakerData);
+                match.MatchedPlayers, match.RegionName, match.GameEngineData, match.MatchmakerData, match.JoinToken)
+            {
+                IceServers = match.IceServers,
+            };
             return await launcher.LaunchOnlineAsync(gameId, data, ct: ct);
         }
 
