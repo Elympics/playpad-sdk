@@ -9,6 +9,5 @@ namespace ElympicsPlayPad.Lobby.Serializers
     {
         byte[] Serialize(IToLobby message);
         IFromLobby Deserialize(byte[] data);
-        bool TryGetHumanReadableRepresentation(byte[] data, out string? representation);
     }
 }
