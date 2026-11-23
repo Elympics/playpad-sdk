@@ -93,7 +93,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                 removedTicketStatus.Dispose();
         }
 
-        private static string GetErrorDescription(TicketStatus ticketStatus) => RequestErrors.GetErrorMessage(ticketStatus.Response!.status, ticketStatus.Response!.type) + $"{Environment.NewLine}Details: {ticketStatus.Response!.response}";
+        private static string GetErrorDescription(TicketStatus ticketStatus) => RequestErrors.GetErrorMessage(ticketStatus.Response!.status, ticketStatus.Response!.type) + $"{Environment.NewLine}Details: {HostMessageLogRedaction.Redact(ticketStatus.Response!.response)}";
         private static bool IsErrorResponse(TicketStatus ticketStatus, out int code)
         {
             code = ticketStatus.Response!.status;

@@ -207,7 +207,7 @@ namespace ElympicsPlayPad.Lobby
             {
                 var data = _serializer.Serialize(message);
 #if ELYMPICS_DEBUG
-                // ToString, not the serialized data: the DTOs' ToString overrides leave out secrets such as UserSecret.
+                // ToString, not the serialized data: a DTO that holds a secret must leave it out of ToString (MatchDetailsDto omits UserSecret).
                 ElympicsLogger.LogDebug($"Sending WebSocket message: {message.GetType().FullName} to: {ConnectionDetails?.Url}\n{message}");
 #endif
                 _ws?.Send(data);
