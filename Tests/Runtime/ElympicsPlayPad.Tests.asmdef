@@ -11,7 +11,8 @@
         "ElympicsPlayPad.Lobby",
         "ElympicsPlayPad.Rooms",
         "Elympics.Core",
-        "ElympicsPlayPad.WebSocket"
+        "ElympicsPlayPad.WebSocket",
+        "Elympics.WebRtc.Common"
     ],
     "includePlatforms": [],
     "excludePlatforms": [

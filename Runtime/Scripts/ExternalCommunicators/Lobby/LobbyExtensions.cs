@@ -27,7 +27,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Lobby
             var matchmakerData = response.matchmakerData ?? Array.Empty<float>();
 
             return new FoundMatch(matchId, matchedPlayers, response.tcpUdpServerAddress, response.webServerAddress, response.userSecret, gameEngineData, matchmakerData,
-                response.queueName, response.regionName);
+                response.queueName, response.regionName, response.joinToken ?? string.Empty, response.iceServers);
         }
     }
 }
