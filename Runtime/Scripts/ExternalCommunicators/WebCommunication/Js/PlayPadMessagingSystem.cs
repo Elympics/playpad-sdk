@@ -41,7 +41,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
             var ticket = _requestCounter;
             ++_requestCounter;
             var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, payload);
-            ElympicsLogger.LogInfo($"Send Request {messageType} message: {message}");
+            ElympicsLogger.LogInfo($"Send Request {messageType} message: {HostMessageLogRedaction.Redact(message)}");
             _dispatcher.RegisterTicket(ticket, messageType, timeout);
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.HandleMessage, message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket, ct);
@@ -52,7 +52,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
             if (!BlockEventLog(messageType))
-                ElympicsLogger.LogInfo($"Send Void {messageType} message: {message}");
+                ElympicsLogger.LogInfo($"Send Void {messageType} message: {HostMessageLogRedaction.Redact(message)}");
 
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.VoidMessage, message);
         }
@@ -61,7 +61,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             var message = $"{{\"{nameof(VoidMessage<string>.type)}\":\"{messageType}\", \"{nameof(VoidMessage<string>.payload)}\":{payload}}}";
             if (!BlockEventLog(messageType))
-                ElympicsLogger.LogInfo($"Send Void {messageType} message: {message}");
+                ElympicsLogger.LogInfo($"Send Void {messageType} message: {HostMessageLogRedaction.Redact(message)}");
 
             playpadCommunicator.SendRequestMessage(PlayPadHandlers.VoidMessage, message);
         }
@@ -107,7 +107,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js
         {
             try
             {
-                ElympicsLogger.LogInfo($"Received WebMessage message: {jsonMessage}");
+                ElympicsLogger.LogInfo($"Received WebMessage message: {HostMessageLogRedaction.Redact(jsonMessage)}");
                 var message = JsonUtility.FromJson<WebMessage>(jsonMessage);
                 WebObjectReceived?.Invoke(message);
                 if (_webMessageReceivers.TryGetValue(message.type, out var listeners))

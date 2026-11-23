@@ -207,11 +207,8 @@ namespace ElympicsPlayPad.Lobby
             {
                 var data = _serializer.Serialize(message);
 #if ELYMPICS_DEBUG
-                {
-                    var typeName = message.GetType().FullName;
-                    if (_serializer.TryGetHumanReadableRepresentation(data, out var representation))
-                        ElympicsLogger.LogDebug($"Sending WebSocket message: {typeName} to: {ConnectionDetails?.Url}\n{representation}");
-                }
+                // ToString, not the serialized data: a DTO that holds a secret must leave it out of ToString (MatchDetailsDto omits UserSecret).
+                ElympicsLogger.LogDebug($"Sending WebSocket message: {message.GetType().FullName} to: {ConnectionDetails?.Url}\n{message}");
 #endif
                 _ws?.Send(data);
             }
@@ -228,11 +225,7 @@ namespace ElympicsPlayPad.Lobby
                 var message = _serializer.Deserialize(data)
                     ?? throw new ElympicsException("Invalid message received");
 #if ELYMPICS_DEBUG
-                {
-                    var typeName = message.GetType().FullName;
-                    if (_serializer.TryGetHumanReadableRepresentation(data, out var representation))
-                        ElympicsLogger.LogDebug($"Received WebSocket message: {typeName} from: {ConnectionDetails?.Url}\n{representation}");
-                }
+                ElympicsLogger.LogDebug($"Received WebSocket message: {message.GetType().FullName} from: {ConnectionDetails?.Url}\n{message}");
 #endif
                 if (message is PingDto)
                 {

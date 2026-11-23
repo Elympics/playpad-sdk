@@ -93,7 +93,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
                 removedTicketStatus.Dispose();
         }
 
-        private static string GetErrorDescription(TicketStatus ticketStatus) => RequestErrors.GetErrorMessage(ticketStatus.Response!.status, ticketStatus.Response!.type) + $"{Environment.NewLine}Details: {ticketStatus.Response!.response}";
+        private static string GetErrorDescription(TicketStatus ticketStatus) => RequestErrors.GetErrorMessage(ticketStatus.Response!.status, ticketStatus.Response!.type) + $"{Environment.NewLine}Details: {HostMessageLogRedaction.Redact(ticketStatus.Response!.response)}";
         private static bool IsErrorResponse(TicketStatus ticketStatus, out int code)
         {
             code = ticketStatus.Response!.status;
@@ -102,7 +102,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
         public void OnResponseObjectReceived(string responseMessageJson)
         {
             var logger = _logger.WithMethodName();
-            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseMessageJson}");
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {HostMessageLogRedaction.Redact(responseMessageJson)}");
             var response = JsonUtility.FromJson<ResponseMessage>(responseMessageJson);
 
             if (!TicketStatus.TryGetValue(response.ticket, out var ticketStatus))
