@@ -28,6 +28,18 @@ namespace ElympicsPlayPad.Tests
                 + "\"response\":\"{\\\"jwt\\\":\\\"***\\\",\\\"nickname\\\":\\\"jwt\\\"}\"}", redacted);
         }
 
+        [Test]
+        public void JoinTokenAndIceServerCredentialsInLobbyStatusShouldBeMasked()
+        {
+            const string json = "{\"type\":\"LobbyStatus\",\"message\":\"{\\\"joinToken\\\":\\\"eyJ.join.token\\\","
+                + "\\\"iceServers\\\":[{\\\"urls\\\":[\\\"turn:turn.example:3478\\\"],\\\"username\\\":\\\"u\\\",\\\"credential\\\":\\\"c+1/2=\\\"}]}\"}";
+
+            var redacted = HostMessageLogRedaction.Redact(json);
+
+            Assert.AreEqual("{\"type\":\"LobbyStatus\",\"message\":\"{\\\"joinToken\\\":\\\"***\\\","
+                + "\\\"iceServers\\\":[{\\\"urls\\\":[\\\"turn:turn.example:3478\\\"],\\\"username\\\":\\\"u\\\",\\\"credential\\\":\\\"***\\\"}]}\"}", redacted);
+        }
+
         [TestCase(null, "")]
         [TestCase("", "")]
         [TestCase("{\"type\":\"jwt\",\"payload\":{\"jwtX\":\"keep\"}}", "{\"type\":\"jwt\",\"payload\":{\"jwtX\":\"keep\"}}")]

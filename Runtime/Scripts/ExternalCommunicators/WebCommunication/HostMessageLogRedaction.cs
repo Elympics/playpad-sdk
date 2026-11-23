@@ -11,7 +11,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.WebCommunication
     internal static class HostMessageLogRedaction
     {
         internal const string Mask = "***";
-        private static readonly string[] SensitiveKeys = { "jwt", "jwtToken", "userSecret", "clientSecret" };
+        private static readonly string[] SensitiveKeys = { "jwt", "jwtToken", "userSecret", "clientSecret", "joinToken", "credential" };
 
         public static string Redact(string? json)
         {
