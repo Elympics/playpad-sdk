@@ -50,6 +50,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
+            // Offline, nothing raises FinishSessionInfoUpdate again, so the wait below would never end.
+            if (_sessionManager.IsOffline)
+                throw new SessionmanagerException($"Can't change the region in the offline game mode {_sessionManager.GameMode}.");
             _ = await _playPadMessagingSystem.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
                 new ChangeRegionRequest
                 {
@@ -96,15 +99,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             try
             {
                 var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct, HandshakeTimeout);
-                var capabilities = (Capabilities)result.capabilities;
-                var isMobile = result.device == "mobile";
-                var closestRegion = result.closestRegion;
-                var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
-                var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
                 ElympicsLogger.State.SetFleetName(result.fleetName);
                 ElympicsLogger.State.SetGameVersionId(result.gameVersionId);
-                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
+                return CreateHandshakeInfo(result);
             }
             catch (ResponseException e)
             {
@@ -114,6 +112,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 throw logger.LogExceptionAndReturn(e);
             }
         }
+
+        internal static HandshakeInfo CreateHandshakeInfo(HandshakeResponse response) =>
+            new(response.device == "mobile",
+                (Capabilities)response.capabilities,
+                response.environment,
+                response.closestRegion,
+                (FeatureAccess)response.featureAccess,
+                new UserPrefsInfo(response.userPrefs.languages),
+                (LaunchMode)response.launchMode,
+                GameModes.Normalize(response.gameMode));
 
         private void ThrowIfInvalidAuthenticateResponse(AuthenticationResponse result)
         {
