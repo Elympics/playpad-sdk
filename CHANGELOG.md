@@ -1,17 +1,10 @@
 ## [5.1.0](https://github.com/Elympics/playpad-sdk/compare/v5.0.0...v5.1.0) (2026-11-25)
 
 
-### Bug Fixes 🪲
-
-* drop the unread elympicsGameMode query key from the game mode override ([1442bd2](https://github.com/Elympics/playpad-sdk/commit/1442bd2f9e43deb0040260dc551e0a31cb10a9a9))
-* read the game mode override without static state ([5e12263](https://github.com/Elympics/playpad-sdk/commit/5e1226332acd0ee55fffadad5b766aaeeae49141))
-* throw from WebGL ChangeRegion in an offline game mode ([feb2189](https://github.com/Elympics/playpad-sdk/commit/feb2189c157e92be1ce5c785f4e75314b79dbc74))
-
-
 ### Features
 
-* support offline game modes from the PlayPad handshake ([a9de1bb](https://github.com/Elympics/playpad-sdk/commit/a9de1bbeca6f570918fcee734d10f135a0a1d4fa))
-* update the ElympicsLobby WebGL template to v0.7.0 ([5630924](https://github.com/Elympics/playpad-sdk/commit/56309248e6d47c581c72da0add5e86259935fdeb))
+* Support offline game modes from the PlayPad handshake ([a9de1bb](https://github.com/Elympics/playpad-sdk/commit/a9de1bbeca6f570918fcee734d10f135a0a1d4fa)). In an offline mode (any gameMode but standard) SessionManager stops after the handshake: no authentication, region lookup, matchmaking or lobby. ISessionManager gains IsOffline and GameMode as default interface members. ELYMPICS_GAME_MODE overrides the mode in the Editor and non-WebGL players.
+* Update the ElympicsLobby WebGL template to v0.7.0 ([5630924](https://github.com/Elympics/playpad-sdk/commit/56309248e6d47c581c72da0add5e86259935fdeb)). In local mode it sends the gameMode set in the Game Config panel.
 
 
 
