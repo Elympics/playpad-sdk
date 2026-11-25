@@ -14,6 +14,8 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus;
 using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
+using ElympicsPlayPad.Session.Exceptions;
+using ElympicsPlayPad.Tests.Lobby.Common;
 using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -61,6 +63,8 @@ namespace ElympicsPlayPad.Tests
  }";
 
         private string _jwtEncoded;
+        private AuthFactory _originalAuthFactory;
+        private string _originalGameModeVariable;
 
         [OneTimeSetUp]
         protected override void OneTimeSetUp()
@@ -84,6 +88,9 @@ namespace ElympicsPlayPad.Tests
             _ = PlaypadCommunicatorMock.Connect().Returns(UniTask.CompletedTask);
             Assert.NotNull(_sut);
             _sut.Reset();
+            _originalAuthFactory = (AuthFactory)typeof(SessionManager).GetField("_authFactory", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(_sut);
+            _originalGameModeVariable = Environment.GetEnvironmentVariable(GameModeOverride.EnvironmentVariableName);
+            Environment.SetEnvironmentVariable(GameModeOverride.EnvironmentVariableName, null);
         }
 
         [UnityTest]
@@ -192,6 +199,100 @@ namespace ElympicsPlayPad.Tests
             Assert.AreSame(newRegion3, _sut.CurrentSession?.ClosestRegion);
         });
 
+        [UnityTest]
+        public IEnumerator AuthenticateFromExternalAndConnect_OfflineGameMode_StopsBeforeAuthentication() => UniTask.ToCoroutine(async () =>
+        {
+            // The empty factory throws on any provider lookup, and LaunchMode.None makes creating an initialization strategy throw.
+            _sut.Init(new AuthFactory(), PlaypadCommunicatorMock);
+            SetupHandshakeResult(" onboarding ", LaunchMode.None);
+            var finishedCount = 0;
+            _sut.FinishSessionInfoUpdate += () => finishedCount++;
+
+            await _sut.AuthenticateFromExternalAndConnect();
+
+            Assert.IsTrue(_sut.IsOffline);
+            Assert.AreEqual("onboarding", _sut.GameMode);
+            Assert.IsTrue(((ISessionManager)_sut).IsOffline);
+            Assert.AreEqual("onboarding", ((ISessionManager)_sut).GameMode);
+            Assert.IsNull(_sut.CurrentSession);
+            Assert.AreEqual(1, finishedCount);
+            _ = AuthMock.DidNotReceiveWithAnyArgs().Authenticate();
+        });
+
+        [UnityTest]
+        public IEnumerator AuthenticateFromExternalAndConnect_SecondCallAfterOfflineGameMode_Throws() => UniTask.ToCoroutine(async () =>
+        {
+            _sut.Init(new AuthFactory(), PlaypadCommunicatorMock);
+            SetupHandshakeResult("onboarding_ghost", LaunchMode.Gameplay);
+            await _sut.AuthenticateFromExternalAndConnect();
+
+            var exception = await AsyncAsserts.AssertThrowsAsync<SessionmanagerException>(_sut.AuthenticateFromExternalAndConnect);
+            StringAssert.Contains("already initialized", exception.Message);
+        });
+
+        [UnityTest]
+        public IEnumerator AuthenticateFromExternalAndConnect_StandardGameModeValue_Authenticates() => UniTask.ToCoroutine(async () =>
+        {
+            SetupHandshakeResult("standard", LaunchMode.Lobby | LaunchMode.Gameplay);
+            SetupStandardFlowMocks();
+
+            await _sut.AuthenticateFromExternalAndConnect();
+
+            Assert.IsFalse(_sut.IsOffline);
+            Assert.IsNull(_sut.GameMode);
+            Assert.IsNotNull(_sut.CurrentSession);
+            _ = AuthMock.Received(1).Authenticate();
+        });
+
+        [UnityTest]
+        public IEnumerator AuthenticateFromExternalAndConnect_GameModeOverride_ReplacesHandshakeMode() => UniTask.ToCoroutine(async () =>
+        {
+            SetupHandshakeResult(null, LaunchMode.None);
+            Environment.SetEnvironmentVariable(GameModeOverride.EnvironmentVariableName, "onboarding");
+            _sut.Init(new AuthFactory(), PlaypadCommunicatorMock);
+
+            await _sut.AuthenticateFromExternalAndConnect();
+
+            Assert.IsTrue(_sut.IsOffline);
+            Assert.AreEqual("onboarding", _sut.GameMode);
+        });
+
+        [UnityTest]
+        public IEnumerator AuthenticateFromExternalAndConnect_GameModeOverrideStandard_ReplacesOfflineHandshakeMode() => UniTask.ToCoroutine(async () =>
+        {
+            SetupHandshakeResult("onboarding", LaunchMode.Lobby | LaunchMode.Gameplay);
+            SetupStandardFlowMocks();
+            Environment.SetEnvironmentVariable(GameModeOverride.EnvironmentVariableName, "standard");
+
+            await _sut.AuthenticateFromExternalAndConnect();
+
+            Assert.IsFalse(_sut.IsOffline);
+            Assert.IsNotNull(_sut.CurrentSession);
+        });
+
+        private void SetupHandshakeResult(string gameMode, LaunchMode launchMode) =>
+            _ = AuthMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(UniTask.FromResult(new HandshakeInfo(false,
+                    Capabilities.Ethereum,
+                    DefaultEnvironment,
+                    DefaultClosestRegion,
+                    FeatureAccess.Authentication,
+                    new UserPrefsInfo(new[] { "en" }),
+                    launchMode,
+                    gameMode)));
+
+        private void SetupStandardFlowMocks()
+        {
+            _ = AuthMock.Authenticate().Returns(UniTask.FromResult(new AuthData(UserId, _jwtEncoded, AuthType.ClientSecret)));
+            var playStatus = new PlayStatusInfo
+            {
+                PlayStatus = Status,
+                LabelInfo = Label,
+            };
+            _ = GameMock.CanPlayGame(Arg.Any<bool>()).Returns(UniTask.FromResult(playStatus));
+            _ = GameMock.CurrentPlayStatus.Returns(playStatus);
+        }
+
         private static string EncodeJwtFromJson(string json)
         {
             var jwtObject = JObject.Parse(json);
@@ -242,6 +343,8 @@ namespace ElympicsPlayPad.Tests
             AuthMock.ClearSubstitute();
             GameMock.ClearSubstitute();
             _sut.Reset();
+            _sut.Init(_originalAuthFactory, PlaypadCommunicatorMock);
+            Environment.SetEnvironmentVariable(GameModeOverride.EnvironmentVariableName, _originalGameModeVariable);
         }
     }
 }
