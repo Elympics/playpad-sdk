@@ -12,8 +12,8 @@ namespace ElympicsPlayPad.Session
         bool ConnectedWithPlayPad { get; }
 
         /// <summary>
-        /// <c>true</c> when the host asked for an offline game mode: <see cref="AuthenticateFromExternalAndConnect"/> stopped after the handshake,
-        /// so there is no authentication and <see cref="CurrentSession"/> stays <c>null</c>.
+        /// <c>true</c> in an offline game mode, set by the host or the <c>ELYMPICS_GAME_MODE</c> override: <see cref="AuthenticateFromExternalAndConnect"/>
+        /// stopped after the handshake, so there is no authentication and <see cref="CurrentSession"/> stays <c>null</c> (see <c>offline-game-modes.md</c>).
         /// </summary>
         bool IsOffline => false;
 

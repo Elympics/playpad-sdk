@@ -39,14 +39,11 @@ namespace ElympicsPlayPad.Session
         [PublicAPI]
         public bool ConnectedWithPlayPad => instance != null;
 
-        /// <summary>
-        /// <c>true</c> when the host asked for an offline game mode: the session stopped after the handshake, <see cref="CurrentSession"/> is <c>null</c>
-        /// and the game runs its offline content (see <c>offline-game-modes.md</c>).
-        /// </summary>
+        /// <inheritdoc/>
         [PublicAPI]
         public bool IsOffline { get; private set; }
 
-        /// <summary>The offline game mode, for example <c>onboarding</c>. <c>null</c> in the standard online flow.</summary>
+        /// <inheritdoc/>
         [PublicAPI]
         public string? GameMode { get; private set; }
 
@@ -90,6 +87,7 @@ namespace ElympicsPlayPad.Session
         /// <summary>
         /// Request PlayPad for authentication.
         /// Initialize Tournament if available.
+        /// In an offline game mode it stops after the handshake, without authenticating (see <see cref="IsOffline"/>).
         /// </summary>
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
