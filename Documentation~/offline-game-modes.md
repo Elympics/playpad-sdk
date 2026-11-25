@@ -21,7 +21,7 @@ A game that doesn't know an offline value should start nothing and log an error.
 - `ISessionManager.IsOffline` is `true` and `ISessionManager.GameMode` holds the mode.
 - `CurrentSession` stays `null`, so don't read it without checking `IsOffline`.
 - `FinishSessionInfoUpdate` is raised once, and a second call to `AuthenticateFromExternalAndConnect()` still throws "already initialized".
-- Do not call `ChangeRegion` offline: it waits for a session update that never comes.
+- In WebGL, `IExternalAuthenticator.ChangeRegion` throws a `SessionmanagerException` offline, because there is no session whose region could change.
 
 What keeps working: the heartbeat (it starts with the handshake), `HideSplashScreen`, breadcrumbs and `Quit`.
 

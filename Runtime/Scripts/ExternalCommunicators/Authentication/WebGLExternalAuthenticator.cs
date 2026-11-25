@@ -50,6 +50,9 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         }
         public async UniTask ChangeRegion(string newRegion, CancellationToken ct = default)
         {
+            // Offline nothing raises FinishSessionInfoUpdate again, so the wait below would never end.
+            if (_sessionManager.IsOffline)
+                throw new SessionmanagerException($"Can't change the region in the offline game mode {_sessionManager.GameMode}.");
             _ = await _playPadMessagingSystem.SendRequestMessage<ChangeRegionRequest, EmptyPayload>(RequestResponseMessageTypes.ChangeRegion,
                 new ChangeRegionRequest
                 {
