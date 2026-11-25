@@ -30,7 +30,7 @@ namespace ElympicsPlayPad.Tests
             Assert.AreEqual(expected, GameModes.Normalize(raw));
 
         [Test]
-        public void HandshakeInfo_WithoutGameMode_HasNullGameMode()
+        public void CreateHandshakeInfoWithoutGameModeGivesNull()
         {
             var info = new HandshakeInfo(false, Capabilities.None, "Dev", "warsaw", FeatureAccess.None, new UserPrefsInfo(Array.Empty<string>()), LaunchMode.Gameplay);
 
@@ -38,7 +38,7 @@ namespace ElympicsPlayPad.Tests
         }
 
         [Test]
-        public void HandshakeInfo_WithGameMode_KeepsIt()
+        public void CreateHandshakeInfoWithGameModeKeepsIt()
         {
             var info = new HandshakeInfo(false, Capabilities.None, "Dev", "warsaw", FeatureAccess.None, new UserPrefsInfo(Array.Empty<string>()), LaunchMode.Gameplay, "onboarding");
 
@@ -46,7 +46,7 @@ namespace ElympicsPlayPad.Tests
         }
 
         [Test]
-        public void HandshakeResponse_WithGameMode_DeserializesIt()
+        public void DeserializeHandshakeResponseWithGameModeKeepsIt()
         {
             var response = JsonUtility.FromJson<HandshakeResponse>("{\"environment\":\"Stg\",\"launchMode\":1,\"gameMode\":\"onboarding_ghost\"}");
 
@@ -54,11 +54,43 @@ namespace ElympicsPlayPad.Tests
         }
 
         [Test]
-        public void HandshakeResponse_WithoutGameMode_IsStandard()
+        public void DeserializeHandshakeResponseWithoutGameModeGivesStandard()
         {
             var response = JsonUtility.FromJson<HandshakeResponse>("{\"environment\":\"Stg\",\"launchMode\":1}");
 
             Assert.IsNull(GameModes.Normalize(response.gameMode));
+        }
+
+        // The JoyFlick handshake response recorded in the host hand-off, with the gameMode member appended by each test.
+        private const string RecordedHandshakeJson = "{\"capabilities\":0,\"featureAccess\":0,\"launchMode\":1,\"device\":\"desktop\",\"environment\":\"Stg\",\"closestRegion\":\"stg\","
+            + "\"heartbeatIntervalMs\":2000,\"userPrefs\":{\"languages\":[\"en\"]},\"gameVersionId\":\"\",\"fleetName\":\"\"";
+
+        [Test]
+        public void CreateHandshakeInfoFromRecordedOnboardingResponseGivesOnboarding()
+        {
+            var response = JsonUtility.FromJson<HandshakeResponse>(RecordedHandshakeJson + ",\"gameMode\":\"onboarding\"}");
+
+            var info = WebGLExternalAuthenticator.CreateHandshakeInfo(response);
+
+            Assert.AreEqual("onboarding", info.GameMode);
+            Assert.AreEqual("Stg", info.Environment);
+            Assert.AreEqual(LaunchMode.Gameplay, info.LaunchMode);
+        }
+
+        [Test]
+        public void CreateHandshakeInfoFromRecordedResponseWithoutGameModeGivesNull()
+        {
+            var response = JsonUtility.FromJson<HandshakeResponse>(RecordedHandshakeJson + "}");
+
+            Assert.IsNull(WebGLExternalAuthenticator.CreateHandshakeInfo(response).GameMode);
+        }
+
+        [Test]
+        public void CreateHandshakeInfoFromRecordedStandardResponseGivesNull()
+        {
+            var response = JsonUtility.FromJson<HandshakeResponse>(RecordedHandshakeJson + ",\"gameMode\":\"standard\"}");
+
+            Assert.IsNull(WebGLExternalAuthenticator.CreateHandshakeInfo(response).GameMode);
         }
 
 #if UNITY_EDITOR || !UNITY_WEBGL

@@ -96,15 +96,10 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
             try
             {
                 var result = await _playPadMessagingSystem.SendRequestMessage<HandshakeRequest, HandshakeResponse>(RequestResponseMessageTypes.Handshake, message, ct, HandshakeTimeout);
-                var capabilities = (Capabilities)result.capabilities;
-                var isMobile = result.device == "mobile";
-                var closestRegion = result.closestRegion;
-                var featureAccess = (FeatureAccess)result.featureAccess;
                 _heartbeatCommunicator.RunHeartbeat(result.heartbeatIntervalMs);
-                var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
                 ElympicsLogger.State.SetFleetName(result.fleetName);
                 ElympicsLogger.State.SetGameVersionId(result.gameVersionId);
-                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode, GameModes.Normalize(result.gameMode));
+                return CreateHandshakeInfo(result);
             }
             catch (ResponseException e)
             {
@@ -114,6 +109,16 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 throw logger.LogExceptionAndReturn(e);
             }
         }
+
+        internal static HandshakeInfo CreateHandshakeInfo(HandshakeResponse response) =>
+            new(response.device == "mobile",
+                (Capabilities)response.capabilities,
+                response.environment,
+                response.closestRegion,
+                (FeatureAccess)response.featureAccess,
+                new UserPrefsInfo(response.userPrefs.languages),
+                (LaunchMode)response.launchMode,
+                GameModes.Normalize(response.gameMode));
 
         private void ThrowIfInvalidAuthenticateResponse(AuthenticationResponse result)
         {

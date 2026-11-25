@@ -28,6 +28,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
         {
         }
 
+        /// <param name="gameMode">The game mode, already normalised: <c>null</c> for the standard online flow, otherwise an offline mode.</param>
         public HandshakeInfo(
             bool isMobile,
             Capabilities capabilities,
