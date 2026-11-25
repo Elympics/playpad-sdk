@@ -14,17 +14,15 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
         internal const string EnvironmentVariableName = "ELYMPICS_GAME_MODE";
 
 #if UNITY_EDITOR || !UNITY_WEBGL
-        private static readonly Parameter<string> Parameter = new(envVarName: EnvironmentVariableName, longArgName: "elympics-game-mode");
-
         internal static string? Read()
         {
-            Parameter.Reset();
-            var parameters = new Parameter[] { Parameter };
+            var gameMode = new Parameter<string>(envVarName: EnvironmentVariableName, longArgName: "elympics-game-mode");
+            var parameters = new Parameter[] { gameMode };
             ParameterList.CollectFromEnvironmentVariables(parameters, Environment.GetEnvironmentVariables());
             ParameterList.CollectFromNamedArguments(parameters, PlayModeArguments.Read());
             ParameterList.CollectFromNamedArguments(parameters, Environment.GetCommandLineArgs());
-            Parameter.ValidateAndParseRawValue();
-            return Parameter.GetValue();
+            gameMode.ValidateAndParseRawValue();
+            return gameMode.GetValue();
         }
 #else
         internal static string? Read() => null;
