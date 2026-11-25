@@ -15,6 +15,7 @@ using ElympicsPlayPad.ExternalCommunicators.GameStatus.Models;
 using ElympicsPlayPad.ExternalCommunicators.WebCommunication.Js;
 using ElympicsPlayPad.Session;
 using ElympicsPlayPad.Session.Exceptions;
+using ElympicsPlayPad.Tests.Lobby.Common;
 using ElympicsPlayPad.Tests.Runtime.Mocks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -225,18 +226,8 @@ namespace ElympicsPlayPad.Tests
             SetupHandshakeResult("onboarding_ghost", LaunchMode.Gameplay);
             await _sut.AuthenticateFromExternalAndConnect();
 
-            var exception = default(Exception);
-            try
-            {
-                await _sut.AuthenticateFromExternalAndConnect();
-            }
-            catch (SessionmanagerException e)
-            {
-                exception = e;
-            }
-
-            Assert.IsNotNull(exception);
-            StringAssert.Contains("already initialized", exception!.Message);
+            var exception = await AsyncAsserts.AssertThrowsAsync<SessionmanagerException>(_sut.AuthenticateFromExternalAndConnect);
+            StringAssert.Contains("already initialized", exception.Message);
         });
 
         [UnityTest]

@@ -61,7 +61,7 @@ namespace ElympicsPlayPad.Tests
             Assert.IsNull(GameModes.Normalize(response.gameMode));
         }
 
-        // The JoyFlick handshake response recorded in the host hand-off, with the gameMode member appended by each test.
+        // The JoyFlick handshake response recorded in the host hand-off, left open: each test closes it, optionally after a gameMode member.
         private const string RecordedHandshakeJson = "{\"capabilities\":0,\"featureAccess\":0,\"launchMode\":1,\"device\":\"desktop\",\"environment\":\"Stg\",\"closestRegion\":\"stg\","
             + "\"heartbeatIntervalMs\":2000,\"userPrefs\":{\"languages\":[\"en\"]},\"gameVersionId\":\"\",\"fleetName\":\"\"";
 
