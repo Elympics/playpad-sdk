@@ -21,6 +21,7 @@ A game that doesn't know an offline value should start nothing and log an error.
 - `ISessionManager.IsOffline` is `true` and `ISessionManager.GameMode` holds the mode.
 - `CurrentSession` stays `null`, so don't read it without checking `IsOffline`.
 - `FinishSessionInfoUpdate` is raised once, and a second call to `AuthenticateFromExternalAndConnect()` still throws "already initialized".
+- Do not call `ChangeRegion` offline: it waits for a session update that never comes.
 
 What keeps working: the heartbeat (it starts with the handshake), `HideSplashScreen`, breadcrumbs and `Quit`.
 
@@ -48,8 +49,18 @@ In the Editor and non-WebGL players, the `ELYMPICS_GAME_MODE` launch parameter r
 | Environment variable | `ELYMPICS_GAME_MODE` |
 | Command-line argument | `--elympics-game-mode=onboarding` |
 
-A non-empty value wins and goes through the same normalisation, so `standard` forces the online flow. The override is ignored in WebGL players.
+A non-blank value wins and goes through the same normalisation, so `standard` forces the online flow. The override is ignored in WebGL players.
 
 ## Testing in a WebGL build
 
-The bundled `ElympicsLobby` WebGL template (v0.7.0 and later) sends the config's `gameMode` in local mode. Open the build with `?gameMode=onboarding` (or `?gameMode=onboarding_ghost`) to start the offline flow. Without the parameter, or with `?gameMode=standard`, the standard flow runs.
+The bundled `ElympicsLobby` WebGL template (v0.7.0 and later) can send a `gameMode` in its handshake, but only in local mode, and the URL cannot set it. A built template always has its config injected, and then the page reads only `region` and `queue` from the URL, so `?gameMode=` and `?localMode=` are ignored in every Unity build.
+
+To start the offline flow:
+
+1. On the template page, open Game Config and tick `localMode`.
+2. Enter `onboarding` (or `onboarding_ghost`) in the `gameMode` field.
+3. Apply and reload.
+
+The settings are saved in the browser's localStorage, separately for each game ID and build. Without a `gameMode`, or with `standard`, the standard flow runs.
+
+`localMode` also switches to the local identity and the local Agones mock (`ws://localhost:9200`) for standard matches. To test the real standard flow, untick `localMode`; entering `standard` alone isn't enough.

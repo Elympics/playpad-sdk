@@ -211,6 +211,8 @@ namespace ElympicsPlayPad.Tests
 
             Assert.IsTrue(_sut.IsOffline);
             Assert.AreEqual("onboarding", _sut.GameMode);
+            Assert.IsTrue(((ISessionManager)_sut).IsOffline);
+            Assert.AreEqual("onboarding", ((ISessionManager)_sut).GameMode);
             Assert.IsNull(_sut.CurrentSession);
             Assert.AreEqual(1, finishedCount);
             _ = AuthMock.DidNotReceiveWithAnyArgs().Authenticate();
