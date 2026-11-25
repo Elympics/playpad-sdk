@@ -36,7 +36,7 @@ if (sessionManager.IsOffline)
 
 ## Your game's part
 
-The game runs the offline content itself, in one process, and ends it by sending `Quit` with the score (`QuitArgs { Score = ... }`). The host decides what happens next.
+The game runs the offline content itself, in one process, and ends it by sending `Quit` with the score: `PlayPadCommunicator.Instance!.LobbyCommunicator?.Quit(new QuitArgs { Score = ... })`. The host decides what happens next.
 
 Guests get an empty `jwt` from the host. An offline mode never asks for authentication, so this doesn't fail. In the standard flow an empty `jwt` still fails as before.
 
