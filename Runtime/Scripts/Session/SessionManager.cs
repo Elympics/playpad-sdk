@@ -39,6 +39,17 @@ namespace ElympicsPlayPad.Session
         [PublicAPI]
         public bool ConnectedWithPlayPad => instance != null;
 
+        /// <summary>
+        /// <c>true</c> when the host asked for an offline game mode: the session stopped after the handshake, <see cref="CurrentSession"/> is <c>null</c>
+        /// and the game runs its offline content (see <c>offline-game-modes.md</c>).
+        /// </summary>
+        [PublicAPI]
+        public bool IsOffline { get; private set; }
+
+        /// <summary>The offline game mode, for example <c>onboarding</c>. <c>null</c> in the standard online flow.</summary>
+        [PublicAPI]
+        public string? GameMode { get; private set; }
+
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
 
         private static SessionManager? instance;
@@ -100,7 +111,14 @@ namespace ElympicsPlayPad.Session
                 ElympicsLogger.State.SetPlayPadVersion(ExternalCommunicators.WebCommunication.Js.PlayPadMessagingSystem.ProtocolVersion);
                 ElympicsLogger.State.SetPlayPadCapabilities(handshake.Capabilities.ToString());
                 ElympicsLogger.State.SetPlayPadFeatureAccess(handshake.FeatureAccess.ToString());
-                logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}");
+                var gameModeOverride = GameModeOverride.Read();
+                var gameMode = GameModes.Normalize(string.IsNullOrWhiteSpace(gameModeOverride) ? handshake.GameMode : gameModeOverride);
+                logger.LogInfo($"Handshake info received: IsMobile={handshake.IsMobile}, Environment={handshake.Environment}, LaunchMode={handshake.LaunchMode}, GameMode={gameMode ?? GameModes.Standard}");
+                if (gameMode is not null)
+                {
+                    StartOfflineSession(gameMode, logger);
+                    return;
+                }
                 _initializationStrategy = CreateInitializationStrategy(handshake.LaunchMode);
                 _authProvider = _authFactory?.GetAuthProvider(handshake.LaunchMode);
                 _region = await GetClosestRegion(handshake.ClosestRegion);
@@ -122,6 +140,15 @@ namespace ElympicsPlayPad.Session
             }
             else
                 Destroy(gameObject);
+        }
+
+        private void StartOfflineSession(string gameMode, LoggerConfig logger)
+        {
+            GameMode = gameMode;
+            IsOffline = true;
+            logger.LogInfo($"Offline game mode {gameMode}: skipping authentication.");
+            FinishSessionInfoUpdate?.Invoke();
+            instance = this;
         }
 
         private async UniTask<HandshakeInfo> SetupHandshake()
@@ -332,6 +359,8 @@ namespace ElympicsPlayPad.Session
         {
             instance = null;
             CurrentSession = null;
+            IsOffline = false;
+            GameMode = null;
             _authProvider?.SignOut();
         }
 

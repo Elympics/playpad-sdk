@@ -17,6 +17,7 @@ namespace ElympicsPlayPad.Protocol.Responses
         public int launchMode;
         public string gameVersionId;
         public string fleetName;
+        public string? gameMode;
     }
 
     [Serializable]

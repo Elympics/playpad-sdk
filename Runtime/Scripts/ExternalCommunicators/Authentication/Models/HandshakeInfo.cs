@@ -11,6 +11,11 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
         public readonly UserPrefsInfo UserPrefs;
         public readonly LaunchMode LaunchMode;
 
+        /// <summary>
+        /// The game mode the host asked for. <c>null</c> means the standard online flow; any other value is an offline mode (see <c>offline-game-modes.md</c>).
+        /// </summary>
+        public readonly string? GameMode;
+
         public HandshakeInfo(
             bool isMobile,
             Capabilities capabilities,
@@ -19,6 +24,19 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
             FeatureAccess featureAccess,
             UserPrefsInfo userPrefs,
             LaunchMode launchMode)
+            : this(isMobile, capabilities, environment, closestRegion, featureAccess, userPrefs, launchMode, null)
+        {
+        }
+
+        public HandshakeInfo(
+            bool isMobile,
+            Capabilities capabilities,
+            string environment,
+            string closestRegion,
+            FeatureAccess featureAccess,
+            UserPrefsInfo userPrefs,
+            LaunchMode launchMode,
+            string? gameMode)
         {
             IsMobile = isMobile;
             Capabilities = capabilities;
@@ -27,7 +45,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication.Models
             FeatureAccess = featureAccess;
             UserPrefs = userPrefs;
             LaunchMode = launchMode;
-
+            GameMode = gameMode;
         }
     }
 

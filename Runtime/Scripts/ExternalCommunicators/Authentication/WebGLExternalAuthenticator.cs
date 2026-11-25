@@ -104,7 +104,7 @@ namespace ElympicsPlayPad.ExternalCommunicators.Authentication
                 var userPrefs = new UserPrefsInfo(result.userPrefs.languages);
                 ElympicsLogger.State.SetFleetName(result.fleetName);
                 ElympicsLogger.State.SetGameVersionId(result.gameVersionId);
-                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode);
+                return new HandshakeInfo(isMobile, capabilities, result.environment, closestRegion, featureAccess, userPrefs, (LaunchMode)result.launchMode, GameModes.Normalize(result.gameMode));
             }
             catch (ResponseException e)
             {
